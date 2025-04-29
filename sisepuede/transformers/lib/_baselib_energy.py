@@ -1,18 +1,13 @@
+from typing import *
 
 import numpy as np
 import pandas as pd
-from typing import *
 
-
-from sisepuede.transformers.lib._baselib_general import *
 import sisepuede.core.model_attributes as ma
-import sisepuede.core.support_classes as sc
-import sisepuede.models.energy_production as ml
 import sisepuede.models.energy_consumption as me
+import sisepuede.models.energy_production as ml
 import sisepuede.utilities._toolbox as sf
-
-
-
+from sisepuede.transformers.lib._baselib_general import *
 
 ####################################
 ###                              ###
@@ -25,69 +20,62 @@ import sisepuede.utilities._toolbox as sf
 #    SUPPORT FUNCTIONS    #
 ###########################
 
+
 def get_renewable_categories_from_inputs_final_tp(
     df_input: pd.DataFrame,
     model_enerprod: ml.EnergyProduction,
 ) -> Union[Dict[str, float], None]:
-    """
-    Get renewable categories from the input DataFrame. Returns a
-        dictionary mapping each renewble category to its fraction of 
+    """Get renewable categories from the input DataFrame. Returns a
+        dictionary mapping each renewble category to its fraction of
         production considered renewable in the final time period. If an
         error occurs, returns None.
-        
-    
+
+
     Function Arguments
     ------------------
-    - df_input: input data frame containing 
+    - df_input: input data frame containing
         model_enerprod.modvar_entc_nemomod_renewable_tag_technology
     - model_enerprod: ElectricEnercy model used to obtain variables
         and call model attributes
-    
-    
-    Keyword Arguments
+
+
+    Keyword Arguments:
     -----------------
+
     """
-    
     model_attributes = model_enerprod.model_attributes
     modvar = model_enerprod.modvar_entc_nemomod_renewable_tag_technology
     subsec = model_attributes.get_variable_subsector(modvar)
     attr = model_enerprod.model_attributes.get_attribute_table(subsec)
-    
+
     try:
-        arr_entc_tag_renewable = model_attributes.extract_model_variable(#
+        arr_entc_tag_renewable = model_attributes.extract_model_variable(
             df_input,
             modvar,
-            expand_to_all_cats = True,
-            return_type = "array_base",
+            expand_to_all_cats=True,
+            return_type="array_base",
         )
 
-    except Exception as e:
+    except Exception:
         return None
-    
-    
+
     ##  INITIALIZE OUTPUT DICTIONARY AND GET VALUES
-    
+
     dict_out = {}
-    
+
     w = np.where(arr_entc_tag_renewable[-1] > 0)[0]
     if len(w) > 0:
         keys = np.array(attr.key_values)[w]
         vals = arr_entc_tag_renewable[-1, w]
-        dict_out = dict(zip(keys, vals))
-    
+        dict_out = dict(zip(keys, vals, strict=False))
+
     return dict_out
-
-
-
-
-
-
-
 
 
 ##########################################
 #    CARBON CAPTURE AND SEQUESTRATION    #
 ##########################################
+
 
 def transformation_ccsq_increase_direct_air_capture(
     df_input: pd.DataFrame,
@@ -95,10 +83,9 @@ def transformation_ccsq_increase_direct_air_capture(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Increase direct air capture" transformation
+    """Implement the "Increase direct air capture" transformation
 
     Function Arguments
     ------------------
@@ -108,20 +95,21 @@ def transformation_ccsq_increase_direct_air_capture(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
+
     """
     # get conversion units
     units = model_attributes.get_variable_characteristic(
         model_enercons.modvar_ccsq_total_sequestration,
-        model_attributes.varchar_str_unit_mass
+        model_attributes.varchar_str_unit_mass,
     )
     scalar = model_attributes.get_mass_equivalent("mt", units)
     categories = ["direct_air_capture"]
@@ -134,25 +122,22 @@ def transformation_ccsq_increase_direct_air_capture(
             model_enercons.modvar_ccsq_total_sequestration: {
                 "bounds": (0, np.inf),
                 "categories": categories,
-                "magnitude": magnitude*scalar,
+                "magnitude": magnitude * scalar,
                 "magnitude_type": "final_value",
                 "time_period_baseline": get_time_period(model_attributes, "max"),
-                "vec_ramp": vec_ramp
-            }
+                "vec_ramp": vec_ramp,
+            },
         },
-        **kwargs
+        **kwargs,
     )
 
     return df_out
 
 
-
-
-
-
 ###########################################
 #    ENERGY TECHNOLOGY TRANSFORMATIONS    #
 ###########################################
+
 
 def transformation_entc_change_msp_max(
     df_input: pd.DataFrame,
@@ -160,26 +145,25 @@ def transformation_entc_change_msp_max(
     model_enerprod: ml.EnergyProduction,
     drop_flag: Union[int, float, None] = None,
     vec_ramp: Union[np.ndarray, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement a transformation for the baseline to resolve constraint
+    """Implement a transformation for the baseline to resolve constraint
         conflicts between TotalTechnologyAnnualActivityUpperLimit/
-        TotalTechnologyAnnualActivityLowerLimit if MinShareProduction is 
-        Specified. 
+        TotalTechnologyAnnualActivityLowerLimit if MinShareProduction is
+        Specified.
 
     This transformation will turn on the MSP Max method in EnergyProduction,
-        which will cap electric production (for a given technology) at the 
-        value estimated for the last non-engaged time period. 
-        
-    E.g., suppose a technology has the following estimated electricity 
-        production (estimated endogenously and excluding demands for ENTC) 
-        and associated value of msp_max (stored in the "Maximum Production 
-        Increase Fraction to Satisfy MinShareProduction Electricity" 
+        which will cap electric production (for a given technology) at the
+        value estimated for the last non-engaged time period.
+
+    E.g., suppose a technology has the following estimated electricity
+        production (estimated endogenously and excluding demands for ENTC)
+        and associated value of msp_max (stored in the "Maximum Production
+        Increase Fraction to Satisfy MinShareProduction Electricity"
         SISEPUEDE model variable):
 
         time_period     est. production     msp_max
-                        implied by MSP     
+                        implied by MSP
         -----------     ---------------     -------
         0               10                  -999
         1               10.5                -999
@@ -192,48 +176,53 @@ def transformation_entc_change_msp_max(
         n - 2           23                  0
         n - 1           23.1                0
 
-        Then the MSP for this technology would be adjusted to never exceed 
+        Then the MSP for this technology would be adjusted to never exceed
         the value of 11.5, which was found at time_period 3. msp_max = 0
         means that a 0% increase is allowable in the MSP passed to NemoMod,
-        so the specified MSP trajectory (which is passed to NemoMod) is 
+        so the specified MSP trajectory (which is passed to NemoMod) is
         adjusted to reflect this change.
-    
+
     NOTE: Only the *first value* after that last non-specified time period
-        affects this variable. Using the above table as an example, entering 
-        0 in time_period 4 and 1 in time_period 5 means that 0 is used for 
+        affects this variable. Using the above table as an example, entering
+        0 in time_period 4 and 1 in time_period 5 means that 0 is used for
         all time_periods on and after 4.
-    
+
     NOTE: both dict_cat_to_vector and vec_ramp cannot be None. If both are None,
         returns df_input
 
     Function Arguments
     ------------------
     - df_input: input data frame containing baseline trajectories
-    - dict_cat_to_vector: dictionary mapping a technology category to two an 
-        input vector. The vector uses a drop flag to (generally -999) to 
-        identify time periods that are not subject to an MSP Max Prod; other 
-        values greater than 0 are used to identify the maximum deviation 
-        from the *last time period with a non-drop flag*, entered as a 
+    - dict_cat_to_vector: dictionary mapping a technology category to two an
+        input vector. The vector uses a drop flag to (generally -999) to
+        identify time periods that are not subject to an MSP Max Prod; other
+        values greater than 0 are used to identify the maximum deviation
+        from the *last time period with a non-drop flag*, entered as a
         proportion.
-    - model_enerprod: Electricity and Fuel Production model used to call 
+    - model_enerprod: Electricity and Fuel Production model used to call
         variables
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
-    - drop_flag: value in 
-        model_enerprod.modvar_entc_max_elec_prod_increase_for_msp used to 
-        signal the presence of no constraint. Defaults to 
+    - drop_flag: value in
+        model_enerprod.modvar_entc_max_elec_prod_increase_for_msp used to
+        signal the presence of no constraint. Defaults to
         model_enerprod.drop_flag_tech_capacities if None
     - vec_ramp: ramp vec used for implementation
-        * NOTE: if dict_cat_to_vector, will defaulto cap hydro based on the 
-            implementation schedule. If both 
+        * NOTE: if dict_cat_to_vector, will defaulto cap hydro based on the
+            implementation schedule. If both
     - **kwargs: passed to ade.transformations_general()
+
     """
     if (not isinstance(dict_cat_to_vector, dict)) & (not sf.islistlike(vec_ramp)):
         return df_input
 
     # initialize some key components
-    drop_flag = model_enerprod.drop_flag_tech_capacities if not sf.isnumber(drop_flag) else drop_flag
+    drop_flag = (
+        model_enerprod.drop_flag_tech_capacities
+        if not sf.isnumber(drop_flag)
+        else drop_flag
+    )
     modvar_msp_max = model_enerprod.modvar_entc_max_elec_prod_increase_for_msp
 
     # check for variables and initialize fields_check as drops
@@ -241,7 +230,6 @@ def transformation_entc_change_msp_max(
     fields_check = model_attributes.build_variable_fields(modvar_msp_max)
     df_out = df_input.copy()
     df_out[fields_check] = drop_flag
-    
 
     # default specification is to cap hydro (no hydropower growth)
     vec_msp = (
@@ -251,34 +239,32 @@ def transformation_entc_change_msp_max(
     )
     dict_cat_to_vector = (
         {
-            "pp_hydropower": vec_msp
+            "pp_hydropower": vec_msp,
         }
         if not isinstance(dict_cat_to_vector, dict)
         else dict_cat_to_vector
     )
 
     for cat, vec in dict_cat_to_vector.items():
-        
         dict_trans = {
             modvar_msp_max: {
                 "bounds": (drop_flag, np.inf),
                 "categories": [cat],
                 "magnitude": vec,
                 "magnitude_type": "vector_specification",
-                "vec_ramp": vec
-            }
+                "vec_ramp": vec,
+            },
         }
-        
+
         # call general transformation
         df_out = transformation_general(
             df_out,
             model_attributes,
             dict_trans,
-            **kwargs
+            **kwargs,
         )
 
     return df_out
-
 
 
 def transformation_entc_clean_hydrogen(
@@ -290,10 +276,9 @@ def transformation_entc_clean_hydrogen(
     cats_to_apply: Union[List[str], None] = None,
     cats_response: Union[List[str], None] = None,
     field_region: str = "nation",
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Green hydrogen" transformation.
+    """Implement the "Green hydrogen" transformation.
 
     Function Arguments
     ------------------
@@ -303,16 +288,16 @@ def transformation_entc_clean_hydrogen(
     - model_enerprod: EnergyProduction model used to define variables
     - vec_ramp: implementation ramp vector
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
-    - cats_to_apply: hydrogen production categories to apply magnitude to. 
+    - cats_to_apply: hydrogen production categories to apply magnitude to.
         * If None, defaults to
             ["fp_hydrogen_electrolysis"]
 
     - cats_response: hydrogen production categories that respond to the target.
         * If None, defaults to
             [
-                "fp_hydrogen_gasification", 
+                "fp_hydrogen_gasification",
                 "fp_hydrogen_reformation",
                 "fp_hydrogen_reformation_ccs"
             ]
@@ -322,14 +307,14 @@ def transformation_entc_clean_hydrogen(
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     attr_entc = model_attributes.get_attribute_table(model_attributes.subsec_name_entc)
     attr_enfu = model_attributes.get_attribute_table(model_attributes.subsec_name_enfu)
-    dict_tech_info = model_enerprod.get_tech_info_dict(attribute_technology = attr_entc)
+    dict_tech_info = model_enerprod.get_tech_info_dict(attribute_technology=attr_entc)
     modvar_msp = model_enerprod.modvar_entc_nemomod_min_share_production
 
-    # get categories to move fractional mass into 
+    # get categories to move fractional mass into
     cats_to_apply = (
         ["fp_hydrogen_electrolysis"]
         if not sf.islistlike(cats_to_apply)
@@ -339,9 +324,9 @@ def transformation_entc_clean_hydrogen(
     # get categories to take fractional mass from
     cats_response = (
         [
-            "fp_hydrogen_gasification", 
+            "fp_hydrogen_gasification",
             "fp_hydrogen_reformation",
-            "fp_hydrogen_reformation_ccs"
+            "fp_hydrogen_reformation_ccs",
         ]
         if not sf.islistlike(cats_to_apply)
         else [x for x in attr_entc.key_values if x in cats_response]
@@ -350,14 +335,12 @@ def transformation_entc_clean_hydrogen(
     if len(cats_to_apply) == 0:
         return df_input
 
+    # vec_implementation_ramp_short = sf.vec_bounds(vec_ramp/min(vec_ramp[vec_ramp != 0]), (0, 1))
+    vec_implementation_ramp_short = sf.vec_bounds(vec_ramp * 2, (0, 1))
 
-    #vec_implementation_ramp_short = sf.vec_bounds(vec_ramp/min(vec_ramp[vec_ramp != 0]), (0, 1))
-    vec_implementation_ramp_short = sf.vec_bounds(vec_ramp*2, (0, 1))
-
-    # 
     df_transformed = transformation_general(
         df_input,
-        model_attributes, 
+        model_attributes,
         {
             modvar_msp: {
                 "bounds": (0, 1),
@@ -365,34 +348,37 @@ def transformation_entc_clean_hydrogen(
                 "magnitude": magnitude,
                 "magnitude_type": "final_value",
                 "vec_ramp": vec_ramp,
-                "time_period_baseline": get_time_period(model_attributes, "max")
-            }
+                "time_period_baseline": get_time_period(model_attributes, "max"),
+            },
         },
-        field_region = field_region,
-        **kwargs
+        field_region=field_region,
+        **kwargs,
     )
 
     # adjust other hydrogen shares
     if len(cats_response) > 0:
-
         vars_appplied = model_attributes.build_variable_fields(
             modvar_msp,
-            restrict_to_category_values = cats_to_apply,
+            restrict_to_category_values=cats_to_apply,
         )
 
         vars_respond = model_attributes.build_variable_fields(
             modvar_msp,
-            restrict_to_category_values = cats_response,
+            restrict_to_category_values=cats_response,
         )
 
         arr_maintain = np.array(df_input[vars_appplied])
-        vec_total_maintain = arr_maintain.sum(axis = 1)
+        vec_total_maintain = arr_maintain.sum(axis=1)
         arr_adjust = np.array(df_input[vars_respond])
-        vec_total_adjust = arr_adjust.sum(axis = 1)
+        vec_total_adjust = arr_adjust.sum(axis=1)
 
         # if the total does not exceed 1, div by 1; if it does, divide by that total
-        vec_exceed_one = sf.vec_bounds(vec_total_maintain + vec_total_adjust - 1, (0.0, np.inf), )
-        vec_scalar_adj = np.nan_to_num((vec_total_adjust - vec_exceed_one)/vec_total_adjust, nan = 0.0, posinf = 0.0, )
+        vec_exceed_one = sf.vec_bounds(
+            vec_total_maintain + vec_total_adjust - 1, (0.0, np.inf)
+        )
+        vec_scalar_adj = np.nan_to_num(
+            (vec_total_adjust - vec_exceed_one) / vec_total_adjust, nan=0.0, posinf=0.0
+        )
 
         arr_adjust = sf.do_array_mult(arr_adjust, vec_scalar_adj)
 
@@ -400,7 +386,6 @@ def transformation_entc_clean_hydrogen(
             df_transformed[field] = arr_adjust[:, i]
 
     return df_transformed
-
 
 
 def transformation_entc_increase_efficiency_of_electricity_production(
@@ -411,10 +396,9 @@ def transformation_entc_increase_efficiency_of_electricity_production(
     model_enerprod: ml.EnergyProduction,
     bounds: Tuple = (0, 0.9),
     field_region: str = "nation",
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Increase efficiency of electricity production" transformation
+    """Implement the "Increase efficiency of electricity production" transformation
 
     Function Arguments
     ------------------
@@ -425,7 +409,7 @@ def transformation_entc_increase_efficiency_of_electricity_production(
     - model_enerprod: EnergyProduction model used to define variables
     - vec_ramp: implementation ramp vector
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - bounds: optional bounds on the efficiency. Default is maximum of 90%
         efficiency
@@ -435,14 +419,14 @@ def transformation_entc_increase_efficiency_of_electricity_production(
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # only apply to generation techs
     categories = model_attributes.filter_keys_by_attribute(
         model_attributes.subsec_name_entc,
         {
-            "power_plant": 1
-        }
+            "power_plant": 1,
+        },
     )
 
     # iterate over categories to modify output data frame -- will use to copy into new variables
@@ -456,15 +440,14 @@ def transformation_entc_increase_efficiency_of_electricity_production(
                 "magnitude": magnitude,
                 "magnitude_type": "baseline_additive",
                 "vec_ramp": vec_ramp,
-                "time_period_baseline": get_time_period(model_attributes, "max")
-            }
+                "time_period_baseline": get_time_period(model_attributes, "max"),
+            },
         },
-        field_region = field_region,
-        **kwargs
+        field_region=field_region,
+        **kwargs,
     )
 
     return df_out
-
 
 
 def transformation_entc_increase_renewables(
@@ -474,10 +457,9 @@ def transformation_entc_increase_renewables(
     model_attributes: ma.ModelAttributes,
     model_enerprod: ml.EnergyProduction,
     field_region: str = "nation",
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Increase renewables" transformation
+    """Implement the "Increase renewables" transformation
 
     Function Arguments
     ------------------
@@ -489,7 +471,7 @@ def transformation_entc_increase_renewables(
     - model_enerprod: EnergyProduction model used to define variables
     - vec_ramp: implementation ramp vector
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
     - magnitude: final magnitude of generation capacity.
@@ -497,8 +479,8 @@ def transformation_entc_increase_renewables(
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     attr = model_attributes.get_attribute_table(model_attributes.subsec_name_entc)
 
     # initialize output and categories
@@ -506,20 +488,20 @@ def transformation_entc_increase_renewables(
     categories = model_attributes.filter_keys_by_attribute(
         model_attributes.subsec_name_entc,
         {
-            "renewable_energy_technology": 1
-        }
+            "renewable_energy_technology": 1,
+        },
     )
 
     # source fields to target fields
     fields_source = model_attributes.build_variable_fields(
         model_enerprod.modvar_entc_nemomod_residual_capacity,
-        restrict_to_category_values = categories
+        restrict_to_category_values=categories,
     )
     fields_target = model_attributes.build_variable_fields(
         model_enerprod.modvar_entc_nemomod_total_annual_min_capacity,
-        restrict_to_category_values = categories
+        restrict_to_category_values=categories,
     )
-    dict_source_to_target = dict(zip(fields_source, fields_target))
+    dict_source_to_target = dict(zip(fields_source, fields_target, strict=False))
 
     # iterate over categories to modify output data frame -- will use to copy into new variables
     df_out_source = transformation_general(
@@ -532,11 +514,11 @@ def transformation_entc_increase_renewables(
                 "magnitude": magnitude,
                 "magnitude_type": "baseline_scalar",
                 "vec_ramp": vec_ramp,
-                "time_period_baseline": get_time_period(model_attributes, "max")
-            }
+                "time_period_baseline": get_time_period(model_attributes, "max"),
+            },
         },
-        field_region = field_region,
-        **kwargs
+        field_region=field_region,
+        **kwargs,
     )
 
     # copy into df_out (leave actual fields unchange)
@@ -544,7 +526,7 @@ def transformation_entc_increase_renewables(
     for k in fields_source:
         dict_update = sf.build_dict(
             df_out_source[fields_ind + [k]],
-            dims = (2, 1)
+            dims=(2, 1),
         )
 
         new_col = sf.df_to_tuples(df_out[fields_ind])
@@ -554,7 +536,6 @@ def transformation_entc_increase_renewables(
     return df_out
 
 
-
 def transformation_entc_least_cost_solution(
     df_input: pd.DataFrame,
     vec_ramp: np.ndarray,
@@ -562,10 +543,9 @@ def transformation_entc_least_cost_solution(
     model_enerprod: ml.EnergyProduction,
     drop_flag: Union[int, float, None] = None,
     field_region: str = "nation",
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "% of electricity is generated by renewables in 2050" 
+    """Implement the "% of electricity is generated by renewables in 2050"
         transformation. Applies to both renewable (true renewable) and fossil
         fuel (fake renewable) transformations
 
@@ -576,11 +556,11 @@ def transformation_entc_least_cost_solution(
     - model_enerprod: EnergyProduction model used to define variables
     - vec_ramp: implementation ramp vector
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
-    - drop_flag: value in 
-        model_enerprod.modvar_entc_max_elec_prod_increase_for_msp used to 
-        signal the presence of no constraint. Defaults to 
+    - drop_flag: value in
+        model_enerprod.modvar_entc_max_elec_prod_increase_for_msp used to
+        signal the presence of no constraint. Defaults to
         model_enerprod.drop_flag_tech_capacities if None
     - field_region: field in df_input that specifies the region
     - magnitude: final magnitude of generation capacity.
@@ -588,32 +568,34 @@ def transformation_entc_least_cost_solution(
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # initialize some key elements
     attr_entc = model_attributes.get_attribute_table(model_attributes.subsec_name_entc)
     attr_enfu = model_attributes.get_attribute_table(model_attributes.subsec_name_enfu)
-    drop_flag = model_enerprod.drop_flag_tech_capacities if not sf.isnumber(drop_flag) else drop_flag
+    drop_flag = (
+        model_enerprod.drop_flag_tech_capacities
+        if not sf.isnumber(drop_flag)
+        else drop_flag
+    )
     dict_tech_info = model_enerprod.get_tech_info_dict()
     fields_to_drop_flag = model_attributes.build_variable_fields(
-        model_enerprod.modvar_entc_max_elec_prod_increase_for_msp
+        model_enerprod.modvar_entc_max_elec_prod_increase_for_msp,
     )
-    
+
     # specify ramp vec t
     # this one will eliminate MSP and REMT immediately
-    # 
-    #vec_implementation_ramp_short = sf.vec_bounds(vec_ramp/min(vec_ramp[vec_ramp != 0]), (0, 1))
-    vec_implementation_ramp_short = sf.vec_bounds(vec_ramp*2, (0, 1))
-    
-    
+    #
+    # vec_implementation_ramp_short = sf.vec_bounds(vec_ramp/min(vec_ramp[vec_ramp != 0]), (0, 1))
+    vec_implementation_ramp_short = sf.vec_bounds(vec_ramp * 2, (0, 1))
+
     # check for variables and initialize fields_check as drops
     df_transformed = df_input.copy()
     df_transformed[fields_to_drop_flag] = drop_flag
 
-    # 
     df_transformed = transformation_general(
         df_transformed,
-        model_attributes, 
+        model_attributes,
         {
             model_enerprod.modvar_entc_nemomod_min_share_production: {
                 "bounds": (0, 1),
@@ -621,24 +603,22 @@ def transformation_entc_least_cost_solution(
                 "magnitude": 0.0,
                 "magnitude_type": "final_value",
                 "vec_ramp": vec_implementation_ramp_short,
-                "time_period_baseline": get_time_period(model_attributes, "max")
+                "time_period_baseline": get_time_period(model_attributes, "max"),
             },
-
             model_enerprod.modvar_enfu_nemomod_renewable_production_target: {
                 "bounds": (0, 1),
                 "categories": [model_enerprod.cat_enfu_elec],
                 "magnitude": 0.0,
                 "magnitude_type": "final_value",
                 "vec_ramp": vec_implementation_ramp_short,
-                "time_period_baseline": get_time_period(model_attributes, "max")
-            }
+                "time_period_baseline": get_time_period(model_attributes, "max"),
+            },
         },
-        field_region = field_region,
-        **kwargs
+        field_region=field_region,
+        **kwargs,
     )
 
     return df_transformed
-
 
 
 def transformation_entc_reduce_cost_of_renewables(
@@ -647,10 +627,9 @@ def transformation_entc_reduce_cost_of_renewables(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enerprod: ml.EnergyProduction,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Reduce cost of renewables" transformation
+    """Implement the "Reduce cost of renewables" transformation
 
     Function Arguments
     ------------------
@@ -661,28 +640,28 @@ def transformation_entc_reduce_cost_of_renewables(
     - model_enerprod: EnergyProduction model used to define variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # apply to capital, fixed, and variable for now
     modvars = [
         model_enerprod.modvar_entc_nemomod_capital_cost,
         model_enerprod.modvar_entc_nemomod_fixed_cost,
-        model_enerprod.modvar_entc_nemomod_variable_cost
+        model_enerprod.modvar_entc_nemomod_variable_cost,
     ]
 
     # get categories
     categories = model_attributes.filter_keys_by_attribute(
         model_attributes.subsec_name_entc,
         {
-            "renewable_energy_technology": 1
-        }
+            "renewable_energy_technology": 1,
+        },
     )
 
     # setup dictionaries
@@ -692,21 +671,19 @@ def transformation_entc_reduce_cost_of_renewables(
         "magnitude": 1 - magnitude,
         "magnitude_type": "baseline_scalar",
         "time_period_baseline": get_time_period(model_attributes, "max"),
-        "vec_ramp": vec_ramp
+        "vec_ramp": vec_ramp,
     }
     dict_run = dict((modvar, dict_base) for modvar in modvars)
-
 
     # call general transformation
     df_out = transformation_general(
         df_input,
         model_attributes,
         dict_run,
-        **kwargs
+        **kwargs,
     )
 
     return df_out
-
 
 
 def transformation_entc_renewable_target(
@@ -723,37 +700,36 @@ def transformation_entc_renewable_target(
     magnitude_as_floor: bool = False,
     magnitude_renewables: Union[Dict[str, float], float, None] = None,
     scale_non_renewables_to_match_surplus_msp: bool = False,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "% of electricity is generated by renewables in 2050" 
+    """Implement the "% of electricity is generated by renewables in 2050"
         transformation. Applies to both renewable (true renewable) and fossil
         fuel (fake renewable) transformations
 
     Function Arguments
     ------------------
     - df_input: input data frame containing baseline trajectories
-    - magnitude_target: magnitude of target to hit by 2050   OR   optional str 
+    - magnitude_target: magnitude of target to hit by 2050   OR   optional str
         "VEC_FIRST_RAMP", which will set the magnitude to the mix of renewable
         capacity at the first time period where VEC_FIRST_RAMP != 0
-    - model_enerprod: EnergyProduction model used to define variables. Also 
+    - model_enerprod: EnergyProduction model used to define variables. Also
         defines the internal model_atrributes variable to preserve logical
         consistency
     - vec_ramp: implementation ramp vector
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - dict_cats_entc_max_investment: dictionary of categories to place a cap on
         maximum investment for. Each key maps to a dictionary with two elements;
         one is a vector of values to use for the cap (-999 is used to implement
         no maximum--key "vec"), and the other is the type of vector, which can
         be either
-            * "value" (use raw values) or 
+            * "value" (use raw values) or
             * "scalar" (scalar applied to maximum residual capacity over periods
                 where vec_ramp = 0
 
         The dictionary should take the following form
-        
+
             dict_cats_entc_max_investment = {
                 cat_entc_1: {
                     "vec": [m_0, m_1, ... , m_{t - 1}],
@@ -764,32 +740,32 @@ def transformation_entc_renewable_target(
 
         where `cat_entc_i` is a category, `vec` gives values as numpy vector, and
         `type` gives the type of the time series.
-    - drop_flag: value in 
-        model_enerprod.modvar_entc_max_elec_prod_increase_for_msp used to 
-        signal the presence of no constraint. Defaults to 
+    - drop_flag: value in
+        model_enerprod.modvar_entc_max_elec_prod_increase_for_msp used to
+        signal the presence of no constraint. Defaults to
         model_enerprod.drop_flag_tech_capacities if None
     - factor_vec_ramp_msp: factor used to accelerate the rate at which
         MinShareProduction declines to 0 for non-renewable energy technologies.
         If None, defaults to 1.5 (1 is the same rate).
     - field_region: field in df_input that specifies the region
-    - fuel_elec: $CAT-TECHNOLOGY$ category specifying electricity. If None, 
+    - fuel_elec: $CAT-TECHNOLOGY$ category specifying electricity. If None,
         defaults to model_enerprod.cat_enfu_fuel
-    - include_target: if True, sets the renewable target (Default). If False, 
+    - include_target: if True, sets the renewable target (Default). If False,
         will only manipulate minimum shares of production. Should only be used
         in conjunction with `scale_non_renewables_to_match_surplus_msp = True`
-    - magnitude_as_floor: if True, will not allow any renewables to decline in 
-        magnitude unless the dictionary `magnitude_renewables` forces some 
+    - magnitude_as_floor: if True, will not allow any renewables to decline in
+        magnitude unless the dictionary `magnitude_renewables` forces some
         renewables to make up a higher share
     - magnitude_renewables: Dict mapping renewable categories to target minimum
-        shares of production by the final time period OR float giving a uniform 
-        value to apply to all renewable categories (as defined in 
-        `cats_renewable`). If None, the renewable minimum share of production 
+        shares of production by the final time period OR float giving a uniform
+        value to apply to all renewable categories (as defined in
+        `cats_renewable`). If None, the renewable minimum share of production
         for each renewable category is kept stable as soon as vec_remp != 0.
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - scale_non_renewables_to_match_surplus_msp: if True, will scale MSP from
         non-renewable sources to match the surplus, where surplus is calculated
-        as 
+        as
             surplus = max(MSP_0 - T, 0)
 
         where R is the original total of all MSPs and T is the total renewable
@@ -797,29 +773,32 @@ def transformation_entc_renewable_target(
 
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
+
     """
-    
     ##  INITIALIZATION
 
     # initialize some key elements
     model_attributes = model_enerprod.model_attributes
     attr_entc = model_attributes.get_attribute_table(model_attributes.subsec_name_entc)
     attr_enfu = model_attributes.get_attribute_table(model_attributes.subsec_name_enfu)
-    
+
     # some info for drops related to MSP Max Prod increase relative to base (model_enerprod.modvar_entc_max_elec_prod_increase_for_msp)
-    drop_flag = model_enerprod.drop_flag_tech_capacities if not sf.isnumber(drop_flag) else drop_flag
+    drop_flag = (
+        model_enerprod.drop_flag_tech_capacities
+        if not sf.isnumber(drop_flag)
+        else drop_flag
+    )
     fields_to_drop_flag = model_attributes.build_variable_fields(
-        model_enerprod.modvar_entc_max_elec_prod_increase_for_msp
+        model_enerprod.modvar_entc_max_elec_prod_increase_for_msp,
     )
 
     # get fuel categories and technology dictionary
     fuel_elec = (
-        model_enerprod.cat_enfu_elec 
-        if (fuel_elec not in attr_enfu.key_values) 
+        model_enerprod.cat_enfu_elec
+        if (fuel_elec not in attr_enfu.key_values)
         else fuel_elec
     )
     dict_tech_info = model_enerprod.get_tech_info_dict()
-
 
     ##  CHECK SPECIFICATION OF INVESTMENT CAPS
 
@@ -828,7 +807,7 @@ def transformation_entc_renewable_target(
 
         for cat in keys_check:
             # check specification of tech
-            keep_q = (cat in attr_entc.key_values)
+            keep_q = cat in attr_entc.key_values
 
             # check that value is a dictionary
             val = dict_cats_entc_max_investment.get(cat)
@@ -836,16 +815,21 @@ def transformation_entc_renewable_target(
 
             # check that vectors are properly specified
             if keep_q:
-                keep_q = keep_q & isinstance(dict_cats_entc_max_investment.get(cat).get("vec"), np.ndarray)
-                keep_q = keep_q & (dict_cats_entc_max_investment.get(cat).get("type") in ["value", "scalar"])
+                keep_q = keep_q & isinstance(
+                    dict_cats_entc_max_investment.get(cat).get("vec"), np.ndarray
+                )
+                keep_q = keep_q & (
+                    dict_cats_entc_max_investment.get(cat).get("type")
+                    in ["value", "scalar"]
+                )
 
             # remove the key if invalid
             if not keep_q:
                 del dict_cats_entc_max_investment[cat]
 
     dict_cats_entc_max_investment = (
-        None 
-        if not isinstance(dict_cats_entc_max_investment, dict) 
+        None
+        if not isinstance(dict_cats_entc_max_investment, dict)
         else (
             None
             if len(dict_cats_entc_max_investment) == 0
@@ -853,10 +837,9 @@ def transformation_entc_renewable_target(
         )
     )
 
-
     ##  ITERATE OVER REGIONS TO APPLY TRANSFORMATION
 
-    dict_vec_entc_msp_final_period = {} # must be available by region
+    dict_vec_entc_msp_final_period = {}  # must be available by region
     dfs = df_input.groupby(field_region)
     df_out = []
 
@@ -866,7 +849,6 @@ def transformation_entc_renewable_target(
     field_total_surplus = "TMPFIELD_SURPLUS"
 
     for region, df in dfs:
-        
         region = region[0] if isinstance(region, tuple) else region
 
         # init the magnitude for the region
@@ -874,52 +856,61 @@ def transformation_entc_renewable_target(
 
         # get renewable categories from input data frame; if none are specified, append and return (nothing to transform)
         dict_cats_renewable_all = get_renewable_categories_from_inputs_final_tp(
-            df, 
+            df,
             model_enerprod,
         )
 
         if len(dict_cats_renewable_all) == 0:
             df_out.append(df)
             continue
-        
+
         # only focus on electricity generation
         cats_renewable = [
-            x for x in attr_entc.key_values 
+            x
+            for x in attr_entc.key_values
             if x in dict_cats_renewable_all.keys()
             and x in dict_tech_info.get("all_techs_pp")
         ]
         inds_renewable = [attr_entc.get_key_value_index(x) for x in cats_renewable]
-        inds_elec = [attr_entc.get_key_value_index(x) for x in dict_tech_info.get("all_techs_pp")]
+        inds_elec = [
+            attr_entc.get_key_value_index(x) for x in dict_tech_info.get("all_techs_pp")
+        ]
 
         # check and clean renewable production target specification
         magnitude_renewables = (
             dict(
-                (k, min(max(v, 0.0), 1.0)) 
-                for k, v in magnitude_renewables.items() 
-                if (k in cats_renewable) 
-                and (isinstance(v, float) or isinstance(v, int)) 
-            ) 
+                (k, min(max(v, 0.0), 1.0))
+                for k, v in magnitude_renewables.items()
+                if (k in cats_renewable)
+                and (isinstance(v, float) or isinstance(v, int))
+            )
             if isinstance(magnitude_renewables, dict)
             else (
                 None
-                if not (isinstance(magnitude_renewables, float) or isinstance(magnitude_renewables, int)) 
+                if not (
+                    isinstance(magnitude_renewables, float)
+                    or isinstance(magnitude_renewables, int)
+                )
                 else min(max(magnitude_renewables, 0.0), 1.0)
             )
         )
-        
-    
+
         ##  INITIALIZE OUTPUT AND LOOP OVER REGION GROUPS
 
         # technologies to reduce MinShareProduction values to 0 and those to *avoid* reducing to 0
-        cats_entc_drop = [x for x in dict_tech_info.get("all_techs_pp") if x not in cats_renewable]
-        cats_entc_no_drop = [x for x in dict_tech_info.get("all_techs_pp") if x not in cats_entc_drop]
+        cats_entc_drop = [
+            x for x in dict_tech_info.get("all_techs_pp") if x not in cats_renewable
+        ]
+        cats_entc_no_drop = [
+            x for x in dict_tech_info.get("all_techs_pp") if x not in cats_entc_drop
+        ]
         inds_entc_drop = [attr_entc.get_key_value_index(x) for x in cats_entc_drop]
-        inds_entc_no_drop = [attr_entc.get_key_value_index(x) for x in cats_entc_no_drop]
+        inds_entc_no_drop = [
+            attr_entc.get_key_value_index(x) for x in cats_entc_no_drop
+        ]
 
         # first index where vec_ramp starts to deviate from zero
         ind_vec_ramp_first_zero_deviation = np.where(np.array(vec_ramp) != 0)[0][0]
-
-
 
         ##################################################
         #    1. IMPLEMENT RENEWABLE GENERATION TARGET    #
@@ -929,7 +920,7 @@ def transformation_entc_renewable_target(
         for cat in attr_entc.key_values:
             field = model_attributes.build_variable_fields(
                 model_enerprod.modvar_entc_nemomod_renewable_tag_technology,
-                restrict_to_category_values = cat
+                restrict_to_category_values=cat,
             )
 
             if isinstance(field, str):
@@ -937,46 +928,44 @@ def transformation_entc_renewable_target(
 
         # make an adjustment too identify the magnitude if it hasn't been dealt with yet
         if magnitude == "VEC_FIRST_RAMP":
-
-            arr_entc_residual_capacity = model_attributes.extract_model_variable(#
+            arr_entc_residual_capacity = model_attributes.extract_model_variable(
                 df,
                 model_enerprod.modvar_entc_nemomod_residual_capacity,
-                expand_to_all_cats = True,
-                return_type = "array_base",
+                expand_to_all_cats=True,
+                return_type="array_base",
             )
 
-            magnitude = arr_entc_residual_capacity[ind_vec_ramp_first_zero_deviation, inds_renewable].sum()
-            magnitude /= arr_entc_residual_capacity[ind_vec_ramp_first_zero_deviation, :].sum()
-
+            magnitude = arr_entc_residual_capacity[
+                ind_vec_ramp_first_zero_deviation, inds_renewable
+            ].sum()
+            magnitude /= arr_entc_residual_capacity[
+                ind_vec_ramp_first_zero_deviation, :
+            ].sum()
 
         # get the current minimum share of production (does not change when df_transformed is assigned below, since that only modifies the renewable target)
-        arr_entc_min_share_production = model_attributes.extract_model_variable(#
+        arr_entc_min_share_production = model_attributes.extract_model_variable(
             df,
             model_enerprod.modvar_entc_nemomod_min_share_production,
-            expand_to_all_cats = True,
-            return_type = "array_base",
+            expand_to_all_cats=True,
+            return_type="array_base",
         )
 
-        vec_entc_msp_total_mass_original = (
-            arr_entc_min_share_production[:, inds_entc_drop + inds_entc_no_drop]
-            .sum(axis = 1)
-        )
+        vec_entc_msp_total_mass_original = arr_entc_min_share_production[
+            :, inds_entc_drop + inds_entc_no_drop
+        ].sum(axis=1)
         vec_entc_msp_final_period = arr_entc_min_share_production[-1, :]
         dict_vec_entc_msp_final_period.update({region: vec_entc_msp_final_period})
 
-
         # add the total original mass to the dataframe so it can be accessed later (and dropped)
         df[field_total_mass_original] = vec_entc_msp_total_mass_original
-
 
         # next, if setting the magnitude as a floor, don't allow renewables to decline--set the total magnitude based categorically (note that MSP floors can override these in modeling)
         magnitude_renewables_by_region = magnitude_renewables
 
         if magnitude_as_floor:
-
             mag_base = 0.0
             magnitude_renewables_by_region = {}
-            
+
             for i, cat in enumerate(cats_renewable):
                 ind = inds_renewable[i]
 
@@ -986,26 +975,27 @@ def transformation_entc_renewable_target(
 
                 magnitude_renewables_by_region.update({cat: cat_target})
 
-
             # get magnitude and scale
             magnitude = max(mag_base, magnitude)
 
-            if (magnitude > 1):
-                magnitude_renewables_by_region = dict((k, v/magnitude) for k, v in magnitude_renewables_by_region.items())
+            if magnitude > 1:
+                magnitude_renewables_by_region = dict(
+                    (k, v / magnitude)
+                    for k, v in magnitude_renewables_by_region.items()
+                )
 
             if scale_non_renewables_to_match_surplus_msp:
                 v_total = sum(list(magnitude_renewables_by_region.values()))
                 magnitude_renewables_by_region = dict(
-                    (k, np.nan_to_num(magnitude*v/v_total, nan = 0.0, posinf = 0.0, ))
+                    (k, np.nan_to_num(magnitude * v / v_total, nan=0.0, posinf=0.0))
                     for k, v in magnitude_renewables_by_region.items()
                 )
-
 
         # iterate over categories to modify output data frame -- will use to copy into new variables
         df_transformed = (
             transformation_general(
                 df,
-                model_attributes, 
+                model_attributes,
                 {
                     model_enerprod.modvar_enfu_nemomod_renewable_production_target: {
                         "bounds": (0, 1),
@@ -1013,17 +1003,18 @@ def transformation_entc_renewable_target(
                         "magnitude": magnitude,
                         "magnitude_type": "final_value",
                         "vec_ramp": vec_ramp,
-                        "time_period_baseline": get_time_period(model_attributes, "max")
-                    }
+                        "time_period_baseline": get_time_period(
+                            model_attributes, "max"
+                        ),
+                    },
                 },
-                field_region = field_region,
-                **kwargs
+                field_region=field_region,
+                **kwargs,
             )
             if include_target
             else df
         )
 
-        
         #########################################################
         #    2. ADD IN MINIMUM SHARES FOR CERTAIN RENEWABLES    #
         #########################################################
@@ -1048,101 +1039,109 @@ def transformation_entc_renewable_target(
                 1 (no modifiation necessary)
             * if magnitude < total_magnitude_msp_renewables, returns scalar to 
                 apply to specified MSP to ensure does not exceed magnitude
-        """;
+        """
 
         # get the total magnitude of MSP of renewables that are specified in the dictionary, not the target total
         total_magnitude_msp_renewables = (
             (
-                np.array(list(magnitude_renewables_by_region.values())).sum() 
+                np.array(list(magnitude_renewables_by_region.values())).sum()
                 if isinstance(magnitude_renewables_by_region, dict)
-                else magnitude_renewables_by_region*len(cats_renewable)
-            ) 
-            if magnitude_renewables_by_region is not None 
-            else arr_entc_min_share_production[ind_vec_ramp_first_zero_deviation, inds_renewable].sum()
+                else magnitude_renewables_by_region * len(cats_renewable)
+            )
+            if magnitude_renewables_by_region is not None
+            else arr_entc_min_share_production[
+                ind_vec_ramp_first_zero_deviation, inds_renewable
+            ].sum()
         )
-        scalar_renewables_div = min(magnitude/total_magnitude_msp_renewables, 1.0)
+        scalar_renewables_div = min(magnitude / total_magnitude_msp_renewables, 1.0)
 
-        
         if isinstance(magnitude_renewables_by_region, dict):
-
             # apply to each category - slightly slower
             for cat, mag in magnitude_renewables_by_region.items():
-
                 df_transformed = transformation_general(
                     df_transformed,
-                    model_attributes, 
+                    model_attributes,
                     {
                         model_enerprod.modvar_entc_nemomod_min_share_production: {
                             "bounds": (0, 1),
                             "categories": [cat],
-                            "magnitude": mag*scalar_renewables_div,
+                            "magnitude": mag * scalar_renewables_div,
                             "magnitude_type": "final_value",
                             "vec_ramp": vec_ramp,
-                            "time_period_baseline": get_time_period(model_attributes, "max")
-                        }
+                            "time_period_baseline": get_time_period(
+                                model_attributes, "max"
+                            ),
+                        },
                     },
-                    field_region = field_region,
-                    **kwargs
+                    field_region=field_region,
+                    **kwargs,
                 )
-        
 
         elif isinstance(magnitude_renewables_by_region, float):
-            
             # apply to all categories at once
             df_transformed = transformation_general(
-                    df_transformed,
-                    model_attributes, 
-                    {
-                        model_enerprod.modvar_entc_nemomod_min_share_production: {
-                            "bounds": (0, 1),
-                            "categories": cats_entc_no_drop,
-                            "magnitude": magnitude_renewables_by_region*scalar_renewables_div,
-                            "magnitude_type": "final_value",
-                            "vec_ramp": vec_ramp,
-                            "time_period_baseline": get_time_period(model_attributes, "max")
-                        }
+                df_transformed,
+                model_attributes,
+                {
+                    model_enerprod.modvar_entc_nemomod_min_share_production: {
+                        "bounds": (0, 1),
+                        "categories": cats_entc_no_drop,
+                        "magnitude": magnitude_renewables_by_region
+                        * scalar_renewables_div,
+                        "magnitude_type": "final_value",
+                        "vec_ramp": vec_ramp,
+                        "time_period_baseline": get_time_period(
+                            model_attributes, "max"
+                        ),
                     },
-                    field_region = field_region,
-                    **kwargs
-                )
+                },
+                field_region=field_region,
+                **kwargs,
+            )
 
         else:
-            
             # maintain final value
             for cat in cats_entc_no_drop:
-
                 ind_cat_cur = attr_entc.get_key_value_index(cat)
 
                 df_transformed = transformation_general(
                     df_transformed,
-                    model_attributes, 
+                    model_attributes,
                     {
                         model_enerprod.modvar_entc_nemomod_min_share_production: {
                             "bounds": (0, 1),
                             "categories": [cat],
-                            "magnitude": arr_entc_min_share_production[ind_vec_ramp_first_zero_deviation, ind_cat_cur]*scalar_renewables_div,
+                            "magnitude": arr_entc_min_share_production[
+                                ind_vec_ramp_first_zero_deviation, ind_cat_cur
+                            ]
+                            * scalar_renewables_div,
                             "magnitude_type": "final_value",
                             "vec_ramp": vec_ramp,
-                            "time_period_baseline": get_time_period(model_attributes, "max")
-                        }
+                            "time_period_baseline": get_time_period(
+                                model_attributes, "max"
+                            ),
+                        },
                     },
-                    field_region = field_region,
-                    **kwargs
+                    field_region=field_region,
+                    **kwargs,
                 )
-
 
         #############################################################################################
         #    3. CHECK FOR SUM OF TOTAL RENEWABLES AND ADJUST NON-SPECIFIED DOWNWARD IF NECESSARY    #
         #############################################################################################
 
         cats_renewable_unspecified = (
-            [x for x in cats_renewable if x not in magnitude_renewables_by_region.keys()] 
+            [
+                x
+                for x in cats_renewable
+                if x not in magnitude_renewables_by_region.keys()
+            ]
             if isinstance(magnitude_renewables_by_region, dict)
             else None
-        ) 
+        )
         cats_renewable_unspecified = (
-            None 
-            if (len(cats_renewable_unspecified) == 0) 
+            None
+            if (len(cats_renewable_unspecified) == 0)
             else cats_renewable_unspecified
         )
         inds_renewable_unspecified = (
@@ -1156,144 +1155,160 @@ def transformation_entc_renewable_target(
             else inds_renewable
         )
 
-
         ##  3A: MODIFY FRACTIONS FOR UNSPECIFIED/SPECIFIED RENEWABLES (IN ORDER)
 
         # refresh and get totals
-        arr_entc_min_share_production = model_attributes.extract_model_variable(#
+        arr_entc_min_share_production = model_attributes.extract_model_variable(
             df_transformed,
             model_enerprod.modvar_entc_nemomod_min_share_production,
-            expand_to_all_cats = True,
-            return_type = "array_base",
+            expand_to_all_cats=True,
+            return_type="array_base",
         )
-        
+
         # get total MSP for renewables + total for unspecified/specified
-        vec_entc_total_msp_renewables = arr_entc_min_share_production[:, inds_renewable].sum(axis = 1)
+        vec_entc_total_msp_renewables = arr_entc_min_share_production[
+            :, inds_renewable
+        ].sum(axis=1)
         vec_entc_total_msp_renewables_unspecified = (
-            arr_entc_min_share_production[:, inds_renewable_unspecified].sum(axis = 1)
+            arr_entc_min_share_production[:, inds_renewable_unspecified].sum(axis=1)
             if inds_renewable_unspecified is not None
             else np.zeros(len(arr_entc_min_share_production))
         )
 
-        vec_entc_total_msp_renewables_specified = vec_entc_total_msp_renewables - vec_entc_total_msp_renewables_unspecified
-        vec_entc_total_msp_renewable_cap = sf.vec_bounds(vec_entc_total_msp_renewables, (0, 1.0))
-        
+        vec_entc_total_msp_renewables_specified = (
+            vec_entc_total_msp_renewables - vec_entc_total_msp_renewables_unspecified
+        )
+        vec_entc_total_msp_renewable_cap = sf.vec_bounds(
+            vec_entc_total_msp_renewables, (0, 1.0)
+        )
 
         if cats_renewable_unspecified is not None:
-            
             ##  3.A.I FIRST, MODIFY SPECIFIED RENEWABLES TO PREVENT EXCEEDING 1
 
             # bound total MSP, then scale specified categories if necesary
             vec_entc_msp_renewable_specified_cap = sf.vec_bounds(
-                vec_entc_total_msp_renewables_specified, 
-                (0, magnitude)
+                vec_entc_total_msp_renewables_specified,
+                (0, magnitude),
             )
-            
+
             vec_entc_scale_msp_renewable_specified = np.nan_to_num(
-                vec_entc_msp_renewable_specified_cap/vec_entc_total_msp_renewables_specified,
-                nan = 1.0,
-                posinf = 1.0,
+                vec_entc_msp_renewable_specified_cap
+                / vec_entc_total_msp_renewables_specified,
+                nan=1.0,
+                posinf=1.0,
             )
 
             # get the fields to scale
             fields_scale = model_attributes.build_variable_fields(
                 model_enerprod.modvar_entc_nemomod_min_share_production,
-                restrict_to_category_values = list(magnitude_renewables_by_region.keys())
+                restrict_to_category_values=list(magnitude_renewables_by_region.keys()),
             )
-            
-            for field in fields_scale:
-                df_transformed[field] = np.array(df_transformed[field])*vec_entc_scale_msp_renewable_specified
 
+            for field in fields_scale:
+                df_transformed[field] = (
+                    np.array(df_transformed[field])
+                    * vec_entc_scale_msp_renewable_specified
+                )
 
             ##  3.A.II NEXT, SCALE UNSPECIFIED RENEWABLES IF NECESSARY
-            
+
             # refresh and get totals
-            arr_entc_min_share_production = model_attributes.extract_model_variable(#
+            arr_entc_min_share_production = model_attributes.extract_model_variable(
                 df_transformed,
                 model_enerprod.modvar_entc_nemomod_min_share_production,
-                expand_to_all_cats = True,
-                return_type = "array_base",
+                expand_to_all_cats=True,
+                return_type="array_base",
             )
-            
+
             # get total MSP for renewables + total for unspecified/specified
-            vec_entc_total_msp_renewables = arr_entc_min_share_production[:, inds_renewable].sum(axis = 1)
+            vec_entc_total_msp_renewables = arr_entc_min_share_production[
+                :, inds_renewable
+            ].sum(axis=1)
             vec_entc_total_msp_renewables_unspecified = (
-                arr_entc_min_share_production[:, inds_renewable_unspecified].sum(axis = 1)
+                arr_entc_min_share_production[:, inds_renewable_unspecified].sum(axis=1)
                 if inds_renewable_unspecified is not None
                 else np.zeros(len(arr_entc_min_share_production))
             )
-            vec_entc_total_msp_renewables_specified = vec_entc_total_msp_renewables - vec_entc_total_msp_renewables_unspecified
-            vec_entc_total_msp_renewable_cap = sf.vec_bounds(vec_entc_total_msp_renewables, (0, magnitude))
+            vec_entc_total_msp_renewables_specified = (
+                vec_entc_total_msp_renewables
+                - vec_entc_total_msp_renewables_unspecified
+            )
+            vec_entc_total_msp_renewable_cap = sf.vec_bounds(
+                vec_entc_total_msp_renewables, (0, magnitude)
+            )
 
             # scale unspecfied categories downward
-            vec_scale_match_unspecified = vec_entc_total_msp_renewable_cap - vec_entc_total_msp_renewables_specified
+            vec_scale_match_unspecified = (
+                vec_entc_total_msp_renewable_cap
+                - vec_entc_total_msp_renewables_specified
+            )
             vec_scale_unspecified = np.nan_to_num(
-                vec_scale_match_unspecified/vec_entc_total_msp_renewables_unspecified,
-                nan = 0.0,
-                posinf = 0.0,
+                vec_scale_match_unspecified / vec_entc_total_msp_renewables_unspecified,
+                nan=0.0,
+                posinf=0.0,
             )
 
             # get the fields to scale (unspecified)
             fields_scale = model_attributes.build_variable_fields(
                 model_enerprod.modvar_entc_nemomod_min_share_production,
-                restrict_to_category_values = cats_renewable_unspecified
+                restrict_to_category_values=cats_renewable_unspecified,
             )
 
             for field in fields_scale:
-                df_transformed[field] = np.array(df_transformed[field])*vec_scale_unspecified
-
-        
+                df_transformed[field] = (
+                    np.array(df_transformed[field]) * vec_scale_unspecified
+                )
 
         #################################################
         #    4. ADD IN MAXIMUM TECHNOLOGY INVESTMENT    #
         #################################################
 
-        if (dict_cats_entc_max_investment is not None):
-            
-            arr_entc_max_investment = model_attributes.extract_model_variable(#
+        if dict_cats_entc_max_investment is not None:
+            arr_entc_max_investment = model_attributes.extract_model_variable(
                 df_transformed,
                 model_enerprod.modvar_entc_nemomod_total_annual_max_capacity_investment,
-                expand_to_all_cats = True,
-                return_type = "array_base",
+                expand_to_all_cats=True,
+                return_type="array_base",
             )
 
             # get maximum residual capacities by technology
-            vec_entc_max_capacites = model_attributes.extract_model_variable(#
+            vec_entc_max_capacites = model_attributes.extract_model_variable(
                 df_transformed,
                 model_enerprod.modvar_entc_nemomod_residual_capacity,
-                expand_to_all_cats = True,
-                return_type = "array_base",
+                expand_to_all_cats=True,
+                return_type="array_base",
             )
-            vec_entc_max_capacites = np.max(vec_entc_max_capacites, axis = 0)
+            vec_entc_max_capacites = np.max(vec_entc_max_capacites, axis=0)
 
             # iterate over categories
             for cat in dict_cats_entc_max_investment.keys():
-                
                 dict_cur = dict_cats_entc_max_investment.get(cat)
 
                 vec_repl = dict_cur.get("vec").copy()
                 type_repl = dict_cur.get("type")
-                
-                if len(vec_repl) == len(arr_entc_max_investment):
 
+                if len(vec_repl) == len(arr_entc_max_investment):
                     # get category index
                     ind_repl = attr_entc.get_key_value_index(cat)
 
                     # clean and prepareinput vector
-                    np.put(vec_repl, np.where(vec_repl < 0)[0], model_enerprod.drop_flag_tech_capacities)
+                    np.put(
+                        vec_repl,
+                        np.where(vec_repl < 0)[0],
+                        model_enerprod.drop_flag_tech_capacities,
+                    )
                     w = np.where(vec_repl != model_enerprod.drop_flag_tech_capacities)
-                    
-                    vals_new = vec_repl[w]*vec_entc_max_capacites[ind_repl]
+
+                    vals_new = vec_repl[w] * vec_entc_max_capacites[ind_repl]
                     np.put(vec_repl, w, vals_new) if (type_repl == "scalar") else None
 
                     # overwrite if valid
                     arr_entc_max_investment[:, ind_repl] = vec_repl
 
-            
             arr_entc_max_investment = model_attributes.array_to_df(
-                arr_entc_max_investment, 
+                arr_entc_max_investment,
                 model_enerprod.modvar_entc_nemomod_total_annual_max_capacity_investment,
-                reduce_from_all_cats_to_specified_cats = True
+                reduce_from_all_cats_to_specified_cats=True,
             )
 
             # overwrite in df_transformed
@@ -1303,10 +1318,7 @@ def transformation_entc_renewable_target(
 
         df_out.append(df_transformed)
 
-
-    df_out = pd.concat(df_out, axis = 0).reset_index(drop = True)
-
-
+    df_out = pd.concat(df_out, axis=0).reset_index(drop=True)
 
     ###############################################################
     #    5. MODIFY ANY SPECIFIED MINSHARE PRODUCTION SPECIFIED    #
@@ -1315,32 +1327,40 @@ def transformation_entc_renewable_target(
     # very aggressive, turns off any MSP as soon as a target goes above 0
     # vec_implementation_ramp_short = sf.vec_bounds(vec_ramp/min(vec_ramp[vec_ramp != 0]), (0, 1))
     factor_vec_ramp_msp = (
-        1.25 
-        if not (isinstance(factor_vec_ramp_msp, float) or isinstance(factor_vec_ramp_msp, int)) 
+        1.25
+        if not (
+            isinstance(factor_vec_ramp_msp, float)
+            or isinstance(factor_vec_ramp_msp, int)
+        )
         else max(1.0, factor_vec_ramp_msp)
     )
-    vec_implementation_ramp_short = sf.vec_bounds(vec_ramp*factor_vec_ramp_msp, (0.0, 1.0))
+    vec_implementation_ramp_short = sf.vec_bounds(
+        vec_ramp * factor_vec_ramp_msp, (0.0, 1.0)
+    )
 
     # if scaling MSPs, calculate here
     if scale_non_renewables_to_match_surplus_msp:
-
         # get current status of minimum share of production after transforming
         arr_entc_min_share_production = model_attributes.extract_model_variable(
             df_out,
             model_enerprod.modvar_entc_nemomod_min_share_production,
-            expand_to_all_cats = True,
-            return_type = "array_base",
+            expand_to_all_cats=True,
+            return_type="array_base",
         )
 
         # get total for categories that were specified
-        vec_entc_msp_total_mass_drops = arr_entc_min_share_production[:, inds_entc_drop].sum(axis = 1)
-        vec_entc_msp_total_mass_no_drops = arr_entc_min_share_production[:, inds_entc_no_drop].sum(axis = 1)
+        vec_entc_msp_total_mass_drops = arr_entc_min_share_production[
+            :, inds_entc_drop
+        ].sum(axis=1)
+        vec_entc_msp_total_mass_no_drops = arr_entc_min_share_production[
+            :, inds_entc_no_drop
+        ].sum(axis=1)
         vec_entc_msp_total_mass_original = np.array(df_out[field_total_mass_original])
         vec_entc_msp_surplus = sf.vec_bounds(
-            vec_entc_msp_total_mass_original - vec_entc_msp_total_mass_no_drops, 
-            (0.0, 1.0)
+            vec_entc_msp_total_mass_original - vec_entc_msp_total_mass_no_drops,
+            (0.0, 1.0),
         )
-        
+
         # add temporary fields (defined above)
         df_out[field_total_mass_drops] = vec_entc_msp_total_mass_drops
         df_out[field_total_surplus] = vec_entc_msp_surplus
@@ -1348,29 +1368,27 @@ def transformation_entc_renewable_target(
         # get the current totals of fields to drop, then and scale to match total surplus
         fields_drop = model_attributes.build_variable_fields(
             model_enerprod.modvar_entc_nemomod_min_share_production,
-            restrict_to_category_values = cats_entc_drop
+            restrict_to_category_values=cats_entc_drop,
         )
 
-        vec_entc_fields_to_scale = np.array(df_out[fields_drop]).sum(axis = 1)
+        vec_entc_fields_to_scale = np.array(df_out[fields_drop]).sum(axis=1)
         vec_entc_scalar_drops_to_surplus = np.nan_to_num(
-            vec_entc_msp_surplus/vec_entc_fields_to_scale,
-            nan = 0.0,
-            posinf = 0.0,
+            vec_entc_msp_surplus / vec_entc_fields_to_scale,
+            nan=0.0,
+            posinf=0.0,
         )
 
         for field in fields_drop:
-            df_out[field] = np.array(df_out[field])*vec_entc_scalar_drops_to_surplus
-        
+            df_out[field] = np.array(df_out[field]) * vec_entc_scalar_drops_to_surplus
 
-        # group by regions 
+        # group by regions
         dfg = df_out.groupby([field_region])
         df_new = []
-        
+
         for region, df_cur in dfg:
-            
             region = region[0] if isinstance(region, tuple) else region
 
-            # get original total MSP accounted for 
+            # get original total MSP accounted for
             vec_entc_msp_final_period = dict_vec_entc_msp_final_period.get(region)
             if vec_entc_msp_final_period is None:
                 msg = f"Error in transformation_entc_renewable_target(): no final time period MSP found for region {region}."
@@ -1385,19 +1403,22 @@ def transformation_entc_renewable_target(
 
             # scale the surplus -- mix between original vector and target vector, which will have same ceiling
             for i, cat in enumerate(cats_entc_drop):
-                
                 field_cat = model_attributes.build_variable_fields(
                     model_enerprod.modvar_entc_nemomod_min_share_production,
-                    restrict_to_category_values = cat
+                    restrict_to_category_values=cat,
                 )
 
-                # get target for MSP + current 
+                # get target for MSP + current
                 ind = inds_entc_drop[i]
-                vec_target = vec_entc_msp_surplus_cur*vec_entc_msp_final_period[ind]/total_msp_original_drops
+                vec_target = (
+                    vec_entc_msp_surplus_cur
+                    * vec_entc_msp_final_period[ind]
+                    / total_msp_original_drops
+                )
                 vec_cur = np.array(df_cur[field_cat])
 
-                vec_new = (1.0 - vec_implementation_ramp_short)*vec_cur
-                vec_new += vec_implementation_ramp_short*vec_target
+                vec_new = (1.0 - vec_implementation_ramp_short) * vec_cur
+                vec_new += vec_implementation_ramp_short * vec_target
 
                 df_cur[field_cat] = vec_new
 
@@ -1405,14 +1426,19 @@ def transformation_entc_renewable_target(
 
         # drop temporary fields
         df_out = (
-            pd.concat(df_new, axis = 0)
-            .drop([field_total_mass_original, field_total_mass_drops, field_total_surplus], axis = 1)
-            .reset_index(drop = True)
+            pd.concat(df_new, axis=0)
+            .drop(
+                [
+                    field_total_mass_original,
+                    field_total_mass_drops,
+                    field_total_surplus,
+                ],
+                axis=1,
+            )
+            .reset_index(drop=True)
         )
 
-
     else:
-
         df_out = transformation_general(
             df_out,
             model_attributes,
@@ -1423,21 +1449,19 @@ def transformation_entc_renewable_target(
                     "magnitude": 0.0,
                     "magnitude_type": "final_value",
                     "vec_ramp": vec_implementation_ramp_short,
-                    "time_period_baseline": get_time_period(model_attributes, "max")
-                }
+                    "time_period_baseline": get_time_period(model_attributes, "max"),
+                },
             },
-            field_region = field_region,
-            **kwargs
+            field_region=field_region,
+            **kwargs,
         )
 
         # drop the total MSP mass column (unused)
         (
-            df_out.drop([field_total_mass_original], axis = 1, inplace = True)
+            df_out.drop([field_total_mass_original], axis=1, inplace=True)
             if field_total_mass_original in df_out.columns
             else None
         )
-
-
 
     #####################################################################
     #    6. BOUND EVERYTHING (CAN APPLY TO ALL REGIONS AT SAME TIME)    #
@@ -1446,26 +1470,24 @@ def transformation_entc_renewable_target(
     arr_entc_min_share_production = model_attributes.extract_model_variable(
         df_out,
         model_enerprod.modvar_entc_nemomod_min_share_production,
-        expand_to_all_cats = True,
-        return_type = "array_base",
+        expand_to_all_cats=True,
+        return_type="array_base",
     )
 
-    vec_entc_total_msp_total = arr_entc_min_share_production[:, inds_elec].sum(axis = 1)
+    vec_entc_total_msp_total = arr_entc_min_share_production[:, inds_elec].sum(axis=1)
     vec_entc_msp_specified_cap = sf.vec_bounds(vec_entc_total_msp_total, (0, 1.0))
-    vec_entc_scale_msp = vec_entc_msp_specified_cap/vec_entc_total_msp_total
+    vec_entc_scale_msp = vec_entc_msp_specified_cap / vec_entc_total_msp_total
 
     # get the fields to scale
     fields_scale = model_attributes.build_variable_fields(
         model_enerprod.modvar_entc_nemomod_min_share_production,
-        restrict_to_category_values = dict_tech_info.get("all_techs_pp"),
+        restrict_to_category_values=dict_tech_info.get("all_techs_pp"),
     )
-    
-    for field in fields_scale:
-        df_out[field] = np.array(df_out[field])*vec_entc_scale_msp
 
+    for field in fields_scale:
+        df_out[field] = np.array(df_out[field]) * vec_entc_scale_msp
 
     return df_out
-
 
 
 def transformation_entc_specify_transmission_losses(
@@ -1477,10 +1499,9 @@ def transformation_entc_specify_transmission_losses(
     field_region: str = "nation",
     magnitude_type: str = "final_value_ceiling",
     min_loss: Union[float, None] = 0.02,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Reduce transmission losses" transformation
+    """Implement the "Reduce transmission losses" transformation
 
     Function Arguments
     ------------------
@@ -1492,25 +1513,23 @@ def transformation_entc_specify_transmission_losses(
     - model_enerprod: EnergyProduction model used to define variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - magnitude_type: string 
+    - magnitude_type: string
     - min_loss: minimum feasible transmission loss. If None, transmission losses
         can be reduced to 0
     - **kwargs: passed to transformation_general()
-    """
 
-    valid_types = ["baseline_scalar", "final_value"]#, "final_value_ceiling"]
+    """
+    valid_types = ["baseline_scalar", "final_value"]  # , "final_value_ceiling"]
     magnitude_type = (
-        "baseline_scalar" 
-        if (magnitude_type not in valid_types) 
-        else magnitude_type
+        "baseline_scalar" if (magnitude_type not in valid_types) else magnitude_type
     )
 
     var_bound = model_attributes.build_variable_fields(
         model_enerprod.modvar_enfu_transmission_loss_frac_electricity,
-        restrict_to_category_values = model_enerprod.cat_enfu_elec,
+        restrict_to_category_values=model_enerprod.cat_enfu_elec,
     )
 
     if magnitude_type == "basline_scalar":
@@ -1524,27 +1543,26 @@ def transformation_entc_specify_transmission_losses(
                     "magnitude": magnitude,
                     "magnitude_type": magnitude_type,
                     "time_period_baseline": get_time_period(model_attributes, "max"),
-                    "vec_ramp": vec_ramp
-                }
+                    "vec_ramp": vec_ramp,
+                },
             },
-            field_region = field_region,
-            **kwargs
+            field_region=field_region,
+            **kwargs,
         )
 
     # group by region to ensure the specified value is not higher than the actual value
     elif magnitude_type == "final_value":
-
         df_out_list = []
         dfs_out = df_input.groupby([field_region])
 
         for i, df in dfs_out:
-            
             i = i[0] if isinstance(i, tuple) else i
 
             val_final = float(
                 df[
-                    df[model_attributes.dim_time_period] == get_time_period(model_attributes, "max")
-                ][var_bound]
+                    df[model_attributes.dim_time_period]
+                    == get_time_period(model_attributes, "max")
+                ][var_bound],
             )
             magnitude = min(magnitude, val_final)
 
@@ -1556,18 +1574,19 @@ def transformation_entc_specify_transmission_losses(
                         "bounds": (0, 1),
                         "magnitude": magnitude,
                         "magnitude_type": "final_value",
-                        "time_period_baseline": get_time_period(model_attributes, "max"),
-                        "vec_ramp": vec_ramp
-                    }
+                        "time_period_baseline": get_time_period(
+                            model_attributes, "max"
+                        ),
+                        "vec_ramp": vec_ramp,
+                    },
                 },
-                field_region = field_region,
-                **kwargs
+                field_region=field_region,
+                **kwargs,
             )
 
             df_out_list.append(df_trns)
-        
-        df_out = pd.concat(df_out_list, axis = 0).reset_index(drop = True)
 
+        df_out = pd.concat(df_out_list, axis=0).reset_index(drop=True)
 
     # bound losses
     if isinstance(min_loss, float) or isinstance(min_loss, int):
@@ -1577,17 +1596,15 @@ def transformation_entc_specify_transmission_losses(
     return df_out
 
 
-
 def transformation_entc_retire_fossil_fuel_early(
     df_input: pd.DataFrame,
     dict_categories_to_vec_ramp: Dict[str, np.ndarray],
     model_attributes: ma.ModelAttributes,
     model_enerprod: ml.EnergyProduction,
     magnitude: float = 0.0,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Maximize Industrial Production Efficiency" transformation
+    """Implement the "Maximize Industrial Production Efficiency" transformation
 
     Function Arguments
     ------------------
@@ -1597,15 +1614,15 @@ def transformation_entc_retire_fossil_fuel_early(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - model_enerprod: EnergyProduction model used to define variables
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - magnitude: final magnitude of generation capacity.
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     attr = model_attributes.get_attribute_table(model_attributes.subsec_name_entc)
 
     # initialize output
@@ -1627,19 +1644,20 @@ def transformation_entc_retire_fossil_fuel_early(
                             "magnitude": 0.0,
                             "magnitude_type": "final_value",
                             "vec_ramp": vec_ramp,
-                            "time_period_baseline": get_time_period(model_attributes, "max")
-                        }
+                            "time_period_baseline": get_time_period(
+                                model_attributes, "max"
+                            ),
+                        },
                     },
-                    **kwargs
+                    **kwargs,
                 )
     return df_out
-
-
 
 
 ############################################
 #    FUGITIVE EMISSIONS TRANSFORMATIONS    #
 ############################################
+
 
 def transformation_fgtv_maximize_flaring(
     df_input: pd.DataFrame,
@@ -1647,10 +1665,9 @@ def transformation_fgtv_maximize_flaring(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: me.EnergyConsumption,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Maximize Flaring" transformation
+    """Implement the "Maximize Flaring" transformation
 
     Function Arguments
     ------------------
@@ -1658,19 +1675,19 @@ def transformation_fgtv_maximize_flaring(
     - magnitude: magnitude of increase in efficiency relative to time 0
         (interpreted as a magnitude change, not a scalar change).
     - model_attributes: ModelAttributes object used to call strategies/variables
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # call general transformation
     df_out = transformation_general(
         df_input,
@@ -1680,14 +1697,13 @@ def transformation_fgtv_maximize_flaring(
                 "bounds": (0, 1),
                 "magnitude": magnitude,
                 "magnitude_type": "final_value",
-                "vec_ramp": vec_ramp
-            }
+                "vec_ramp": vec_ramp,
+            },
         },
-        **kwargs
+        **kwargs,
     )
 
     return df_out
-
 
 
 def transformation_fgtv_reduce_leaks(
@@ -1696,10 +1712,9 @@ def transformation_fgtv_reduce_leaks(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Reduce Leaks" transformation
+    """Implement the "Reduce Leaks" transformation
 
     Function Arguments
     ------------------
@@ -1708,17 +1723,17 @@ def transformation_fgtv_reduce_leaks(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # call general transformation
     df_out = transformation_general(
         df_input,
@@ -1728,21 +1743,18 @@ def transformation_fgtv_reduce_leaks(
                 "bounds": (0, 1),
                 "magnitude": magnitude,
                 "magnitude_type": "baseline_scalar_diff_reduction",
-                "vec_ramp": vec_ramp
-            }
+                "vec_ramp": vec_ramp,
+            },
         },
-        **kwargs
+        **kwargs,
     )
     return df_out
-
-
-
-
 
 
 ###########################################
 #    INDUSTRIAL ENERGY TRANSFORMATIONS    #
 ###########################################
+
 
 def transformation_inen_maximize_energy_efficiency(
     df_input: pd.DataFrame,
@@ -1750,10 +1762,9 @@ def transformation_inen_maximize_energy_efficiency(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Maximize Industrial Energy Efficiency" transformation
+    """Implement the "Maximize Industrial Energy Efficiency" transformation
 
     Function Arguments
     ------------------
@@ -1766,17 +1777,17 @@ def transformation_inen_maximize_energy_efficiency(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # call general transformation
     df_out = transformation_general(
         df_input,
@@ -1787,13 +1798,12 @@ def transformation_inen_maximize_energy_efficiency(
                 "magnitude": magnitude,
                 "magnitude_type": "baseline_additive",
                 "time_period_baseline": get_time_period(model_attributes, "max"),
-                "vec_ramp": vec_ramp
-            }
+                "vec_ramp": vec_ramp,
+            },
         },
-        **kwargs
+        **kwargs,
     )
     return df_out
-
 
 
 def transformation_inen_maximize_production_efficiency(
@@ -1802,10 +1812,9 @@ def transformation_inen_maximize_production_efficiency(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Maximize Industrial Production Efficiency" transformation
+    """Implement the "Maximize Industrial Production Efficiency" transformation
 
     Function Arguments
     ------------------
@@ -1816,18 +1825,17 @@ def transformation_inen_maximize_production_efficiency(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
+
     """
-
-
     # call general transformation
     df_out = transformation_general(
         df_input,
@@ -1837,13 +1845,12 @@ def transformation_inen_maximize_production_efficiency(
                 "bounds": (0, 1),
                 "magnitude": 1 - magnitude,
                 "magnitude_type": "final_value",
-                "vec_ramp": vec_ramp
-            }
+                "vec_ramp": vec_ramp,
+            },
         },
-        **kwargs
+        **kwargs,
     )
     return df_out
-
 
 
 def transformation_inen_shift_modvars(
@@ -1860,8 +1867,7 @@ def transformation_inen_shift_modvars(
     return_modvars_only: bool = False,
     strategy_id: Union[int, None] = None,
 ) -> pd.DataFrame:
-    """
-    Implement fuel switch transformations
+    """Implement fuel switch transformations
 
     Function Arguments
     ------------------
@@ -1870,7 +1876,7 @@ def transformation_inen_shift_modvars(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - categories: INEN categories to apply transformation to
     - dict_modvar_specs: dictionary of targets modvars to shift into (assumes
@@ -1878,19 +1884,19 @@ def transformation_inen_shift_modvars(
         Sum of values must == 1.
     - field_region: field in df_input that specifies the region
     - magnitude_relative_to_baseline: apply the magnitude relative to baseline?
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - return_modvars_only: return the model variables that define fuel fractions
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # model variables to explore
     model_enercons = (
-        me.EnergyConsumption(model_attributes) 
-        if not isinstance(model_enercons, me.EnergyConsumption) 
+        me.EnergyConsumption(model_attributes)
+        if not isinstance(model_enercons, me.EnergyConsumption)
         else model_enercons
     )
     modvars = model_enercons.modvars_inen_list_fuel_fraction
@@ -1900,27 +1906,40 @@ def transformation_inen_shift_modvars(
     # dertivative vars (alphabetical)
     all_regions = sorted(list(set(df_input[field_region])))
     attr_inen = model_attributes.get_attribute_table(model_attributes.subsec_name_inen)
-    attr_time_period = model_attributes.get_dimensional_attribute_table(model_attributes.dim_time_period)
+    attr_time_period = model_attributes.get_dimensional_attribute_table(
+        model_attributes.dim_time_period
+    )
 
     df_out = []
     regions_apply = (
-        all_regions 
-        if (regions_apply is None) 
+        all_regions
+        if (regions_apply is None)
         else [x for x in regions_apply if x in all_regions]
     )
 
     dict_modvar_specs_def = {model_enercons.modvar_inen_frac_en_electricity: 1}
-    dict_modvar_specs = dict_modvar_specs_def if not isinstance(dict_modvar_specs, dict) else dict_modvar_specs
+    dict_modvar_specs = (
+        dict_modvar_specs_def
+        if not isinstance(dict_modvar_specs, dict)
+        else dict_modvar_specs
+    )
     dict_modvar_specs = dict(
-        (k, v) for k, v in dict_modvar_specs.items() 
+        (k, v)
+        for k, v in dict_modvar_specs.items()
         if (k in modvars) and (isinstance(v, int) or isinstance(v, float))
     )
-    dict_modvar_specs = dict_modvar_specs_def if (sum(list(dict_modvar_specs.values())) != 1.0) else dict_modvar_specs
+    dict_modvar_specs = (
+        dict_modvar_specs_def
+        if (sum(list(dict_modvar_specs.values())) != 1.0)
+        else dict_modvar_specs
+    )
 
     # get model variables and filter categories
     modvars_source = [x for x in modvars if x not in dict_modvar_specs.keys()]
     modvars_target = [x for x in modvars if x in dict_modvar_specs.keys()]
-    cats_all = [set(model_attributes.get_variable_categories(x)) for x in modvars_target]
+    cats_all = [
+        set(model_attributes.get_variable_categories(x)) for x in modvars_target
+    ]
     cats_all = set.intersection(*cats_all)
 
     categories = (
@@ -1928,28 +1947,20 @@ def transformation_inen_shift_modvars(
         if isinstance(categories, list)
         else attr_inen.key_values
     )
-    cats_all = (
-        set(cats_all) & set(categories)
-        if len(categories) > 0
-        else None
-    )
+    cats_all = set(cats_all) & set(categories) if len(categories) > 0 else None
 
     if cats_all is None:
         return df_input
 
     subsec = model_attributes.subsec_name_inen
 
-
     ##  ITERATE OVER REGIONS AND MODVARS TO BUILD TRANSFORMATION
 
     for region in all_regions:
-
         df_in = (
-            df_input[
-                df_input[field_region] == region
-            ]
-            .sort_values(by = [model_attributes.dim_time_period])
-            .reset_index(drop = True)
+            df_input[df_input[field_region] == region]
+            .sort_values(by=[model_attributes.dim_time_period])
+            .reset_index(drop=True)
         )
         df_in_new = df_in.copy()
         vec_tp = list(df_in[model_attributes.dim_time_period])
@@ -1957,77 +1968,94 @@ def transformation_inen_shift_modvars(
 
         if region in regions_apply:
             for cat in cats_all:
-
                 fields = [
                     model_attributes.build_variable_fields(
                         x,
-                        restrict_to_category_values = cat
-                    ) for x in modvars_target
+                        restrict_to_category_values=cat,
+                    )
+                    for x in modvars_target
                 ]
 
                 vec_initial_vals = np.array(df_in[fields].iloc[0]).astype(float)
-                val_initial_target = vec_initial_vals.sum() if magnitude_relative_to_baseline else 0.0
-                vec_initial_distribution = np.nan_to_num(vec_initial_vals/vec_initial_vals.sum(), nan = 1.0, posinf = 1.0, )
+                val_initial_target = (
+                    vec_initial_vals.sum() if magnitude_relative_to_baseline else 0.0
+                )
+                vec_initial_distribution = np.nan_to_num(
+                    vec_initial_vals / vec_initial_vals.sum(), nan=1.0, posinf=1.0
+                )
 
                 # get the current total value of fractions
                 vec_final_vals = np.array(df_in[fields].iloc[n_tp - 1]).astype(float)
                 val_final_target = sum(vec_final_vals)
 
-                target_value = float(sf.vec_bounds(magnitude + val_initial_target, (0.0, 1.0)))#*dict_modvar_specs.get(modvar_target)
-                scale_non_elec = np.nan_to_num((1 - target_value)/(1 - val_final_target), nan = 0.0, posinf = 0.0, )
+                target_value = float(
+                    sf.vec_bounds(magnitude + val_initial_target, (0.0, 1.0))
+                )  # *dict_modvar_specs.get(modvar_target)
+                scale_non_elec = np.nan_to_num(
+                    (1 - target_value) / (1 - val_final_target), nan=0.0, posinf=0.0
+                )
 
-                target_distribution = magnitude*np.array([dict_modvar_specs.get(x) for x in modvars_target]) + val_initial_target*vec_initial_distribution
-                target_distribution /= max(magnitude + val_initial_target, 1.0) 
-                target_distribution = np.nan_to_num(target_distribution, nan = 0.0, posinf = 0.0, )
+                target_distribution = (
+                    magnitude
+                    * np.array([dict_modvar_specs.get(x) for x in modvars_target])
+                    + val_initial_target * vec_initial_distribution
+                )
+                target_distribution /= max(magnitude + val_initial_target, 1.0)
+                target_distribution = np.nan_to_num(
+                    target_distribution, nan=0.0, posinf=0.0
+                )
 
-                dict_target_distribution = dict((x, target_distribution[i]) for i, x in enumerate(modvars_target))
+                dict_target_distribution = dict(
+                    (x, target_distribution[i]) for i, x in enumerate(modvars_target)
+                )
 
                 modvars_adjust = []
                 for modvar in modvars:
-                    modvars_adjust.append(modvar) if cat in model_attributes.get_variable_categories(modvar) else None
+                    modvars_adjust.append(
+                        modvar
+                    ) if cat in model_attributes.get_variable_categories(
+                        modvar
+                    ) else None
 
                 # loop over adjustment variables to build new trajectories
                 for modvar in modvars_adjust:
                     field_cur = model_attributes.build_variable_fields(
                         modvar,
-                        restrict_to_category_values = cat,
+                        restrict_to_category_values=cat,
                     )
 
                     vec_old = np.array(df_in[field_cur])
                     val_final = vec_old[n_tp - 1]
                     val_new = (
-                        np.nan_to_num(val_final, nan = 0.0, posinf = 0.0, )*scale_non_elec 
-                        if (modvar not in modvars_target) 
+                        np.nan_to_num(val_final, nan=0.0, posinf=0.0) * scale_non_elec
+                        if (modvar not in modvars_target)
                         else dict_target_distribution.get(modvar)
                     )
-                    vec_new = vec_ramp*val_new + (1 - vec_ramp)*vec_old
+                    vec_new = vec_ramp * val_new + (1 - vec_ramp) * vec_old
 
                     df_in_new[field_cur] = vec_new
 
         df_out.append(df_in_new)
 
-
     # concatenate and add strategy if applicable
-    df_out = pd.concat(df_out, axis = 0).reset_index(drop = True)
+    df_out = pd.concat(df_out, axis=0).reset_index(drop=True)
     if isinstance(strategy_id, int):
         df_out = sf.add_data_frame_fields_from_dict(
             df_out,
             {
-                model_attributes.dim_strategy_id: strategy_id
+                model_attributes.dim_strategy_id: strategy_id,
             },
-            prepend_q = True,
-            overwrite_fields = True
+            prepend_q=True,
+            overwrite_fields=True,
         )
 
     return df_out
 
 
-
-
-
 ##############################
 #    SCOE TRANSFORMATIONS    #
 ##############################
+
 
 def transformation_scoe_electrify_category_to_target(
     df_input: pd.DataFrame,
@@ -2036,12 +2064,11 @@ def transformation_scoe_electrify_category_to_target(
     model_attributes: ma.ModelAttributes,
     cats_elec: Union[List[str], None] = None,
     regions_apply: Union[List[str], None] = None,
-    field_region = "nation",
+    field_region="nation",
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    strategy_id: Union[int, None] = None
+    strategy_id: Union[int, None] = None,
 ) -> pd.DataFrame:
-    """
-    Implement the "Switch to electricity for heat" transformation
+    """Implement the "Switch to electricity for heat" transformation
 
     Function Arguments
     ------------------
@@ -2051,29 +2078,35 @@ def transformation_scoe_electrify_category_to_target(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # core vars (ordered)
     model_enercons = (
-        me.EnergyConsumption(model_attributes) 
-        if not isinstance(model_enercons, me.EnergyConsumption) 
+        me.EnergyConsumption(model_attributes)
+        if not isinstance(model_enercons, me.EnergyConsumption)
         else model_enercons
     )
     all_regions = sorted(list(set(df_input[field_region])))
-    
+
     # dertivative vars (alphabetical)
-    attr_time_period = model_attributes.get_dimensional_attribute_table(model_attributes.dim_time_period)
+    attr_time_period = model_attributes.get_dimensional_attribute_table(
+        model_attributes.dim_time_period
+    )
     df_out = []
-    regions_apply = all_regions if (regions_apply is None) else [x for x in regions_apply if x in all_regions]
+    regions_apply = (
+        all_regions
+        if (regions_apply is None)
+        else [x for x in regions_apply if x in all_regions]
+    )
     subsec = model_attributes.subsec_name_scoe
 
     # model variables to explore
@@ -2086,72 +2119,87 @@ def transformation_scoe_electrify_category_to_target(
         model_enercons.modvar_scoe_frac_heat_en_kerosene,
         model_enercons.modvar_scoe_frac_heat_en_natural_gas,
         model_enercons.modvar_scoe_frac_heat_en_hgl,
-        model_enercons.modvar_scoe_frac_heat_en_solid_biomass
+        model_enercons.modvar_scoe_frac_heat_en_solid_biomass,
     ]
-
 
     ##  ITERATE OVER REGIONS AND MODVARS TO BUILD TRANSFORMATION
 
     for region in all_regions:
-
-        df_in = df_input[df_input[field_region] == region].sort_values(by = [model_attributes.dim_time_period]).reset_index(drop = True)
+        df_in = (
+            df_input[df_input[field_region] == region]
+            .sort_values(by=[model_attributes.dim_time_period])
+            .reset_index(drop=True)
+        )
         df_in_new = df_in.copy()
         vec_tp = list(df_in[model_attributes.dim_time_period])
         n_tp = len(df_in)
 
         # get electric categories and build dictionary of target values
-        cats_elec_all = model_attributes.get_variable_categories(model_enercons.modvar_scoe_frac_heat_en_electricity)
-        cats_elec = [x for x in cats_elec_all if x in cats_elec] if isinstance(cats_elec, list) else cats_elec_all
+        cats_elec_all = model_attributes.get_variable_categories(
+            model_enercons.modvar_scoe_frac_heat_en_electricity
+        )
+        cats_elec = (
+            [x for x in cats_elec_all if x in cats_elec]
+            if isinstance(cats_elec, list)
+            else cats_elec_all
+        )
         dict_targets_final_tp = dict((x, magnitude) for x in cats_elec)
 
-
         if region in regions_apply:
-            for cat in dict_targets_final_tp.keys():
+            for cat in dict_targets_final_tp:
                 field_elec = model_attributes.build_variable_fields(
                     model_enercons.modvar_scoe_frac_heat_en_electricity,
-                    restrict_to_category_values = cat,
+                    restrict_to_category_values=cat,
                 )
 
                 val_final_elec = float(df_in[field_elec].iloc[n_tp - 1])
-                target_value = min(max(dict_targets_final_tp.get(cat) + val_final_elec, 0), 1)
+                target_value = min(
+                    max(dict_targets_final_tp.get(cat) + val_final_elec, 0), 1
+                )
                 scale_non_elec = 1 - target_value
 
                 # get model variables that need to be adjusted
                 modvars_adjust = []
                 for modvar in modvars:
-                    modvars_adjust.append(modvar) if cat in model_attributes.get_variable_categories(modvar) else None
+                    modvars_adjust.append(
+                        modvar
+                    ) if cat in model_attributes.get_variable_categories(
+                        modvar
+                    ) else None
 
                 # loop over adjustment variables to build new trajectories
                 for modvar in modvars_adjust:
                     field_cur = model_attributes.build_variable_fields(
                         modvar,
-                        restrict_to_category_values = cat,
+                        restrict_to_category_values=cat,
                     )
 
                     vec_old = np.array(df_in[field_cur])
                     val_final = vec_old[n_tp - 1]
-                    val_new = (val_final/(1 - val_final_elec))*scale_non_elec if (field_cur != field_elec) else target_value
-                    vec_new = vec_ramp*val_new + (1 - vec_ramp)*vec_old
+                    val_new = (
+                        (val_final / (1 - val_final_elec)) * scale_non_elec
+                        if (field_cur != field_elec)
+                        else target_value
+                    )
+                    vec_new = vec_ramp * val_new + (1 - vec_ramp) * vec_old
 
                     df_in_new[field_cur] = vec_new
 
         df_out.append(df_in_new)
 
-
     # concatenate and add strategy if applicable
-    df_out = pd.concat(df_out, axis = 0).reset_index(drop = True)
+    df_out = pd.concat(df_out, axis=0).reset_index(drop=True)
     if isinstance(strategy_id, int):
         df_out = sf.add_data_frame_fields_from_dict(
             df_out,
             {
-                model_attributes.dim_strategy_id: strategy_id
+                model_attributes.dim_strategy_id: strategy_id,
             },
-            prepend_q = True,
-            overwrite_fields = True
+            prepend_q=True,
+            overwrite_fields=True,
         )
 
     return df_out
-
 
 
 def transformation_scoe_increase_energy_efficiency_heat(
@@ -2160,10 +2208,9 @@ def transformation_scoe_increase_energy_efficiency_heat(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Increase efficiency of fuel for heat" transformation in SCOE
+    """Implement the "Increase efficiency of fuel for heat" transformation in SCOE
 
     Function Arguments
     ------------------
@@ -2175,50 +2222,48 @@ def transformation_scoe_increase_energy_efficiency_heat(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     dict_base = {
         "bounds": (0, 1),
         "magnitude": magnitude,
         "magnitude_type": "baseline_additive",
         "time_period_baseline": get_time_period(model_attributes, "max"),
-        "vec_ramp": vec_ramp
+        "vec_ramp": vec_ramp,
     }
 
     modvars = [
         model_enercons.modvar_scoe_efficiency_fact_heat_en_coal,
         model_enercons.modvar_scoe_efficiency_fact_heat_en_diesel,
-        #model_enercons.modvar_scoe_efficiency_fact_heat_en_electricity,
+        # model_enercons.modvar_scoe_efficiency_fact_heat_en_electricity,
         model_enercons.modvar_scoe_efficiency_fact_heat_en_gasoline,
         model_enercons.modvar_scoe_efficiency_fact_heat_en_hydrogen,
         model_enercons.modvar_scoe_efficiency_fact_heat_en_kerosene,
         model_enercons.modvar_scoe_efficiency_fact_heat_en_natural_gas,
         model_enercons.modvar_scoe_efficiency_fact_heat_en_hgl,
-        model_enercons.modvar_scoe_efficiency_fact_heat_en_solid_biomass
+        model_enercons.modvar_scoe_efficiency_fact_heat_en_solid_biomass,
     ]
 
     dict_run = dict((modvar, dict_base) for modvar in modvars)
-
 
     # call general transformation
     df_out = transformation_general(
         df_input,
         model_attributes,
         dict_run,
-        **kwargs
+        **kwargs,
     )
 
     return df_out
-
 
 
 def transformation_scoe_reduce_demand_for_appliance_energy(
@@ -2227,51 +2272,48 @@ def transformation_scoe_reduce_demand_for_appliance_energy(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Increase appliance efficiency" transformation in SCOE
+    """Implement the "Increase appliance efficiency" transformation in SCOE
 
     Function Arguments
     ------------------
     - df_input: input data frame containing baseline trajectories
-    - magnitude: magnitude of reduction in electric energy demand relative to 
-        final time period (interpreted as an proportional scalar--e.g., a 30% 
-        retuction in  electric energy demand in the final time period is entered 
+    - magnitude: magnitude of reduction in electric energy demand relative to
+        final time period (interpreted as an proportional scalar--e.g., a 30%
+        retuction in  electric energy demand in the final time period is entered
         as 0.3).
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # call general transformation
     df_out = transformation_general(
         df_input,
         model_attributes,
         {
-            model_enercons.modvar_scoe_demscalar_elec_energy_demand : {
+            model_enercons.modvar_scoe_demscalar_elec_energy_demand: {
                 "bounds": (0, np.inf),
                 "magnitude": float(sf.vec_bounds(1 - magnitude, (0, np.inf))),
                 "magnitude_type": "baseline_scalar",
                 "time_period_baseline": get_time_period(model_attributes, "max"),
-                "vec_ramp": vec_ramp
-            }
-
+                "vec_ramp": vec_ramp,
+            },
         },
-        **kwargs
+        **kwargs,
     )
 
     return df_out
-
 
 
 def transformation_scoe_reduce_demand_for_heat_energy(
@@ -2280,10 +2322,9 @@ def transformation_scoe_reduce_demand_for_heat_energy(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Reduce demand for heat energy" transformation in SCOE
+    """Implement the "Reduce demand for heat energy" transformation in SCOE
 
     Function Arguments
     ------------------
@@ -2295,42 +2336,40 @@ def transformation_scoe_reduce_demand_for_heat_energy(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # call general transformation
     df_out = transformation_general(
         df_input,
         model_attributes,
         {
-            model_enercons.modvar_scoe_demscalar_heat_energy_demand : {
+            model_enercons.modvar_scoe_demscalar_heat_energy_demand: {
                 "bounds": (0, np.inf),
                 "magnitude": float(sf.vec_bounds(1 - magnitude, (0, np.inf))),
                 "magnitude_type": "baseline_scalar",
                 "time_period_baseline": get_time_period(model_attributes, "max"),
-                "vec_ramp": vec_ramp
-            }
+                "vec_ramp": vec_ramp,
+            },
         },
-        **kwargs
+        **kwargs,
     )
 
     return df_out
 
 
-
-
-
 ###############################################
 #    TRANSPORTATION DEMAND TRANSFORMATIONS    #
 ###############################################
+
 
 def transformation_trde_reduce_demand(
     df_input: pd.DataFrame,
@@ -2338,10 +2377,9 @@ def transformation_trde_reduce_demand(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Increase Transportation Non-Electricity Energy Efficiency"
+    """Implement the "Increase Transportation Non-Electricity Energy Efficiency"
         transformation
 
     Function Arguments
@@ -2353,17 +2391,17 @@ def transformation_trde_reduce_demand(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # call general transformation
     df_out = transformation_general(
         df_input,
@@ -2373,19 +2411,19 @@ def transformation_trde_reduce_demand(
                 "magnitude": 1 - magnitude,
                 "magnitude_type": "baseline_scalar",
                 "time_period_baseline": get_time_period(model_attributes, "max"),
-                "vec_ramp": vec_ramp
-            }
+                "vec_ramp": vec_ramp,
+            },
         },
-        **kwargs
+        **kwargs,
     )
 
     return df_out
 
 
-
 ########################################
 #    TRANSPORTATION TRANSFORMATIONS    #
 ########################################
+
 
 def transformation_trns_fuel_shift_to_target(
     df_input: pd.DataFrame,
@@ -2401,24 +2439,23 @@ def transformation_trns_fuel_shift_to_target(
     modvars_source: Union[List[str], None] = None,
     regions_apply: Union[List[str], None] = None,
     return_modvars_only: bool = False,
-    strategy_id: Union[int, None] = None
+    strategy_id: Union[int, None] = None,
 ) -> pd.DataFrame:
-    """
-    Implement fuel switch transformations in Transportation
+    """Implement fuel switch transformations in Transportation
 
     Function Arguments
     ------------------
     - df_input: input data frame containing baseline trajectories
     - magnitude: target magnitude of fuel mixture. See keyword argument
-        `magnitude_type` below for more information on how the magnitude is 
+        `magnitude_type` below for more information on how the magnitude is
         specified
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
-    - baseline_period: string specifying "final" or "initial". If "final", 
-        the baseline period used to determine the shift is the final time 
+    - baseline_period: string specifying "final" or "initial". If "final",
+        the baseline period used to determine the shift is the final time
         period. If initial, uses the first time period.
     - categories: TRNS categories to apply transformation to
     - dict_modvar_specs: dictionary of targets modvars to shift into (assumes
@@ -2431,35 +2468,37 @@ def transformation_trns_fuel_shift_to_target(
             * "final_value": magnitude is the final value for the variable to
                 take (achieved in accordance with vec_ramp)
             * "transfer_scalar": apply scalar to outbound categories to
-                calculate final transfer magnitude. 
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+                calculate final transfer magnitude.
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - modvars_source: optional list of fuel fraction model variables to use as a
-        source for transfering to target fuel. NOTE: must be specified within 
+        source for transfering to target fuel. NOTE: must be specified within
         this function as a model variable.
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - return_modvars_only: return the model variables that define fuel fractions
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # core vars (ordered)
     model_enercons = (
-        me.EnergyConsumption(model_attributes) 
-        if not isinstance(model_enercons, me.EnergyConsumption) 
+        me.EnergyConsumption(model_attributes)
+        if not isinstance(model_enercons, me.EnergyConsumption)
         else model_enercons
     )
     all_regions = sorted(list(set(df_input[field_region])))
 
     # dertivative vars (alphabetical)
     attr_trns = model_attributes.get_attribute_table("Transportation")
-    attr_time_period = model_attributes.get_dimensional_attribute_table(model_attributes.dim_time_period)
+    attr_time_period = model_attributes.get_dimensional_attribute_table(
+        model_attributes.dim_time_period
+    )
 
     df_out = []
     regions_apply = (
-        all_regions 
-        if (regions_apply is None) 
+        all_regions
+        if (regions_apply is None)
         else [x for x in regions_apply if x in all_regions]
     )
 
@@ -2471,45 +2510,57 @@ def transformation_trns_fuel_shift_to_target(
         model_enercons.modvar_trns_fuel_fraction_gasoline,
         model_enercons.modvar_trns_fuel_fraction_hydrogen,
         model_enercons.modvar_trns_fuel_fraction_kerosene,
-        model_enercons.modvar_trns_fuel_fraction_natural_gas
+        model_enercons.modvar_trns_fuel_fraction_natural_gas,
     ]
 
     if return_modvars_only:
         return modvars
 
     dict_modvar_specs_def = {model_enercons.modvar_inen_frac_en_electricity: 1}
-    dict_modvar_specs = dict_modvar_specs_def if not isinstance(dict_modvar_specs, dict) else dict_modvar_specs
-    dict_modvar_specs = dict((k, v) for k, v in dict_modvar_specs.items() if (k in modvars) and (isinstance(v, int) or isinstance(v, float)))
-    dict_modvar_specs = dict_modvar_specs_def if (sum(list(dict_modvar_specs.values())) != 1.0) else dict_modvar_specs
-
-    modvars_source = modvars if (modvars_source is None) else [x for x in modvars_source if x in modvars]
-    modvars_source = [x for x in modvars_source if (x not in dict_modvar_specs.keys())] 
-    modvars_target = [x for x in modvars if x in dict_modvar_specs.keys()]
-    cats_all = [set(model_attributes.get_variable_categories(x)) for x in modvars_target]
-    cats_all = set.intersection(*cats_all)
-    cats_all = [x for x in cats_all if x in categories]
-   
-    # set some parameters
-    subsec = model_attributes.subsec_name_trns
-    magnitude_relative_to_baseline = (
-        magnitude_type in [
-            "baseline_scalar", 
-            "baseline_additive",
-            "transfer_scalar"
-        ]
+    dict_modvar_specs = (
+        dict_modvar_specs_def
+        if not isinstance(dict_modvar_specs, dict)
+        else dict_modvar_specs
+    )
+    dict_modvar_specs = dict(
+        (k, v)
+        for k, v in dict_modvar_specs.items()
+        if (k in modvars) and (isinstance(v, int) or isinstance(v, float))
+    )
+    dict_modvar_specs = (
+        dict_modvar_specs_def
+        if (sum(list(dict_modvar_specs.values())) != 1.0)
+        else dict_modvar_specs
     )
 
+    modvars_source = (
+        modvars
+        if (modvars_source is None)
+        else [x for x in modvars_source if x in modvars]
+    )
+    modvars_source = [x for x in modvars_source if (x not in dict_modvar_specs.keys())]
+    modvars_target = [x for x in modvars if x in dict_modvar_specs.keys()]
+    cats_all = [
+        set(model_attributes.get_variable_categories(x)) for x in modvars_target
+    ]
+    cats_all = set.intersection(*cats_all)
+    cats_all = [x for x in cats_all if x in categories]
+
+    # set some parameters
+    subsec = model_attributes.subsec_name_trns
+    magnitude_relative_to_baseline = magnitude_type in [
+        "baseline_scalar",
+        "baseline_additive",
+        "transfer_scalar",
+    ]
 
     ##  ITERATE OVER REGIONS AND MODVARS TO BUILD TRANSFORMATION
 
     for region in all_regions:
-
         df_in = (
-            df_input[
-                df_input[field_region] == region
-            ]
-            .sort_values(by = [model_attributes.dim_time_period])
-            .reset_index(drop = True)
+            df_input[df_input[field_region] == region]
+            .sort_values(by=[model_attributes.dim_time_period])
+            .reset_index(drop=True)
         )
         df_in_new = df_in.copy()
         vec_tp = list(df_in[model_attributes.dim_time_period])
@@ -2517,60 +2568,67 @@ def transformation_trns_fuel_shift_to_target(
 
         if region in regions_apply:
             for cat in cats_all:
-                
                 # initialize model variables that are adjusted
                 modvars_adjust = []
                 fields_source = []
                 fields_target = []
 
                 for modvar in modvars_source + modvars_target:
-
                     cats_valid = model_attributes.get_variable_categories(modvar)
                     if cat not in cats_valid:
                         continue
 
-                    modvars_adjust.append(modvar) 
+                    modvars_adjust.append(modvar)
 
-                    if (modvar in modvars_target):
+                    if modvar in modvars_target:
                         fields_target.append(
                             model_attributes.build_variable_fields(
                                 modvar,
-                                restrict_to_category_values = cat,
-                            )
+                                restrict_to_category_values=cat,
+                            ),
                         )
-                    
-                    if (modvar in modvars_source):
+
+                    if modvar in modvars_source:
                         fields_source.append(
                             model_attributes.build_variable_fields(
                                 modvar,
-                                restrict_to_category_values = cat,
-                            )
+                                restrict_to_category_values=cat,
+                            ),
                         )
-
 
                 # get some baseline values
                 tp_baseline = (n_tp - 1) if (baseline_period == "final") else 0
-                vec_target_baseline_total = np.array(df_in[fields_target]).astype(float).sum(axis = 1)
-                vec_initial_vals = np.array(df_in[fields_target].iloc[tp_baseline]).astype(float)
-                vec_initial_distribution = np.nan_to_num(vec_initial_vals/vec_initial_vals.sum(), nan = 1.0, posinf = 1.0, )
+                vec_target_baseline_total = (
+                    np.array(df_in[fields_target]).astype(float).sum(axis=1)
+                )
+                vec_initial_vals = np.array(
+                    df_in[fields_target].iloc[tp_baseline]
+                ).astype(float)
+                vec_initial_distribution = np.nan_to_num(
+                    vec_initial_vals / vec_initial_vals.sum(), nan=1.0, posinf=1.0
+                )
 
                 # set magnitude
-                magnitude_shift = vec_initial_vals.sum()*magnitude if (magnitude_type in ["baseline_scalar"]) else magnitude
+                magnitude_shift = (
+                    vec_initial_vals.sum() * magnitude
+                    if (magnitude_type in ["baseline_scalar"])
+                    else magnitude
+                )
                 if magnitude_type == "transfer_scalar":
-
                     magnitude_new = 0.0
 
                     for modvar in modvars_source:
                         if cat in model_attributes.get_variable_categories(modvar):
                             field_cur = model_attributes.build_variable_fields(
                                 modvar,
-                                restrict_to_category_values = cat
+                                restrict_to_category_values=cat,
                             )
-                            
-                            magnitude_new += float(df_in[field_cur].iloc[tp_baseline])*magnitude
+
+                            magnitude_new += (
+                                float(df_in[field_cur].iloc[tp_baseline]) * magnitude
+                            )
 
                     magnitude_shift = magnitude_new
-
 
                 # get the current total value of fractions
                 """
@@ -2590,34 +2648,46 @@ def transformation_trns_fuel_shift_to_target(
 
                 dict_target_distribution = dict((x, target_distribution[i]) for i, x in enumerate(modvars_target))
                 """
-                vec_bounds = np.array(df_in[fields_target + fields_source]).astype(float).sum(axis = 1)
+                vec_bounds = (
+                    np.array(df_in[fields_target + fields_source])
+                    .astype(float)
+                    .sum(axis=1)
+                )
 
                 vec_magnitude_base = (
-                    vec_target_baseline_total 
-                    if magnitude_relative_to_baseline 
+                    vec_target_baseline_total
+                    if magnitude_relative_to_baseline
                     else np.zeros(len(vec_target_baseline_total))
                 )
                 val_initial_target = vec_magnitude_base[tp_baseline]
-                vec_target_with_ramp = sf.vec_bounds(magnitude_shift*vec_ramp + vec_magnitude_base, (0.0, 1.0))
+                vec_target_with_ramp = sf.vec_bounds(
+                    magnitude_shift * vec_ramp + vec_magnitude_base, (0.0, 1.0)
+                )
                 scale_non_elec = np.nan_to_num(
-                    (vec_bounds - vec_target_with_ramp)/(vec_bounds - vec_target_baseline_total), 
-                    nan = 0.0, 
-                    posinf = 0.0,
+                    (vec_bounds - vec_target_with_ramp)
+                    / (vec_bounds - vec_target_baseline_total),
+                    nan=0.0,
+                    posinf=0.0,
                 )
 
-                target_distribution = magnitude_shift*np.array([dict_modvar_specs.get(x) for x in modvars_target]) 
-                target_distribution += val_initial_target*vec_initial_distribution
-                target_distribution /= max(magnitude_shift + val_initial_target, 1.0) 
-                target_distribution = np.nan_to_num(target_distribution, nan = 0.0, posinf = 0.0, )
+                target_distribution = magnitude_shift * np.array(
+                    [dict_modvar_specs.get(x) for x in modvars_target]
+                )
+                target_distribution += val_initial_target * vec_initial_distribution
+                target_distribution /= max(magnitude_shift + val_initial_target, 1.0)
+                target_distribution = np.nan_to_num(
+                    target_distribution, nan=0.0, posinf=0.0
+                )
 
-                dict_target_distribution = dict((x, target_distribution[i]) for i, x in enumerate(modvars_target))
+                dict_target_distribution = dict(
+                    (x, target_distribution[i]) for i, x in enumerate(modvars_target)
+                )
 
                 # loop over adjustment variables to build new trajectories
                 for modvar in modvars_adjust:
-                    
                     field_cur = model_attributes.build_variable_fields(
                         modvar,
-                        restrict_to_category_values = cat,
+                        restrict_to_category_values=cat,
                     )
 
                     """
@@ -2633,30 +2703,29 @@ def transformation_trns_fuel_shift_to_target(
                     # NOTE: scale_non_elec (defined above) includes the mix that is (1 - vec_ramp) if all modvars are specified
                     vec_old = np.array(df_in[field_cur])
                     vec_new = (
-                        np.nan_to_num(vec_old*scale_non_elec, nan = 0.0, posinf = 0.0) 
-                        if (modvar not in modvars_target) 
-                        else dict_target_distribution.get(modvar)*vec_ramp + (1 - vec_ramp)*vec_old
+                        np.nan_to_num(vec_old * scale_non_elec, nan=0.0, posinf=0.0)
+                        if (modvar not in modvars_target)
+                        else dict_target_distribution.get(modvar) * vec_ramp
+                        + (1 - vec_ramp) * vec_old
                     )
 
                     df_in_new[field_cur] = vec_new
 
         df_out.append(df_in_new)
 
-
     # concatenate and add strategy if applicable
-    df_out = pd.concat(df_out, axis = 0).reset_index(drop = True)
+    df_out = pd.concat(df_out, axis=0).reset_index(drop=True)
     if isinstance(strategy_id, int):
         df_out = sf.add_data_frame_fields_from_dict(
             df_out,
             {
-                model_attributes.dim_strategy_id: strategy_id
+                model_attributes.dim_strategy_id: strategy_id,
             },
-            prepend_q = True,
-            overwrite_fields = True
+            prepend_q=True,
+            overwrite_fields=True,
         )
 
     return df_out
-
 
 
 def transformation_trns_electrify_category_to_target_old(
@@ -2666,12 +2735,11 @@ def transformation_trns_electrify_category_to_target_old(
     model_attributes: ma.ModelAttributes,
     cats_elec: Union[List[str], None] = None,
     regions_apply: Union[List[str], None] = None,
-    field_region = "nation",
+    field_region="nation",
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    strategy_id: Union[int, None] = None
+    strategy_id: Union[int, None] = None,
 ) -> pd.DataFrame:
-    """
-    Implement the "Electrify light duty road transport" transformation
+    """Implement the "Electrify light duty road transport" transformation
 
     Function Arguments
     ------------------
@@ -2681,29 +2749,35 @@ def transformation_trns_electrify_category_to_target_old(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # core vars (ordered)
     model_enercons = (
-        me.EnergyConsumption(model_attributes) 
-        if not isinstance(model_enercons, me.EnergyConsumption) 
+        me.EnergyConsumption(model_attributes)
+        if not isinstance(model_enercons, me.EnergyConsumption)
         else model_enercons
     )
     all_regions = sorted(list(set(df_input[field_region])))
 
     # dertivative vars (alphabetical)
-    attr_time_period = model_attributes.get_dimensional_attribute_table(model_attributes.dim_time_period)
+    attr_time_period = model_attributes.get_dimensional_attribute_table(
+        model_attributes.dim_time_period
+    )
     df_out = []
-    regions_apply = all_regions if (regions_apply is None) else [x for x in regions_apply if x in all_regions]
+    regions_apply = (
+        all_regions
+        if (regions_apply is None)
+        else [x for x in regions_apply if x in all_regions]
+    )
 
     # model variables to explore
     modvars = [
@@ -2713,31 +2787,37 @@ def transformation_trns_electrify_category_to_target_old(
         model_enercons.modvar_trns_fuel_fraction_gasoline,
         model_enercons.modvar_trns_fuel_fraction_hydrogen,
         model_enercons.modvar_trns_fuel_fraction_kerosene,
-        model_enercons.modvar_trns_fuel_fraction_natural_gas
+        model_enercons.modvar_trns_fuel_fraction_natural_gas,
     ]
-
 
     ##  ITERATE OVER REGIONS AND MODVARS TO BUILD TRANSFORMATION
 
     for region in all_regions:
-
-        df_in = df_input[df_input[field_region] == region].sort_values(by = [model_attributes.dim_time_period]).reset_index(drop = True)
+        df_in = (
+            df_input[df_input[field_region] == region]
+            .sort_values(by=[model_attributes.dim_time_period])
+            .reset_index(drop=True)
+        )
         df_in_new = df_in.copy()
         vec_tp = list(df_in[model_attributes.dim_time_period])
         n_tp = len(df_in)
 
         # get electric categories and build dictionary of target values
-        cats_elec_all = model_attributes.get_variable_categories(model_enercons.modvar_trns_fuel_fraction_electricity)
-        cats_elec = [x for x in cats_elec_all if x in cats_elec] if isinstance(cats_elec, list) else cats_elec_all
+        cats_elec_all = model_attributes.get_variable_categories(
+            model_enercons.modvar_trns_fuel_fraction_electricity
+        )
+        cats_elec = (
+            [x for x in cats_elec_all if x in cats_elec]
+            if isinstance(cats_elec, list)
+            else cats_elec_all
+        )
         dict_targets_final_tp = dict((x, magnitude) for x in cats_elec)
 
-
         if region in regions_apply:
-            for cat in dict_targets_final_tp.keys():
-
+            for cat in dict_targets_final_tp:
                 field_elec = model_attributes.build_variable_fields(
                     model_enercons.modvar_trns_fuel_fraction_electricity,
-                    restrict_to_category_values = cat,
+                    restrict_to_category_values=cat,
                 )
 
                 target_value = dict_targets_final_tp.get(cat)
@@ -2748,48 +2828,50 @@ def transformation_trns_electrify_category_to_target_old(
                 # get model variables that need to be adjusted
                 modvars_adjust = []
                 for modvar in modvars:
-                    modvars_adjust.append(modvar) if cat in model_attributes.get_variable_categories(modvar) else None
+                    modvars_adjust.append(
+                        modvar
+                    ) if cat in model_attributes.get_variable_categories(
+                        modvar
+                    ) else None
 
                 # loop over adjustment variables to build new trajectories
                 for modvar in modvars_adjust:
                     field_cur = model_attributes.build_variable_fields(
                         modvar,
-                        restrict_to_category_values = cat,
+                        restrict_to_category_values=cat,
                     )
 
                     vec_old = np.array(df_in[field_cur])
                     val_final = vec_old[n_tp - 1]
                     val_new = (
                         np.nan_to_num(
-                            (val_final/(1 - val_final_elec))*scale_non_elec,
-                            nan = 0.0, 
-                            posinf = 0.0
-                        ) 
-                        if (field_cur != field_elec) 
+                            (val_final / (1 - val_final_elec)) * scale_non_elec,
+                            nan=0.0,
+                            posinf=0.0,
+                        )
+                        if (field_cur != field_elec)
                         else target_value
                     )
 
-                    vec_new = vec_ramp*val_new + (1 - vec_ramp)*vec_old
+                    vec_new = vec_ramp * val_new + (1 - vec_ramp) * vec_old
 
                     df_in_new[field_cur] = vec_new
 
         df_out.append(df_in_new)
 
-
     # concatenate and add strategy if applicable
-    df_out = pd.concat(df_out, axis = 0).reset_index(drop = True)
+    df_out = pd.concat(df_out, axis=0).reset_index(drop=True)
     if isinstance(strategy_id, int):
         df_out = sf.add_data_frame_fields_from_dict(
             df_out,
             {
-                model_attributes.dim_strategy_id: strategy_id
+                model_attributes.dim_strategy_id: strategy_id,
             },
-            prepend_q = True,
-            overwrite_fields = True
+            prepend_q=True,
+            overwrite_fields=True,
         )
 
     return df_out
-
 
 
 def transformation_trns_increase_energy_efficiency_electric(
@@ -2798,10 +2880,9 @@ def transformation_trns_increase_energy_efficiency_electric(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Increase Transportation Non-Electricity Energy Efficiency"
+    """Implement the "Increase Transportation Non-Electricity Energy Efficiency"
         transformation
 
     Function Arguments
@@ -2814,18 +2895,17 @@ def transformation_trns_increase_energy_efficiency_electric(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
+
     """
-
-
     # call general transformation
     df_out = transformation_general(
         df_input,
@@ -2835,13 +2915,12 @@ def transformation_trns_increase_energy_efficiency_electric(
                 "magnitude": 1 + magnitude,
                 "magnitude_type": "baseline_scalar",
                 "time_period_baseline": get_time_period(model_attributes, "max"),
-                "vec_ramp": vec_ramp
-            }
+                "vec_ramp": vec_ramp,
+            },
         },
-        **kwargs
+        **kwargs,
     )
     return df_out
-
 
 
 def transformation_trns_increase_energy_efficiency_non_electric(
@@ -2850,10 +2929,9 @@ def transformation_trns_increase_energy_efficiency_non_electric(
     vec_ramp: np.ndarray,
     model_attributes: ma.ModelAttributes,
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Increase Transportation Non-Electricity Energy Efficiency"
+    """Implement the "Increase Transportation Non-Electricity Energy Efficiency"
         transformation
 
     Function Arguments
@@ -2866,22 +2944,22 @@ def transformation_trns_increase_energy_efficiency_non_electric(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     dict_base = {
         "magnitude": 1 + magnitude,
         "magnitude_type": "baseline_scalar",
         "time_period_baseline": get_time_period(model_attributes, "max"),
-        "vec_ramp": vec_ramp
+        "vec_ramp": vec_ramp,
     }
 
     modvars = [
@@ -2891,7 +2969,7 @@ def transformation_trns_increase_energy_efficiency_non_electric(
         model_enercons.modvar_trns_fuel_efficiency_hgl,
         model_enercons.modvar_trns_fuel_efficiency_hydrogen,
         model_enercons.modvar_trns_fuel_efficiency_kerosene,
-        model_enercons.modvar_trns_fuel_efficiency_natural_gas
+        model_enercons.modvar_trns_fuel_efficiency_natural_gas,
     ]
 
     dict_run = dict((modvar, dict_base) for modvar in modvars)
@@ -2901,11 +2979,10 @@ def transformation_trns_increase_energy_efficiency_non_electric(
         df_input,
         model_attributes,
         dict_run,
-        **kwargs
+        **kwargs,
     )
 
     return df_out
-
 
 
 def transformation_trns_increase_vehicle_occupancy(
@@ -2915,10 +2992,9 @@ def transformation_trns_increase_vehicle_occupancy(
     model_attributes: ma.ModelAttributes,
     categories: List[str] = ["road_light"],
     model_enercons: Union[me.EnergyConsumption, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Implement the "Increase Transportation Non-Electricity Energy Efficiency"
+    """Implement the "Increase Transportation Non-Electricity Energy Efficiency"
         transformation
 
     Function Arguments
@@ -2931,18 +3007,17 @@ def transformation_trns_increase_vehicle_occupancy(
     - model_attributes: ModelAttributes object used to call strategies/variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - field_region: field in df_input that specifies the region
-    - model_enercons: optional EnergyConsumption object to pass for variable 
+    - model_enercons: optional EnergyConsumption object to pass for variable
         access
     - regions_apply: optional set of regions to use to define strategy. If None,
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
+
     """
-
-
     # call general transformation
     df_out = transformation_general(
         df_input,
@@ -2953,9 +3028,9 @@ def transformation_trns_increase_vehicle_occupancy(
                 "magnitude": 1 + magnitude,
                 "magnitude_type": "baseline_scalar",
                 "time_period_baseline": get_time_period(model_attributes, "max"),
-                "vec_ramp": vec_ramp
-            }
+                "vec_ramp": vec_ramp,
+            },
         },
-        **kwargs
+        **kwargs,
     )
     return df_out

@@ -1,22 +1,19 @@
 import logging
-import numpy as np
-import pandas as pd
 import pathlib
 import re
 import warnings
 from typing import *
 
+import pandas as pd
 
-from sisepuede.core.attribute_table import *
-from sisepuede.core.model_attributes import *
 import sisepuede.core.support_classes as sc
 import sisepuede.transformers.transformers as trs
 import sisepuede.utilities._toolbox as sf
-
-
+from sisepuede.core.attribute_table import *
+from sisepuede.core.model_attributes import *
 
 _MODULE_CODE_SIGNATURE = "TX"
-_MODULE_UUID = "5FF5362F-3DE2-4A58-9CB8-01CB851D3CDC" 
+_MODULE_UUID = "5FF5362F-3DE2-4A58-9CB8-01CB851D3CDC"
 _TRANSFORMATION_REGEX_FLAG_PREPEND = "transformation"
 
 
@@ -28,10 +25,10 @@ _TRANSFORMATION_REGEX_FLAG_PREPEND = "transformation"
 # specify some default file names
 _DICT_FILE_NAME_DEFAULTS = {
     "citations": "citations.bib",
-    "config_general": "config_general.yaml"
+    "config_general": "config_general.yaml",
 }
 
-# specify some default keys for configuration 
+# specify some default keys for configuration
 _DICT_KEYS = {
     "citations": "citations",
     "code": "transformation_code",
@@ -47,11 +44,8 @@ _DICT_KEYS = {
 }
 
 
-
-
 class Transformation:
     """Parameterization class for Transformer. Used to vary implementations of Transfomers. A Transformation reads parameters from a configuration file, an exiting YAMLConfiguration object, or an existing dictionary to allow users the ability to explore different magnitudes, timing, categories, or other parameterizations of a ``Transformer``.
-    
 
     Parameters
     ----------
@@ -67,7 +61,7 @@ class Transformation:
 
     **kwargs:
         Optional keyword arguments, which can include the following elements
-        
+
         * key_citations
         * key_description
         * key_identifiers
@@ -75,18 +69,19 @@ class Transformation:
         * key_transformation_code
         * key_transformation_name
         * key_transformer
-    
+
     Returns
     -------
     ``Transformation`` class
+
     """
-    
-    def __init__(self,
+
+    def __init__(
+        self,
         config: Union[dict, str, sc.YAMLConfiguration],
         transformers: trs.Transformer,
         **kwargs,
     ) -> None:
-
         self._initialize_keys(
             **kwargs,
         )
@@ -97,47 +92,41 @@ class Transformation:
         )
 
         self._initialize_identifiers()
-        self._initialize_function(transformers, )
+        self._initialize_function(transformers)
 
         self._initialize_uuid()
-        
-        return None
-    
 
-
-    def __call__(self,
+    def __call__(
+        self,
         df_input: Union[pd.DataFrame, None] = None,
     ) -> pd.DataFrame:
+        out = self.function(df_input=df_input)
 
-        out = self.function(df_input = df_input, )
-        
         return out
-
-
-
 
     ##################################
     #    INITIALIZATION FUNCTIONS    #
     ##################################
-    
-    def _initialize_config(self,
+
+    def _initialize_config(
+        self,
         config: Union[dict, str, sc.YAMLConfiguration],
         transformers: trs.Transformer,
     ) -> None:
-        """
-        Set the configuration used to parameterize the transformer as well as
-            any derivative properties. Sets the following properties:
+        """Set the configuration used to parameterize the transformer as well as
+        any derivative properties. Sets the following properties:
 
-            * self.config
-            * self.dict_parameters
-            * self.transformer_code
+        * self.config
+        * self.dict_parameters
+        * self.transformer_code
         """
-        
         ##  CHECK CONFIG TYPE
 
         config = (
-            sc.YAMLConfiguration(config, )
-            if isinstance(config, dict) | isinstance(config, str) | isinstance(config, pathlib.Path)
+            sc.YAMLConfiguration(config)
+            if isinstance(config, dict)
+            | isinstance(config, str)
+            | isinstance(config, pathlib.Path)
             else config
         )
 
@@ -147,27 +136,25 @@ class Transformation:
 
             raise TypeError(msg)
 
-
         ##  VERIFY KEYS
 
         # verify top-level keys
         sf.check_keys(
-            config.dict_yaml, 
+            config.dict_yaml,
             [
                 self.key_identifiers,
                 self.key_parameters,
-                self.key_transformer
-            ]
+                self.key_transformer,
+            ],
         )
 
         # check that a transformation code is specified
         sf.check_keys(
             config.get(self.key_identifiers),
             [
-                self.key_transformation_code
-            ]
+                self.key_transformation_code,
+            ],
         )
-
 
         ##  CHECK THE TRANFORMER CODE AND GET PARAMETERS
 
@@ -176,10 +163,8 @@ class Transformation:
             msg = f"Transformer code '{transformer_code}' not found in the Transformers. The Transformation cannot be instantiated."
             raise KeyError(msg)
 
-
         # check parameter specification
-        dict_parameters = self.get_parameters_dict(config, transformers, )
-        
+        dict_parameters = self.get_parameters_dict(config, transformers)
 
         ##  SET PROPERTIES
 
@@ -187,22 +172,17 @@ class Transformation:
         self.dict_parameters = dict_parameters
         self.transformer_code = transformer_code
 
-        return None
-    
-
-
-    def _initialize_function(self,
+    def _initialize_function(
+        self,
         transformers: trs.Transformer,
     ) -> None:
-        """
-        Assign the transformer function with configuration-specified keyword
-            arguments. Sets the following properties:
+        """Assign the transformer function with configuration-specified keyword
+        arguments. Sets the following properties:
 
-            * self.function
+        * self.function
         """
+        transformer = transformers.get_transformer(self.transformer_code)
 
-        transformer = transformers.get_transformer(self.transformer_code, )
-        
         # build the output function
         def func(
             *args,
@@ -210,47 +190,40 @@ class Transformation:
             strat: Union[int, None] = None,
         ):
             out = transformer.function(
-                *args, 
-                df_input = df_input,
-                strat = strat,
-                **self.dict_parameters, 
+                *args,
+                df_input=df_input,
+                strat=strat,
+                **self.dict_parameters,
             )
 
             return out
-        
+
         # update docstrings
         func.__doc__ = transformer.function.__doc__
         self.__doc__ = transformer.function.__doc__
 
-
         ##  SET PARAMETERS
-        
+
         self.function = func
-        
-        return None
 
-
-
-    def _initialize_identifiers(self,
+    def _initialize_identifiers(
+        self,
     ) -> None:
-        """
-        Set transformation code and, optionally, transformation name. Sets the
-            following properties:
-            
-            * self.citations
-            * self.code
-            * self.description
-            * self.id_num
-            * self.name
-        """
+        """Set transformation code and, optionally, transformation name. Sets the
+        following properties:
 
+        * self.citations
+        * self.code
+        * self.description
+        * self.id_num
+        * self.name
+        """
         citations = self.config.get(self.key_citations)
         code = self.config.get(self.key_yc_trasformation_code)
         description = self.config.get(self.key_description)
-        id_num = None # initialize as None, can overwrite later
+        id_num = None  # initialize as None, can overwrite later
         name = self.config.get(self.key_yc_trasformation_name)
 
-        
         ##  SET PROPERTIES
 
         self.citations = citations
@@ -259,71 +232,63 @@ class Transformation:
         self.id_num = id_num
         self.name = name
 
-        return None
-
-
-    
-    def _initialize_keys(self,
+    def _initialize_keys(
+        self,
         **kwargs,
     ) -> None:
+        """Set the optional and required keys used to specify a transformation.
+        Can use keyword arguments to set keys.
         """
-        Set the optional and required keys used to specify a transformation.
-            Can use keyword arguments to set keys.
-        """
-
-        # set some shortcut codes 
+        # set some shortcut codes
 
         key_identifiers = kwargs.get("key_identifiers", _DICT_KEYS.get("identifiers"))
-        key_transformation_code = kwargs.get("key_transformation_code", _DICT_KEYS.get("code"))
-        key_transformation_name = kwargs.get("key_transformation_name", _DICT_KEYS.get("name"))
+        key_transformation_code = kwargs.get(
+            "key_transformation_code", _DICT_KEYS.get("code")
+        )
+        key_transformation_name = kwargs.get(
+            "key_transformation_name", _DICT_KEYS.get("name")
+        )
 
         key_yc_trasformation_code = f"{key_identifiers}.{key_transformation_code}"
         key_yc_trasformation_name = f"{key_identifiers}.{key_transformation_name}"
 
-
         ##  SET PARAMETERS
 
         self.key_citations = kwargs.get("key_citations", _DICT_KEYS.get("citations"))
-        self.key_description = kwargs.get("key_description", _DICT_KEYS.get("description"))
+        self.key_description = kwargs.get(
+            "key_description", _DICT_KEYS.get("description")
+        )
         self.key_identifiers = key_identifiers
         self.key_parameters = kwargs.get("key_parameters", _DICT_KEYS.get("parameters"))
         self.key_transformation_code = key_transformation_code
         self.key_transformation_id = _DICT_KEYS.get("id")
         self.key_transformation_name = key_transformation_name
-        self.key_transformer = kwargs.get("key_transformer", _DICT_KEYS.get("transformer"))
+        self.key_transformer = kwargs.get(
+            "key_transformer", _DICT_KEYS.get("transformer")
+        )
         self.key_yc_trasformation_code = key_yc_trasformation_code
         self.key_yc_trasformation_name = key_yc_trasformation_name
 
-        return None
-    
-
-
-    def _initialize_uuid(self,
+    def _initialize_uuid(
+        self,
     ) -> None:
-        """
-        Sets the following other properties:
+        """Sets the following other properties:
 
-            * self.is_transformation
-            * self._uuid
+        * self.is_transformation
+        * self._uuid
         """
-
         self.is_transformation = True
         self._uuid = _MODULE_UUID
 
-        return None
-
-
-
-    def get_parameters_dict(self,
+    def get_parameters_dict(
+        self,
         config: sc.YAMLConfiguration,
         transformers: trs.Transformers,
     ) -> None:
+        """Get the parameters dictionary associated with the specified Transformer.
+        Keeps only keys associated with valid default and keyword arguments
+        to the Transformer function.
         """
-        Get the parameters dictionary associated with the specified Transformer.
-            Keeps only keys associated with valid default and keyword arguments 
-            to the Transformer function.
-        """
-
         # try retrieving dictionary; if not a dict, conver to empty dict
         dict_parameters = config.get(self.key_parameters)
         if not isinstance(dict_parameters, dict):
@@ -332,13 +297,15 @@ class Transformation:
         # get transformer
         transformer_code = config.get(self.key_transformer)
         transformer = transformers.get_transformer(transformer_code)
-        if not trs.is_transformer(transformer, ):
-            raise RuntimeError(f"Invalid transformation '{transformer_code}' found in Transformers")
+        if not trs.is_transformer(transformer):
+            raise RuntimeError(
+                f"Invalid transformation '{transformer_code}' found in Transformers"
+            )
 
-        # get arguments to the function 
+        # get arguments to the function
         _, keywords = sf.get_args(
-            transformer.function, 
-            include_defaults = True,
+            transformer.function,
+            include_defaults=True,
         )
         dict_parameters = dict(
             (k, v) for (k, v) in dict_parameters.items() if k in keywords
@@ -347,19 +314,16 @@ class Transformation:
         return dict_parameters
 
 
-
-
-
-
 #######################################
 #    COLLECTION OF TRANSFORMATIONS    #
 #######################################
 
+
 class Transformations:
-    """Build a collection of parameters used to construct transformations. The ``Transformations`` class searches a specified directory to ingest three required file types and a fourth optional type:
+    r"""Build a collection of parameters used to construct transformations. The ``Transformations`` class searches a specified directory to ingest three required file types and a fourth optional type:
 
         (1) General configuration file (by default `config_general.yaml`). This
-            file is used to specify some general parameters used across 
+            file is used to specify some general parameters used across
             transformations, including categories that are subject to high heat.
             Additionally, this configuration is used to specify information
             about the baseline, including whether or not to include a non-zero
@@ -367,22 +331,22 @@ class Transformations:
 
             To revert to defaults, leave this file empty.
 
-        (2) Transformation configuration files, which define transformations as 
-            parameterizations of exiting Transformers. By default, these files 
+        (2) Transformation configuration files, which define transformations as
+            parameterizations of exiting Transformers. By default, these files
             should follow the
 
             `transformation_TEXTHERE.yaml` pattern (written as a regular
                 expression as "transformation_(.\D*).yaml")
-            
-            though this can be modified ysing the 
+
+            though this can be modified ysing the
             `regex_transformation_template` keyword argument.
 
             Each transformation configuration file **must** include the `codes`
-            key at the top level (level 0) in addition to `transformation` and 
-            `transformer` codes at level 1. 
+            key at the top level (level 0) in addition to `transformation` and
+            `transformer` codes at level 1.
 
-            `codes.transformation`: unique code for the transformation; should 
-                be wrapped in double quotes in the YAML configuration file. 
+            `codes.transformation`: unique code for the transformation; should
+                be wrapped in double quotes in the YAML configuration file.
                 Additionally, codes should follow a convention; for example,
 
                 "TX:AGRC:INC_CONSERVATION_AGRICULTURE_FULL"
@@ -391,7 +355,7 @@ class Transformations:
                 citations:
                 - xyz
                 - xbm
-                codes: 
+                codes:
                 transformation: "TX:TRNS:SHIFT_FUEL_MEDIUM_DUTY"
                 transformer: "TFR:TRNS:SHIFT_FUEL_MEDIUM_DUTY"
                 description:
@@ -409,15 +373,15 @@ class Transformations:
                 vec_implementation_ramp:
 
 
-            (3) A Bibtex citation file. This citation file can be used to 
-                supplement default citations found in the SISEPUEDE 
-                transformations. SISEPUEDE default data citations are stored in 
+            (3) A Bibtex citation file. This citation file can be used to
+                supplement default citations found in the SISEPUEDE
+                transformations. SISEPUEDE default data citations are stored in
                 the SISEPUEDE Data Pipeline repository (HEREHERE LINK).
-        
-            
 
-    
-    Parameters    
+
+
+
+    Parameters
     ----------
     dir_init: Union[str, pathlib.Path]
         Directory containing configuration files
@@ -432,29 +396,32 @@ class Transformations:
     regex_transformation_config : re.Pattern
         regular expression used to match transformation configuration files
     stop_on_error : bool
-        throw an error if a transformation fails? Otherwise, will skip transformation configuration files that fail. 
+        throw an error if a transformation fails? Otherwise, will skip transformation configuration files that fail.
     transformers : Union[trs.Transformers, None]
         optional existing Transformers object. If None is available, initializes one.
 
-        NOTE: If a transformers object is NOT specified (i.e., if transformers is None), then you must include the following keywords to generate dataframes of inputs. 
+        NOTE: If a transformers object is NOT specified (i.e., if transformers is None), then you must include the following keywords to generate dataframes of inputs.
 
             * `df_input`: the input dataframe of base SISEPUEDE inputs
-        
+
         Additionally, "field_region" can be included if the region field differs from `model_attributes.dim_region`
+
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         dir_init: Union[str, pathlib.Path],
         baseline_id: int = 0,
         fn_citations: str = _DICT_FILE_NAME_DEFAULTS.get("citations"),
         fn_config_general: str = _DICT_FILE_NAME_DEFAULTS.get("config_general"),
         logger: Union[logging.Logger, None] = None,
-        regex_transformation_config: re.Pattern = re.compile(f"{_TRANSFORMATION_REGEX_FLAG_PREPEND}_(.\w*).yaml"),
+        regex_transformation_config: re.Pattern = re.compile(
+            rf"{_TRANSFORMATION_REGEX_FLAG_PREPEND}_(.\w*).yaml"
+        ),
         stop_on_error: bool = True,
         transformers: Union[trs.Transformers, None] = None,
         **kwargs,
     ) -> None:
-        
         self.logger = logger
 
         self._initialize_keys(
@@ -475,65 +442,52 @@ class Transformations:
         )
 
         self._initialize_transformations(
-            baseline_id = baseline_id,
+            baseline_id=baseline_id,
             **kwargs,
         )
         self._initialize_uuid()
 
-        return None
-    
-
-
-    def __call__(self,
+    def __call__(
+        self,
         tranformation_name: str,
-        **kwargs
+        **kwargs,
     ) -> pd.DataFrame:
-
-        transformation = self.get_transformation(tranformation_name, )
-        out = transformation(**kwargs, )
+        transformation = self.get_transformation(tranformation_name)
+        out = transformation(**kwargs)
 
         return out
-
-
-    
 
     ##################################
     #    INITIALIZATION FUNCTIONS    #
     ##################################
 
-    def _initialize_citations(self,
+    def _initialize_citations(
+        self,
     ) -> None:
-        """
-        Initialize citations. Sets the following properties:
-
-        """
-
+        """Initialize citations. Sets the following properties:"""
         # get the file path
         fp_citations = self.dict_paths.get(
             self.key_path_citations,
         )
 
-        warnings.warn(f"NOTE: citations mechanism in Transformations needs to be set. See _initialize_citations()")
+        warnings.warn(
+            "NOTE: citations mechanism in Transformations needs to be set. See _initialize_citations()"
+        )
 
-        return None
-
-
-
-    def _initialize_config(self,
+    def _initialize_config(
+        self,
         dir_init: Union[str, pathlib.Path],
         fn_citations: str,
         fn_config_general: str,
         regex_transformation_config: re.Pattern,
     ) -> None:
-        """
-        Initialize the general configuration file and the dictionary of file
-            paths. Sets the following properties:
+        """Initialize the general configuration file and the dictionary of file
+        paths. Sets the following properties:
 
-            * self.config
-            * self.dict_paths
-            * self.dir_init
+        * self.config
+        * self.dict_paths
+        * self.dir_init
         """
-
         # get the files
         dict_paths = self.get_files(
             dir_init,
@@ -544,11 +498,10 @@ class Transformations:
 
         # read configuration
         config = sc.YAMLConfiguration(
-            str(dict_paths.get(self.key_path_config_general, ))
+            str(dict_paths.get(self.key_path_config_general)),
         )
 
         dir_init = pathlib.Path(dir_init)
-
 
         ##  SET PARAMETERS
 
@@ -556,21 +509,14 @@ class Transformations:
         self.dict_paths = dict_paths
         self.dir_init = dir_init
 
-        return None
-    
-
-
-    def _initialize_keys(self,
+    def _initialize_keys(
+        self,
         **kwargs,
     ) -> None:
+        """Set the optional and required keys used to specify a transformation.
+        Can use keyword arguments to set keys.
         """
-        Set the optional and required keys used to specify a transformation.
-            Can use keyword arguments to set keys.
-        """
-
-        # set some shortcut codes 
-
-
+        # set some shortcut codes
 
         ##  SET PARAMETERS
 
@@ -580,30 +526,26 @@ class Transformations:
         self.key_path_config_general = _DICT_KEYS.get("config_general")
         self.key_path_transformations = _DICT_KEYS.get("transformations")
 
-        return None
-
-
-
-    def _initialize_transformations(self,
+    def _initialize_transformations(
+        self,
         baseline_id: int = 0,
         default_nm_prepend: str = "Transformation",
         stop_on_error: bool = True,
         **kwargs,
     ) -> None:
-        """
-        Initialize the transformer used to build transformations. 
+        """Initialize the transformer used to build transformations.
 
-        Keyword Arguments
-        ------------------
-        - baseline_id: id used for baseline, or transformation that is applied 
-            to raw data. All other transformations in the attribute table are 
+        Keyword Arguments:
+        -----------------
+        - baseline_id: id used for baseline, or transformation that is applied
+            to raw data. All other transformations in the attribute table are
             increased from this id.
         - default_nm_prepend: string prepended to the id to generate names for
             transformations that have invalid names specified
-        - stop_on_error: stop if a transformation fails? If False, logs and 
+        - stop_on_error: stop if a transformation fails? If False, logs and
             skips the failed transformation
-        """
 
+        """
         ## INIT
 
         # get files to iterate over
@@ -611,7 +553,7 @@ class Transformations:
             self.key_path_transformations,
         )
 
-        # initialize dictionary of transformations 
+        # initialize dictionary of transformations
         # - dictionary mapping transformation codes to transformations
         # - get baseline transformation first
 
@@ -624,23 +566,22 @@ class Transformations:
             transformation_baseline.code: None,
         }
 
-        # iterate over available files 
+        # iterate over available files
         for fp in files_transformation_build:
-
             try:
-                
                 # try building the transformation and verify the code
                 transformation = Transformation(
                     fp,
                     self.transformers,
                 )
 
-                if transformation.code in dict_all_transformations.keys():
-                    fp_existing = (
-                        dict_transformation_code_to_fp
-                        .get(transformation.code)
+                if transformation.code in dict_all_transformations:
+                    fp_existing = dict_transformation_code_to_fp.get(
+                        transformation.code
                     )
-                    raise KeyError(f"Transformation code {transformation.code} already specified in file '{fp_existing}'.")
+                    raise KeyError(
+                        f"Transformation code {transformation.code} already specified in file '{fp_existing}'."
+                    )
 
             except Exception as e:
                 msg = f"Transformation configuration file at path '{fp}' failed: {e}"
@@ -648,25 +589,23 @@ class Transformations:
                     raise RuntimeError(msg)
 
                 # warn and skip if there's a problem and we're not stopping
-                self._log(msg, type_log = "warning", )
+                self._log(msg, type_log="warning")
                 continue
-            
+
             # otherwise, update dictionaries
             dict_all_transformations.update({transformation.code: transformation})
             dict_transformation_code_to_fp.update({transformation.code: str(fp)})
-        
 
         # build the attribute table
         attribute_transformation, dict_fields = self.build_attribute_table(
             transformation_baseline.code,
             dict_all_transformations,
             dict_transformation_code_to_fp,
-            baseline_id = baseline_id,
-            default_nm_prepend = default_nm_prepend,
+            baseline_id=baseline_id,
+            default_nm_prepend=default_nm_prepend,
         )
 
         all_transformation_codes = attribute_transformation.key_values
-        
 
         ##  SET PROPERTIES
 
@@ -681,28 +620,21 @@ class Transformations:
         self.field_attr_name = dict_fields.get("field_name")
         self.field_attr_path = dict_fields.get("field_path")
 
-        return None
-        
-
-
-    def _initialize_transformers(self,
+    def _initialize_transformers(
+        self,
         transformers: Union[trs.Transformers, None] = None,
         **kwargs,
     ) -> None:
-        """
-        Initialize the transformer used to build transformations.
-        
-        """
-
+        """Initialize the transformer used to build transformations."""
         # check inputs
         if not trs.is_transformers(transformers):
             transformers = trs.Transformers(
                 self.config.dict_yaml,
-                df_input = kwargs.get("df_input"),
-                field_region = kwargs.get("field_region"),
-                #logger = self.logger,
+                df_input=kwargs.get("df_input"),
+                field_region=kwargs.get("field_region"),
+                # logger = self.logger,
             )
-        
+
         else:
             # update the configuration, ramp, and then update the data
             transformers._initialize_config(
@@ -716,32 +648,23 @@ class Transformations:
                 transformers.inputs_raw,
             )
 
-
         ##  SET PROPERTIES
 
         self.transformers = transformers
 
-        return None
-
-
-
-    def _initialize_uuid(self,
+    def _initialize_uuid(
+        self,
     ) -> None:
-        """
-        Initialize the following properties:
-        
-            * self.is_transformations
-            * self._uuid
-        """
+        """Initialize the following properties:
 
+        * self.is_transformations
+        * self._uuid
+        """
         self.is_transformations = True
         self._uuid = _MODULE_UUID
-        
-        return None
-    
 
-
-    def build_attribute_table(self,
+    def build_attribute_table(
+        self,
         baseline_code: str,
         dict_all_transformations: Dict[str, Transformation],
         dict_transformation_code_to_fp: Dict[str, pathlib.Path],
@@ -749,29 +672,23 @@ class Transformations:
         baseline_in_dict: bool = True,
         default_nm_prepend: str = "Transformation",
     ) -> Union[AttributeTable, dict]:
+        """Build the transformation attribute table. Returns the attribute table
+        plus a dictionary of field names.
         """
-        Build the transformation attribute table. Returns the attribute table
-            plus a dictionary of field names.
-        """
-
         ##  NEXT, BUILD THE ATTRIBUTE TABLEs
 
         # sort by default by code
         baseline_id = (
-            max(baseline_id, 0) 
-            if sf.isnumber(baseline_id, integer = True)
-            else 0
+            max(baseline_id, 0) if sf.isnumber(baseline_id, integer=True) else 0
         )
-        id_def = baseline_id if baseline_in_dict else baseline_id + 1#
+        id_def = baseline_id if baseline_in_dict else baseline_id + 1
 
         # sort to ensure that baseline is first
         all_transformation_codes_base = sorted(dict_all_transformations.keys())
-        all_transformation_codes = [baseline_code] 
+        all_transformation_codes = [baseline_code]
         all_transformation_codes += [
-            x for x in all_transformation_codes_base 
-            if x != all_transformation_codes[0]
+            x for x in all_transformation_codes_base if x != all_transformation_codes[0]
         ]
-
 
         nms_defined = []
 
@@ -788,14 +705,11 @@ class Transformations:
         field_id = None
         field_name = None
         field_path = None
-        
 
-        # iterate over codes to assign 
+        # iterate over codes to assign
         for code in all_transformation_codes:
-            
             # get transformation
             transformation = dict_all_transformations.get(code)
-
 
             ##  CODE (ATTRIBUTE KEY)
 
@@ -804,19 +718,17 @@ class Transformations:
                 dict_table.update({key_code: []})
 
             dict_fields.update({"field_code": key_code})
-            dict_table.get(key_code).append(code) 
-
+            dict_table.get(key_code).append(code)
 
             ##  ID
-            
+
             if field_id is None:
                 field_id = transformation.key_transformation_id
                 dict_table.update({field_id: []})
-            
+
             dict_fields.update({"field_id": field_id})
             dict_table.get(field_id).append(id_def)
             transformation.id_num = id_def
-
 
             ##  NAME
 
@@ -826,11 +738,10 @@ class Transformations:
                 name_new = f"{default_nm_prepend} {id_def}"
                 self._log(
                     f"Name '{name}' for transformation code '{code}' already taken: assigning name {name_new}",
-                    type_log = "warning",
+                    type_log="warning",
                 )
 
                 name = name_new
-                
 
             # update name
             nms_defined.append(name)
@@ -843,8 +754,7 @@ class Transformations:
             dict_fields.update({"field_name": field_name})
             dict_table.get(field_name).append(name)
 
-
-            ##  DESCRIPTION 
+            ##  DESCRIPTION
 
             desc = transformation.config.get(transformation.key_description)
 
@@ -854,15 +764,12 @@ class Transformations:
 
             dict_fields.update({"field_desc": field_desc})
             dict_table.get(field_desc).append(desc)
-            
 
             ##  CITATIONS
 
             citations = transformation.config.get(transformation.key_citations)
             citations = (
-                "|".join(citations)
-                if isinstance(citations, list)
-                else str(citations)
+                "|".join(citations) if isinstance(citations, list) else str(citations)
             )
 
             if field_citations is None:
@@ -871,7 +778,6 @@ class Transformations:
 
             dict_fields.update({"field_citations": field_citations})
             dict_table.get(field_citations).append(citations)
-            
 
             ##  FILE PATH
 
@@ -884,11 +790,8 @@ class Transformations:
             dict_fields.update({"field_path": field_path})
             dict_table.get(field_path).append(fp)
 
-
             # next iterationm
             id_def += 1
-
-
 
         # build the table
         attribute_return = pd.DataFrame(dict_table)
@@ -900,7 +803,7 @@ class Transformations:
                     field_name,
                     field_desc,
                     field_citations,
-                    field_path
+                    field_path,
                 ]
             ],
             key_code,
@@ -910,26 +813,23 @@ class Transformations:
 
         return out
 
-
-    
-    def get_files(self,
+    def get_files(
+        self,
         dir_init: Union[str, pathlib.Path],
         fn_citations: str,
         fn_config_general: str,
         regex_transformation_config: re.Pattern,
     ) -> Dict:
+        """Retrieve transformation configuration files and the general
+        configuration file.
         """
-        Retrieve transformation configuration files and the general 
-            configuration file.
-        """
-        
         ##  VERITY PATHS
 
         # try path
         try:
             path_init = pathlib.Path(dir_init)
-        
-        except Exception as e:
+
+        except Exception:
             msg = f"Unable to set path from dir_init = '{dir_init}'. Check the specification of dir_init in Transformations."
             raise RuntimeError(msg)
 
@@ -937,7 +837,6 @@ class Transformations:
         if not path_init.exists():
             msg = f"Unable to initialize Transformations: path '{path_init}' does not exist."
             raise RuntimeError(msg)
-
 
         ##  CHECK REQUIRED FILES
 
@@ -956,7 +855,6 @@ class Transformations:
 
         dict_out.update({self.key_path_config_general: path_config_general})
 
-
         # check citation (optional, so no error message)
         path_citations = path_init.joinpath(fn_citations)
         if not path_citations.exists():
@@ -964,55 +862,46 @@ class Transformations:
 
         dict_out.update({self.key_path_citations: path_citations})
 
-
         # look for transformation files - iterate over all files, then build a list of paths
         fps_transformation = [
-            path_init.joinpath(x) for x in os.listdir(path_init)
+            path_init.joinpath(x)
+            for x in os.listdir(path_init)
             if regex_transformation_config.match(x) is not None
         ]
 
         if len(fps_transformation) == 0:
-            warnings.warn(f"No valid Transformation configuration files were found in '{path_init}'.")
-        
+            warnings.warn(
+                f"No valid Transformation configuration files were found in '{path_init}'."
+            )
+
         dict_out.update({self.key_path_transformations: fps_transformation})
 
-        
         # return
 
         return dict_out
-    
 
-
-    def get_transformation_baseline(self,
+    def get_transformation_baseline(
+        self,
     ) -> None:
-        """
-        Build the baseline Transformation
-        """
-
+        """Build the baseline Transformation"""
         # get codes
         key_code = _DICT_KEYS.get("code")
         key_id = _DICT_KEYS.get("identifiers")
         key_name = _DICT_KEYS.get("name")
 
         # set the default to be the transformers base with the new Transformations signature
-        code_def = (
-            self
-            .transformers
-            .code_baseline
-            .replace(
-                trs._MODULE_CODE_SIGNATURE,
-                _MODULE_CODE_SIGNATURE,
-            )
+        code_def = self.transformers.code_baseline.replace(
+            trs._MODULE_CODE_SIGNATURE,
+            _MODULE_CODE_SIGNATURE,
         )
         code = f"{self.transformers.key_config_baseline}.{key_id}.{key_code}"
         code = self.config.get(
-            code, 
-            return_on_none = code_def, 
+            code,
+            return_on_none=code_def,
         )
 
         name = f"{self.transformers.key_config_baseline}.{key_id}.{key_name}"
         name = self.config.get(name)
-
 
         ##  BUILD TRANSFORMATION
 
@@ -1027,37 +916,34 @@ class Transformations:
 
         trfmn = Transformation(
             dict_tr,
-            self.transformers
+            self.transformers,
         )
 
-
         return trfmn
-    
-
 
     ########################
     #    CORE FUNCTIONS    #
     ########################
 
-    def get_transformation(self,
+    def get_transformation(
+        self,
         transformation: Union[int, str, None],
         return_code: bool = False,
     ) -> None:
-        """
-        Get `transformer` based on transformer code, id, or name
-            
+        """Get `transformer` based on transformer code, id, or name
+
         Function Arguments
         ------------------
-        - transformer: transformer_id, transformer name, or transformer code to 
+        - transformer: transformer_id, transformer name, or transformer code to
             use to retrieve Trasnformation object
-            
-        Keyword Arguments
-        ------------------
-        - return_code: set to True to return the transformer code only
-        """
 
+        Keyword Arguments:
+        -----------------
+        - return_code: set to True to return the transformer code only
+
+        """
         # skip these types
-        is_int = sf.isnumber(transformation, integer = True)
+        is_int = sf.isnumber(transformation, integer=True)
         return_none = not is_int
         return_none &= not isinstance(transformation, str)
         if return_none:
@@ -1065,10 +951,10 @@ class Transformations:
 
         # Transformer objects are tied to the attribute table, so these field maps work
         dict_id_to_code = self.attribute_transformation.field_maps.get(
-            f"{self.field_attr_id}_to_{self.attribute_transformation.key}"
+            f"{self.field_attr_id}_to_{self.attribute_transformation.key}",
         )
         dict_name_to_code = self.attribute_transformation.field_maps.get(
-            f"{self.field_attr_name}_to_{self.attribute_transformation.key}"
+            f"{self.field_attr_name}_to_{self.attribute_transformation.key}",
         )
 
         # check strategy by trying both dictionaries
@@ -1078,7 +964,7 @@ class Transformations:
                 if transformation in self.attribute_transformation.key_values
                 else dict_name_to_code.get(transformation)
             )
-        
+
         elif is_int:
             code = dict_id_to_code.get(transformation)
 
@@ -1089,108 +975,86 @@ class Transformations:
         if return_code:
             return code
 
-
         out = self.dict_transformations.get(code)
-        
+
         return out
 
-
-
-    def get_transformation_codes_by_transformer_code(self,
+    def get_transformation_codes_by_transformer_code(
+        self,
         include_missing_transformers: bool = False,
-    ) -> dict: 
+    ) -> dict:
+        """Build a dictionary of all transformation codes associated with available
+        transformer codes. Set `include_missing_transformers = True` to
+        include transformers that are not associated with any
+        Transformations.
         """
-        Build a dictionary of all transformation codes associated with available
-            transformer codes. Set `include_missing_transformers = True` to 
-            include transformers that are not associated with any 
-            Transformations.
-        """
-        
         dict_out = dict(
             (x, self.get_transformation(x).transformer_code)
             for x in self.all_transformation_codes
         )
-        
+
         dict_out = sf.reverse_dict(
             dict_out,
-            allow_multi_keys = True,
-            force_list_values = True,
+            allow_multi_keys=True,
+            force_list_values=True,
         )
 
-        # 
         if include_missing_transformers:
             dict_update = dict(
-                (x, []) for x in self.transformers.all_transformers
+                (x, [])
+                for x in self.transformers.all_transformers
                 if x not in dict_out.keys()
             )
 
             dict_out.update(dict_update)
-        
+
         return dict_out
-    
 
-
-    def _log(self,
+    def _log(
+        self,
         msg: str,
         type_log: str = "log",
-        **kwargs
+        **kwargs,
     ) -> None:
-        """
-        Clean implementation of sf._optional_log in-line using default logger. See ?sf._optional_log for more information
+        """Clean implementation of sf._optional_log in-line using default logger. See ?sf._optional_log for more information
 
         Function Arguments
         ------------------
         - msg: message to log
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         - type_log: type of log to use
         - **kwargs: passed as logging.Logger.METHOD(msg, **kwargs)
+
         """
-        sf._optional_log(self.logger, msg, type_log = type_log, **kwargs)
-
-
-
-
+        sf._optional_log(self.logger, msg, type_log=type_log, **kwargs)
 
 
 ########################
 #    SOME FUNCTIONS    #
 ########################
 
+
 def is_transformation(
     obj: Any,
 ) -> bool:
-    """
-    Determine if the object is a Transformation
-    """
+    """Determine if the object is a Transformation"""
     out = hasattr(obj, "is_transformation")
     uuid = getattr(obj, "_uuid", None)
 
-    out &= (
-        uuid == _MODULE_UUID
-        if uuid is not None
-        else False
-    )
+    out &= uuid == _MODULE_UUID if uuid is not None else False
 
     return out
-
 
 
 def is_transformations(
     obj: Any,
 ) -> bool:
-    """
-    Determine if the object is a Transformations
-    """
+    """Determine if the object is a Transformations"""
     out = hasattr(obj, "is_transformations")
     uuid = getattr(obj, "_uuid", None)
 
-    out &= (
-        uuid == _MODULE_UUID
-        if uuid is not None
-        else False
-    )
+    out &= uuid == _MODULE_UUID if uuid is not None else False
 
     return out
-        

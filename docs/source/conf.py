@@ -1,7 +1,7 @@
 # Configuration file for the Sphinx documentation builder.
-import os, os.path
+import os
+import os.path
 import sys
-
 
 # -- Project information
 
@@ -13,6 +13,7 @@ version = "1.1.0"
 
 # solution to allow variable window width: https://stackoverflow.com/questions/23211695/modifying-content-width-of-the-sphinx-theme-read-the-docs
 
+
 def setup(app):
     app.add_css_file("theme_adjustments.css")
 
@@ -23,7 +24,6 @@ for path in [".", "../.."]:
     print(f"conf path in readthedocs:\t{path_abs}")
     if path_abs not in sys.path:
         sys.path.insert(0, path_abs)
-
 
 
 # -- General configuration

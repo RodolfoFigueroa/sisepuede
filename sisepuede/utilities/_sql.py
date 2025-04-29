@@ -1,25 +1,28 @@
-import os, os.path
-import pandas as pd
+import os
+import os.path
 import pathlib
-import sqlalchemy
 from typing import *
 
-
+import pandas as pd
+import sqlalchemy
 
 ##  SOME ERROR CLASSES
+
 
 class SQLConnectionError(Exception):
     pass
 
+
 class SQLEngineError(Exception):
     pass
+
 
 class SQLReadError(Exception):
     pass
 
+
 class SQLWriteError(Exception):
     pass
-
 
 
 ##  SOME GLOBAL VARIABLES
@@ -28,17 +31,15 @@ _ENGINE_PREPEND_SQLITE = "sqlite:///"
 _EXTENSION_SQLITE = ".sqlite"
 
 
-
 def dict_subset_to_query_append(
     dict_subset: Union[Dict[str, List], None],
-    query_logic: str = "and"
+    query_logic: str = "and",
 ) -> str:
-    """
-    Convert a subsetting dictionary to a "where" clause in an SQL query.
+    """Convert a subsetting dictionary to a "where" clause in an SQL query.
 
     Function Arguments
     ------------------
-    - dict_subset: dictionary with keys that are columns in the table and 
+    - dict_subset: dictionary with keys that are columns in the table and
         values, given as a list, to subset the table. dict_subset is written as:
 
         dict_subset = {
@@ -49,17 +50,16 @@ def dict_subset_to_query_append(
             .
         }
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - query_logic: default is "and". Subsets table to as
 
-        where field_a in (val_a1, val_a2, ..., val_am) ~ field_b in 
+        where field_a in (val_a1, val_a2, ..., val_am) ~ field_b in
         (val_b1, val_b2, ..., val_bn)...
 
         where `~ in ["and", "or"]`
 
     """
-
     if dict_subset is None:
         return None
 
@@ -69,26 +69,30 @@ def dict_subset_to_query_append(
     for k in dict_subset.keys():
         vals = dict_subset.get(k)
         if vals is not None:
-            val_str = join_list_for_query(vals) if isinstance(vals, list) else join_list_for_query([vals])
-            val_str = f"{k} in ({val_str})" if isinstance(vals, list) else f"{k} = {val_str}"
+            val_str = (
+                join_list_for_query(vals)
+                if isinstance(vals, list)
+                else join_list_for_query([vals])
+            )
+            val_str = (
+                f"{k} in ({val_str})" if isinstance(vals, list) else f"{k} = {val_str}"
+            )
             val_list.append(val_str)
 
     # only return a string if there are values to filter on
     query_str = ""
-    if (len(val_list) > 0):
+    if len(val_list) > 0:
         query_str = f" {query_logic} ".join(val_list)
         query_str = f" where {query_str}"
 
     return query_str
 
 
-
 def fetch_query_as_df(
     query: str,
     engine: sqlalchemy.engine.Engine,
 ) -> Union[pd.DataFrame, None]:
-    """
-    Execute a query and return as a DataFrame using Pandas.
+    """Execute a query and return as a DataFrame using Pandas.
 
     Function Arguments
     ------------------
@@ -105,19 +109,19 @@ def fetch_query_as_df(
             df_out = pd.read_sql_query(query, con)
         except Exception as e:
             # LOGHERE
-            raise SQLReadError(f"The engine returned error '{e}' in fetch_query_as_df().\n\nQuery:\n\t'{query}'.")
+            raise SQLReadError(
+                f"The engine returned error '{e}' in fetch_query_as_df().\n\nQuery:\n\t'{query}'."
+            )
 
     return df_out
 
 
-
 def format_listlike_elements_for_filter_query(
-    elements: Union[List, Tuple, 'numpy.ndarray', None],
-    fields: Union[List, Tuple, 'numpy.ndarray', None],
-    query_logic: str = "and"
+    elements: Union[List, Tuple, "numpy.ndarray", None],
+    fields: Union[List, Tuple, "numpy.ndarray", None],
+    query_logic: str = "and",
 ) -> str:
-    """
-    Format a list-like set of elements for a filtering query
+    """Format a list-like set of elements for a filtering query
         using filtering fields and associated elements. Creates
         a query of the form
 
@@ -145,7 +149,7 @@ def format_listlike_elements_for_filter_query(
     if (elements is None) or (fields is None):
         return ""
 
-    query_logic = "and" if not (query_logic in ["and", "or"]) else query_logic
+    query_logic = "and" if query_logic not in ["and", "or"] else query_logic
     query = []
 
     for elem in elements:
@@ -154,7 +158,12 @@ def format_listlike_elements_for_filter_query(
         elem_cur = elem[0:n]
         fields_cur = fields[0:n]
 
-        query_component = f" {query_logic} ".join([f"{x} = {format_type_for_sql_query(y)}" for x, y in zip(fields_cur, elem_cur)])
+        query_component = f" {query_logic} ".join(
+            [
+                f"{x} = {format_type_for_sql_query(y)}"
+                for x, y in zip(fields_cur, elem_cur, strict=False)
+            ]
+        )
         query_component = f"({query_component})"
         query.append(query_component)
 
@@ -163,68 +172,60 @@ def format_listlike_elements_for_filter_query(
     return query
 
 
-
 def format_tuple_as_query_tuple(
     index_tuple: Tuple[Any],
     include_single_quotes: bool = True,
 ) -> Union[str, None]:
+    """Map an index tuple to a list of strings for SQL query. Set
+    include_single_quotes = True to wrap elements in a single quote
     """
-    Map an index tuple to a list of strings for SQL query. Set 
-        include_single_quotes = True to wrap elements in a single quote
-    """
-    query_tuple = ", ".join([(f"'{x}'" if include_single_quotes else f"{x}") for x in index_tuple])
+    query_tuple = ", ".join(
+        [(f"'{x}'" if include_single_quotes else f"{x}") for x in index_tuple]
+    )
     query_tuple = f"({query_tuple})"
-    
-    return query_tuple
 
+    return query_tuple
 
 
 def format_tuples_to_query_filter_string(
     fields_index: List[str],
     indices: List[Tuple[Any]],
 ) -> Union[str, None]:
-    """
-    Convert a list of tuples to a filter query string (e.g., 
-    
+    """Convert a list of tuples to a filter query string (e.g.,
+
         "(primary_id = 0 and region = 'mexico') or (...)..."
-        
-    NOTE: if both logic_inner and logic_outer are "and", returns None 
+
+    NOTE: if both logic_inner and logic_outer are "and", returns None
         (impossible)
-        
+
     Function Arguments
     ------------------
     - indices: list of index tuples to filter on
 
     """
-    
     query_fields = format_tuple_as_query_tuple(
-        fields_index, 
-        include_single_quotes = False
+        fields_index,
+        include_single_quotes=False,
     )
-    
+
     query_vals = [format_tuple_as_query_tuple(x) for x in indices]
     query_vals = format_tuple_as_query_tuple(
-        query_vals, 
-        include_single_quotes = False
+        query_vals,
+        include_single_quotes=False,
     )
-    
+
     query_component = f"{query_fields} in {query_vals}"
-    
+
     return query_component
 
 
-
 def format_type_for_sql_query(
-    val: Union[float, int, str]
+    val: Union[float, int, str],
 ) -> str:
-    """
-    Format values based on input type. If val is a string, adds quotes
-    """
-
+    """Format values based on input type. If val is a string, adds quotes"""
     val = f"'{val}'" if isinstance(val, str) else str(val)
 
     return val
-
 
 
 def generate_schema_from_df(
@@ -237,40 +238,40 @@ def generate_schema_from_df(
     type_str_integer: str = "INTEGER",
     type_str_string: str = "STRING",
 ) -> str:
-    """
-    Generate an SQL schema from a data frame. For use in automating table
+    """Generate an SQL schema from a data frame. For use in automating table
         setup in remote SQL or SQL-like databases.
-    
+
     Returns a two-ple of the following form:
-    
+
         (schema_out, fields_out)
- 
- 
+
+
     Function Arguments
     ------------------
     - df_in: input data frame
-    
-    Keyword Arguments
+
+    Keyword Arguments:
     -----------------
-    - dict_fields_to_dtype_sql: dictionary mapping fields to specific SQL data 
+    - dict_fields_to_dtype_sql: dictionary mapping fields to specific SQL data
         types; keys are fields and dtypes are SQL data types.
         * If None, infers from DataFrame dtype
-    - field_type_object_default: default data type for fields specified as 
+    - field_type_object_default: default data type for fields specified as
         object (any valid SQL data type)
     - sep: string separator to use in schema (", " or "\n, ", should always have
         a comma)
-    - type_str_float: string used to denote FLOAT type (can vary based on 
+    - type_str_float: string used to denote FLOAT type (can vary based on
         platform)
-    - type_str_integer: string used to denote INTEGER type (can vary based on 
+    - type_str_integer: string used to denote INTEGER type (can vary based on
         platform)
-    - type_str_strings: tring used to denote STRING type (can vary based on 
+    - type_str_strings: tring used to denote STRING type (can vary based on
         platform)
+
     """
     # initialize fields, schema out, and fields that were successfully pushed to the schema
     fields = list(df_in.columns)
     schema_out = []
     fields_out = []
-    
+
     # some data type dictionaries that are used
     dict_dtypes = df_in.dtypes.to_dict()
     dict_dtypes_to_sql_types = {
@@ -280,13 +281,10 @@ def generate_schema_from_df(
         "int64": type_str_integer,
     }
     dict_fields_to_dtype_sql = (
-        dict_fields_to_dtype_sql
-        if isinstance(dict_fields_to_dtype_sql, dict)
-        else {}
+        dict_fields_to_dtype_sql if isinstance(dict_fields_to_dtype_sql, dict) else {}
     )
-    
+
     for i, field in enumerate(fields):
-        
         # try getting sql data type from external dictionary; otherwise, pull from pandas datatype
         dtype_sql = dict_fields_to_dtype_sql.get(field)
         if dtype_sql is None:
@@ -296,19 +294,18 @@ def generate_schema_from_df(
                 if dtype_sql is not None
                 else None
             )
-        
+
         # skip if failed
         if dtype_sql is None:
             continue
-            
+
         # otherwise, build schema
         schema_out.append(f"{field} {dtype_sql}")
         fields_out.append(field)
-    
-    schema_out = str(sep).join(schema_out)
-    
-    return schema_out, fields_out
 
+    schema_out = str(sep).join(schema_out)
+
+    return schema_out, fields_out
 
 
 def get_db_engine(
@@ -316,24 +313,25 @@ def get_db_engine(
     verify_path: bool = True,
 ) -> sqlalchemy.engine.Engine:
     """Get an engine from a file path or sqlalchemy engine. Allows for functions
-        to pass either; instantiates an SQLite engine at path if db_engine 
+        to pass either; instantiates an SQLite engine at path if db_engine
         specified as a string.
 
     Function Arguments
     ------------------
     db_engine : Union[str, pathlib.Path, sqlalchemy.engine]
-        An existing SQLAlchemy database engine or a file path to an SQLite 
+        An existing SQLAlchemy database engine or a file path to an SQLite
         database used to establish a connection.
         * If a string is specifed, assumes it is a file path.
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     verify_path : bool
         If false, doesn't require the database to exist. Otherwise, will create
         the path.
+
     """
     # check input specification
-    if isinstance(db_engine, (str, pathlib.Path, )):
+    if isinstance(db_engine, (str, pathlib.Path)):
         try_create = os.path.exists(db_engine) if verify_path else True
         try_create &= (
             db_engine.endswith(_EXTENSION_SQLITE)
@@ -351,33 +349,32 @@ def get_db_engine(
             db_engine = sqlalchemy.create_engine(f"{_ENGINE_PREPEND_SQLITE}{db_engine}")
 
         except Exception as e:
-            raise SQLEngineError(f"Error establishing sqlite engine at {db_engine}: {e} ")
+            raise SQLEngineError(
+                f"Error establishing sqlite engine at {db_engine}: {e} "
+            )
 
-    
     elif not isinstance(db_engine, sqlalchemy.engine.Engine):
         t = type(db_engine)
-        raise TypeError(f"Invalid db_engine type {t}: only types str, sqlalchemy.engine.Engine are valid.")
-    
+        raise TypeError(
+            f"Invalid db_engine type {t}: only types str, sqlalchemy.engine.Engine are valid."
+        )
+
     return db_engine
 
 
-
 def get_table_names(
-    engine:sqlalchemy.engine,
+    engine: sqlalchemy.engine,
     error_return: Union[Any, None] = None,
 ) -> Union[List[str], None]:
+    """Return a list of table name contained in the SQL Alchemy engine `engine`.
+    On an error, returns `error_return`
     """
-    Return a list of table name contained in the SQL Alchemy engine `engine`. 
-        On an error, returns `error_return`
-    """
-
     try:
         out = sqlalchemy.inspect(engine).get_table_names()
     except:
         out = error_return
-    
-    return out
 
+    return out
 
 
 def join_list_for_query(
@@ -385,8 +382,7 @@ def join_list_for_query(
     delim: str = ", ",
     quote: str = "'",
 ) -> str:
-    """
-    Join the elements of a list to format for a query.
+    """Join the elements of a list to format for a query.
 
     Function Arguments
     ------------------
@@ -394,65 +390,58 @@ def join_list_for_query(
         * If elements are strings, then adds ''
         * Otherwise, enter elements
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - delim: delimiter
     - quote: quote character
-    """
 
+    """
     list_join = [
-        f"{quote}{x}{quote}" if isinstance(x, str) else str(x)
-        for x in list_in
+        f"{quote}{x}{quote}" if isinstance(x, str) else str(x) for x in list_in
     ]
     list_join = delim.join(list_join)
 
     return list_join
 
 
-
 def order_df_as_table_schema(
     df_in: pd.DataFrame,
-    schema_in: str
+    schema_in: str,
 ) -> pd.DataFrame:
-    """
-    Order a dataframe to match sql schema and check datatypes in output
+    """Order a dataframe to match sql schema and check datatypes in output
 
     Function Arguments
     ------------------
     - df_in: input dataframe
     - schema_in: comma-separated string of fields and types
     """
-
     # set types
-    dict_type_map = dict(
-        (x, float) for x in ["FLOAT", "DOUBLE"]
+    dict_type_map = dict((x, float) for x in ["FLOAT", "DOUBLE"])
+    dict_type_map.update(
+        dict((x, int) for x in ["INT", "INTEGER", "BIGINT", "MEDIUMINT", "SMALLINT"]),
     )
     dict_type_map.update(
-        dict(
-            (x, int) for x in ["INT", "INTEGER", "BIGINT", "MEDIUMINT", "SMALLINT"]
-        )
-    )
-    dict_type_map.update(
-        dict(
-            (x, str) for x in ["TEXT", "CHAR", "VARCHAR"]
-        )
+        dict((x, str) for x in ["TEXT", "CHAR", "VARCHAR"]),
     )
 
     schema_in = schema_in.replace("\n", "")
     schema_list = schema_in.split(",")
     schema_list = [x.strip().split(" ") for x in schema_list]
 
-    fields, types = tuple(zip(*schema_list))
+    fields, types = tuple(zip(*schema_list, strict=False))
     fields_ext = list(fields)
     types_ext = list(types)
     dict_dtypes = {}
 
     # check fields and ordering
     for i, field in enumerate(fields):
-
-        field_ext = [x for x in df_in.columns if (x.upper().replace("-", "_") == field.upper())]
+        field_ext = [
+            x for x in df_in.columns if (x.upper().replace("-", "_") == field.upper())
+        ]
         if len(field_ext) == 0:
-            raise KeyError(f"Error in order_df_as_table_schema: no field matching {field} found in input data frame.")
+            raise KeyError(
+                f"Error in order_df_as_table_schema: no field matching {field} found in input data frame."
+            )
 
         fields_ext[i] = field_ext[0]
         type_clean = types[i].split("(")[0]
@@ -466,32 +455,30 @@ def order_df_as_table_schema(
     return out
 
 
-
 def sql_table_to_df(
     engine: sqlalchemy.engine.Engine,
     table_name: str,
     fields_select: Union[list, str] = None,
-    query_append: str = None
+    query_append: str = None,
 ) -> pd.DataFrame:
-    """
-    Query a database, retrieve a table, and convert it to a dataframe.
+    """Query a database, retrieve a table, and convert it to a dataframe.
 
     Function Arguments
     ------------------
-    - engine: SQLalchemy Engine used to create a connection and query the 
+    - engine: SQLalchemy Engine used to create a connection and query the
         database
     - table_name: the table in the database to query
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
-    - fields_select: a list of fields to select or a string of fields to 
+    - fields_select: a list of fields to select or a string of fields to
         select (comma-delimited). If None, return all fields.
-    - query_append: any restrictions to place on the query (e.g., where). If 
+    - query_append: any restrictions to place on the query (e.g., where). If
         None, return all records.
-    """
 
+    """
     # check table names
-    table_names = get_table_names(engine, error_return = [])
+    table_names = get_table_names(engine, error_return=[])
     if table_name not in table_names:
         # LOGHERE
         return None
@@ -499,8 +486,8 @@ def sql_table_to_df(
     # build the query
     if fields_select is not None:
         fields_select_str = (
-            ", ".join(fields_select) 
-            if isinstance(fields_select, list) 
+            ", ".join(fields_select)
+            if isinstance(fields_select, list)
             else fields_select
         )
 
@@ -510,18 +497,17 @@ def sql_table_to_df(
     query_append = "" if (query_append is None) else f" {query_append}"
     query = f"select {fields_select_str} from {table_name}{query_append};"
 
-
     # try the connection and return output
     with engine.connect() as con:
         try:
             df_out = pd.read_sql_query(query, con)
         except Exception as e:
             # LOGHERE
-            raise SQLReadError(f"The service returned error '{e}' in sql_table_to_df().\n\nQuery:\n\t'{query}'.")
-
+            raise SQLReadError(
+                f"The service returned error '{e}' in sql_table_to_df().\n\nQuery:\n\t'{query}'."
+            )
 
     return df_out
-
 
 
 def _write_dataframes_to_db(
@@ -535,50 +521,47 @@ def _write_dataframes_to_db(
     Function Arguments
     ------------------
     dict_tables : dict
-        Dictionary of form {TABLENAME: pd.DataFrame, ...} used to write the 
+        Dictionary of form {TABLENAME: pd.DataFrame, ...} used to write the
         table to the database
     db_engine : Union[str, pathlib.Path, sqlalchemy.engine]
-        An existing SQLAlchemy database engine or a file path to an SQLite 
+        An existing SQLAlchemy database engine or a file path to an SQLite
         database used to establish a connection
-        * If a file path is specified, the connection will be opened and closed 
+        * If a file path is specified, the connection will be opened and closed
             within the function
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     preserve_table_schema : bool
-        Preserve existing schema? If so, before writing new tables, rows in 
+        Preserve existing schema? If so, before writing new tables, rows in
         existing tables will be deleted and the table will be appended.
     append_q : bool
-        Set to True top append tables to existing tables if they exist in the 
+        Set to True top append tables to existing tables if they exist in the
         database
+
     """
-
     # check input specification and get available tables
-    db_engine = get_db_engine(db_engine, )
-    tables_avail = get_table_names(db_engine, error_return = [])
-
+    db_engine = get_db_engine(db_engine)
+    tables_avail = get_table_names(db_engine, error_return=[])
 
     # iterate over each table to try to write
     for table in dict_tables.keys():
-        
         df_write = dict_tables.get(table)
 
         # simply write the table if it's not present
         if table not in tables_avail:
             df_write.to_sql(
-                table, 
-                db_engine, 
-                if_exists = "replace", 
-                index = None,
+                table,
+                db_engine,
+                if_exists="replace",
+                index=None,
             )
 
             continue
-    
 
         # try retrieving columns
         df_columns = pd.read_sql_query(
-            f"select * from {table} limit 0;", 
-            db_engine
+            f"select * from {table} limit 0;",
+            db_engine,
         )
 
         # initialize writing based on appendage/preserving schema
@@ -588,13 +571,12 @@ def _write_dataframes_to_db(
         write_q = set(df_columns.columns).issubset(set(df_write.columns))
 
         if not append_q:
-
             cols_write = cols_write if preserve_table_schema else list(df_write.columns)
             on_exists = on_exists if preserve_table_schema else "replace"
 
             query = (
-                f"delete from {table};" 
-                if preserve_table_schema 
+                f"delete from {table};"
+                if preserve_table_schema
                 else f"drop table {table};"
             )
 
@@ -603,15 +585,12 @@ def _write_dataframes_to_db(
         if query is not None:
             with db_engine.connect() as con:
                 con.execute(sqlalchemy.text(query))
-                con.commit() # what a fucking pain in the ass it was to find THIS was necessary 
+                con.commit()  # what a fucking pain in the ass it was to find THIS was necessary
 
         if write_q:
             df_write[cols_write].to_sql(
-                table, 
-                db_engine, 
-                if_exists = on_exists, 
-                index = None,
-            ) 
-
-
-    return None
+                table,
+                db_engine,
+                if_exists=on_exists,
+                index=None,
+            )

@@ -1,21 +1,19 @@
+"""SISEPUEDE
+Copyright (C) 2020-2024 James Syme
+
+LICENSE HERE
+
 """
-SISEPUEDE
-    Copyright (C) 2020-2024 James Syme
 
-    LICENSE HERE
-
-"""
-
-
-from typing import *
-import sisepuede.core.attribute_table as at
 import logging
-import numpy as np
-import os, os.path
-import pandas as pd
 import re
-import sisepuede.utilities._toolbox as sf
+from typing import *
 
+import numpy as np
+import pandas as pd
+
+import sisepuede.core.attribute_table as at
+import sisepuede.utilities._toolbox as sf
 
 ##  GLOBAL VARIABLES
 
@@ -33,30 +31,29 @@ _KEY_NAME = "variable"
 _KEY_VARIABLE_SCHEMA = "variable_schema"
 
 # module UUID
-_MODULE_UUID = "B8F334CA-D27C-48F2-811E-940147546299"      
-
+_MODULE_UUID = "B8F334CA-D27C-48F2-811E-940147546299"
 
 
 class ModelVariable:
     """Build a ModelVariable object. The ModelVariable stores information about
         the variables, including categories, dimensions to the variable, units,
-        and more. 
+        and more.
 
     The initialization element (`variable_init`) must have the following keys
-        specified: 
+        specified:
 
-        * name: the name of the variable, used to access the variable in 
+        * name: the name of the variable, used to access the variable in
             dictionaries etc.
 
-        * variable_schema: 
+        * variable_schema:
 
             E.g. of schema:
 
                 ``ef_ippu_$UNIT-MASS$_$EMISSION-GAS$_per_$UNIT-MASS$_product_use_$CAT-INDUSTRY-DIM1$_$CAT-INDUSTRY-DIM2$_$CAT-TRANSPORTATION$`` (``$UNIT-MASS$ = tonne``, ``$EMISSION-GAS$ = co2``)
 
-        * categories: 
-            E.g. of setting with dictionary: 
-            
+        * categories:
+            E.g. of setting with dictionary:
+
             (``$CAT-INDUSTRY_DIM2$ = paper|cement|plastic``, ``$CAT-INDUSTRY-DIM1$ = product_use_lubricants|product_use_paraffin_wax|cement|plastic``, ``$CAT-TRANSPORTATION$ = aviation|rail_freight|dymm``)
 
 
@@ -65,21 +62,21 @@ class ModelVariable:
     variable_init : Union[dict, pd.DataFrame, pd.Series]
         Initializer for the variable. Can be:
         * dict: a dictionary mapping keys to a value
-        * pd.DataFrame: a Pandas DataFrame whose first row is used to initialize 
+        * pd.DataFrame: a Pandas DataFrame whose first row is used to initialize
             variable elements by smapping fields (key) to values
         * pd.Series: a Pandas Series used to map indicies (key) to values
 
 
     element_definition : Union[at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]]
-        Initializer for variable categories (i.e., mutable elements in the 
+        Initializer for variable categories (i.e., mutable elements in the
         variable schema). Can be:
 
         * attribute_table.AttributeTable: Can be provided if there is only a
             single known mutable element
         * Dict[str, attribute_table.AttributeTable]: Can be provided if there
             are multiple mutable elements or a number of tables in a centralized
-            location. 
-            * NOTE: Dictionary keys are assumed to be the corresponding 
+            location.
+            * NOTE: Dictionary keys are assumed to be the corresponding
                 AttributeTable.key
         * List[attribute_table.AttributeTable]: optional list of AttributeTable
             objects
@@ -87,46 +84,49 @@ class ModelVariable:
     Optional Initialization Arguments
     ---------------------------------
     attribute_as_property : bool
-        Try to initialize attributes as properties of the ModelVariable itself? 
-        If true, sets an attribute passed in the variable schema as an 
+        Try to initialize attributes as properties of the ModelVariable itself?
+        If true, sets an attribute passed in the variable schema as an
         accessible property of the ModelVariable.
 
-        * E.g., if "unit_mass" is an attribute from the schema, then it is 
-            accessible from ModelVariable.unit_mass if 
+        * E.g., if "unit_mass" is an attribute from the schema, then it is
+            accessible from ModelVariable.unit_mass if
             attribute_as_property == True.
         * NOTE: this should be used with caution. If an attribute conflicts with
-            an existing property, it will not be set. 
+            an existing property, it will not be set.
 
     delim_categories : str
         Delimeter used to split categories specified in variable_init
     flag_all_cats : str
-        Flag in category specification used to point to the use of all category 
+        Flag in category specification used to point to the use of all category
         values to define the variable
     flag_no_dims : str
-        Flag in category specification used to point to the use of no category 
+        Flag in category specification used to point to the use of no category
         values to define the variable
     key_categories : str
         Key in `variable_init` storing category specifications
         NOTE: set to "all" to specify all categories for a given mutable element
     key_default_value : str
-        Key in `variable_init` storing the default value of the variable if it 
-        is not found. 
+        Key in `variable_init` storing the default value of the variable if it
+        is not found.
     key_name : str
         Key in `variable_init` storing the name of the variable
     key_schema : str
         Key in `variable_init` storing the schema specification
     keys_additional : Union[List[str], Dict[str, str], None]
-        Additional keys to include as properties of the ModelVariable. If None, 
+        Additional keys to include as properties of the ModelVariable. If None,
         will store all fields (indcies) specified in variable_init as properties
     logger : Union[logging.Logger, None]
         Optional context-dependent logger to pass
-    stop_without_default: if no default value is found, stop?  If not, 
+    stop_without_default: if no default value is found, stop?  If not,
         defaults to np.nan
     """
-    
-    def __init__(self,
+
+    def __init__(
+        self,
         variable_init: Union[dict, pd.DataFrame, pd.Series],
-        element_definition: Union[at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]],
+        element_definition: Union[
+            at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]
+        ],
         attribute_as_property: bool = True,
         delim_categories: str = _DELIM_CATEGORIES,
         flag_all_cats: str = _FLAG_ALL_CATS,
@@ -139,72 +139,63 @@ class ModelVariable:
         logger: Union[logging.Logger, None] = None,
         stop_without_default: bool = False,
     ) -> None:
-
         self.logger = logger
         self._initialize_keys(
-            key_categories = key_categories,
-            key_default_value = key_default_value,
-            key_name = key_name,
-            key_schema = key_schema,
+            key_categories=key_categories,
+            key_default_value=key_default_value,
+            key_name=key_name,
+            key_schema=key_schema,
         )
 
         self._initialize_properties(
-            variable_init, 
-            attribute_as_property = attribute_as_property,
-            delim_categories = delim_categories,
-            flag_all_cats = flag_all_cats,
-            flag_no_dims = flag_no_dims,
-            stop_without_default = stop_without_default,
+            variable_init,
+            attribute_as_property=attribute_as_property,
+            delim_categories=delim_categories,
+            flag_all_cats=flag_all_cats,
+            flag_no_dims=flag_no_dims,
+            stop_without_default=stop_without_default,
         )
         self._initialize_categories(
-            element_definition, 
+            element_definition,
         )
 
         self._initialize_fields()
         self._initialize_uuid()
 
-        return None
-
-    
-
-    def __call__(self,
+    def __call__(
+        self,
         obj: Union[pd.DataFrame, None] = None,
         **kwargs,
     ) -> Union[List, np.ndarray, pd.DataFrame, str, None]:
+        """Return the full variable list; if a DataFrame, extract the variable from
+        the DataFrame
         """
-        Return the full variable list; if a DataFrame, extract the variable from 
-            the DataFrame
-        """
-
         if obj is None:
             return self.name
 
-        out = self.get(obj, **kwargs,)
+        out = self.get(obj, **kwargs)
 
         return out
-    
 
-
-    def __repr__(self,
+    def __repr__(
+        self,
     ) -> None:
-        
         out = "\n\t".join(self.fields)
         out = f"ModelVariable: {self.name}\nFields:\n\t{out}"
 
         return out
-    
-
-
 
     ##################################
     #    INITIALIZATION FUNCTIONS    #
     ##################################
 
-    def _initialize_categories(self,
-        category_definition: Union[at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]],
+    def _initialize_categories(
+        self,
+        category_definition: Union[
+            at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]
+        ],
     ) -> None:
-        """
-        Initialize categories based on input attributes. Sets the following 
+        """Initialize categories based on input attributes. Sets the following
             properties:
 
             * self.categories_are_restricted:
@@ -213,49 +204,48 @@ class ModelVariable:
                 dictionary mapping a cleaned category to the set of key values
                 that are valid for the variable
             * self.dict_category_key_indices:
-                for a given key, values map the elements associated with 
+                for a given key, values map the elements associated with
                 dict_category_keys to their indices in dict_category_keys_space
             * self.dict_category_keys_space:
-                dictionary mapping a cleaned category to the set of all 
+                dictionary mapping a cleaned category to the set of all
                 potential key values that the category can take on.
 
-        * NOTE: for multidimensional specifications of mutable elements with the 
-            same root (e.g., X-DIM1 and X-DIM2), 
+        * NOTE: for multidimensional specifications of mutable elements with the
+            same root (e.g., X-DIM1 and X-DIM2),
             self.dict_category_keys_space only stores the space associated with
             the root element (e.g., those associated with X), and each dimension
-            is referred back to its root element. 
+            is referred back to its root element.
 
-            HOWEVER, self.dict_category_keys stores keys associated with the 
-            individual dimensional implementations to allow for differentiation.  
+            HOWEVER, self.dict_category_keys stores keys associated with the
+            individual dimensional implementations to allow for differentiation.
             Similarly, self.dict_category_key_indices does as well, mapping the
-            indicies of the restricted space in each dimension to the full 
+            indicies of the restricted space in each dimension to the full
             space of the root element.
 
 
         Function Arguments
         ------------------
-        - category_definition: initializer for variable categories (i.e., 
+        - category_definition: initializer for variable categories (i.e.,
             mutable elements in the variable schema). Can be:
             * attribute_table.AttributeTable: Can be provided if there is only a
                 single known mutable element
-            * Dict[str, attribute_table.AttributeTable]: Can be provided if 
-                there are multiple mutable elements or a number of tables in a 
-                centralized location. 
-                * NOTE: Dictionary keys are assumed to be the corresponding 
+            * Dict[str, attribute_table.AttributeTable]: Can be provided if
+                there are multiple mutable elements or a number of tables in a
+                centralized location.
+                * NOTE: Dictionary keys are assumed to be the corresponding
                     AttributeTable.key
-            * List[attribute_table.AttributeTable]: optional list of 
+            * List[attribute_table.AttributeTable]: optional list of
                 AttributeTable objects
         """
-
         # initialize some outputs (modified below if valid)
         self.dict_category_keys = None
         self.dict_category_key_indices = None
         self.dict_category_key_space = None
 
         # iterate and compare to those included in the schema
-        category_definition = self.get_category_definition(category_definition, )
+        category_definition = self.get_category_definition(category_definition)
         dict_category_key_space = {}
-        
+
         # iterate over mutable elements
         """
         for k, v in category_definition.items():
@@ -274,104 +264,93 @@ class ModelVariable:
         """
 
         for elem in self.schema.mutable_elements_clean_ordered:
-
-            if elem in dict_category_key_space.keys():
+            if elem in dict_category_key_space:
                 continue
-            
+
             # get the root element as a space
             root_elem, dim_index = self.schema.get_root_element(elem)
             attr = category_definition.get(root_elem)
 
             continue_q = attr is None
-            continue_q |= (not isinstance(attr.key_values, list)) if not continue_q else False
+            continue_q |= (
+                (not isinstance(attr.key_values, list)) if not continue_q else False
+            )
             if continue_q:
                 continue
-            
+
             dict_category_key_space.update({root_elem: attr.key_values})
-            
 
-        # get categories 
+        # get categories
         dict_category_keys = self.get_categories_by_element(
-            dict_category_space = dict_category_key_space,
+            dict_category_space=dict_category_key_space,
         )
-
 
         ##  SET PROPERTIES
 
         self.dict_category_keys = dict_category_keys
         self.dict_category_key_space = dict_category_key_space
 
-        return None
-
-
-
-    def _initialize_fields(self,
+    def _initialize_fields(
+        self,
         **kwargs,
     ) -> None:
-        """
-        Set fields for quick access. Sets the following properties:
+        """Set fields for quick access. Sets the following properties:
 
-            * self.categories_are_restricted:
-                boolean to store whether or not category restrictions are in 
-                place for the variable
-            * self.fields:
-                fields associated with the variable
-            * self.fields_indices:
-                indices of self.fields in self.fields_space
-            * self.fields_space:
-                universe of potential fields (if built under all categories)
-            * self.fields_space_complement:
-                complement in fields_space of fields
+        * self.categories_are_restricted:
+            boolean to store whether or not category restrictions are in
+            place for the variable
+        * self.fields:
+            fields associated with the variable
+        * self.fields_indices:
+            indices of self.fields in self.fields_space
+        * self.fields_space:
+            universe of potential fields (if built under all categories)
+        * self.fields_space_complement:
+            complement in fields_space of fields
         """
         # NOTE FOR fields and fields_space:
-        # it is important to include allow_full_space = True during 
-        # initialization; this argument allows access to the full category 
+        # it is important to include allow_full_space = True during
+        # initialization; this argument allows access to the full category
         # space during initialization
 
         # allow full space as a hack for initialization
         fields = self.build_fields(
-            allow_full_space = True
+            allow_full_space=True,
         )
 
         # trick it into building variables across entire range
         fields_space = self.build_fields(
-            allow_full_space = True,
-            category_restrictions = {}, 
-            category_restrictions_as_full_spec = True,
-        ) 
+            allow_full_space=True,
+            category_restrictions={},
+            category_restrictions_as_full_spec=True,
+        )
 
         # some derivatives
         fields_space_complement = [x for x in fields_space if x not in fields]
         fields_index = [fields_space.index(x) for x in fields]
-        categories_are_restricted = (len(fields_space_complement) > 0)
-
+        categories_are_restricted = len(fields_space_complement) > 0
 
         ##  SET PROPERTIES
-        
+
         self.categories_are_restricted = categories_are_restricted
         self.fields = fields
         self.fields_index = fields_index
         self.fields_space = fields_space
         self.fields_space_complement = fields_space_complement
 
-        return None
-
-
-
-    def _initialize_keys(self,
+    def _initialize_keys(
+        self,
         **kwargs,
     ) -> None:
+        """Set required keys. Sets the following properties:
+
+        * self.key_categories
+        * self.key_default_value
+        * self.key_name
+        * self.key_schema
+        * self.keys_required
+
         """
-        Set required keys. Sets the following properties:
-
-            * self.key_categories
-            * self.key_default_value
-            * self.key_name
-            * self.key_schema
-            * self.keys_required
-
-        """
-
         # check keyword arguments for specification
         key_categories = kwargs.get("key_categories", "categories")
         key_default_value = kwargs.get("key_default_value", "default_value")
@@ -382,7 +361,7 @@ class ModelVariable:
         keys_required = [
             key_categories,
             key_name,
-            key_schema
+            key_schema,
         ]
 
         ##  SET PROPERTIES
@@ -393,11 +372,8 @@ class ModelVariable:
         self.key_schema = key_schema
         self.keys_required = keys_required
 
-        return None
-
-
-
-    def _initialize_properties(self,
+    def _initialize_properties(
+        self,
         variable_init: Union[dict, pd.DataFrame, pd.Series],
         attribute_as_property: bool = True,
         delim_categories: str = _DELIM_CATEGORIES,
@@ -405,16 +381,16 @@ class ModelVariable:
         flag_no_dims: str = _FLAG_NO_DIMS,
         stop_without_default: bool = False,
     ) -> None:
-        """Set properties derived from attribute table. Sets properties 
-            associated with self.keys_required in addition to others specified 
+        """Set properties derived from attribute table. Sets properties
+            associated with self.keys_required in addition to others specified
             in the attribute table.
-        
+
         Sets the following properties:
 
             * self.default_value:
                 Default value of the variable if not found in a dataframe
             * self.dict_varinfo:
-                Dictionary of variable information 
+                Dictionary of variable information
             * self.container_elements:
                 Container to use in self.schema to parse mutable (e.g., category
                 specifications) and immutable (e.g., attributes) elements.
@@ -435,13 +411,13 @@ class ModelVariable:
                 Name of the variable that is cleaned to remove LaTeX, RST, and
                 markdown special characters
             * self.name_fs_safe:
-                Name of the variable that excludes spaces and sets all 
+                Name of the variable that excludes spaces and sets all
                 characters to lower case
             * self.regex_expression_bounds:
-                Regular expression used to parse expressions (e.g., mutable 
+                Regular expression used to parse expressions (e.g., mutable
                 element dictionaries) from initialization strings
             * self.schema:
-                VariableSchema object 
+                VariableSchema object
             * self.space_char:
                 Character used to denote a space in a mutable element
 
@@ -451,84 +427,87 @@ class ModelVariable:
         variable_init : Union[dict, pd.DataFrame, pd.Series]
             Initializer for the variable. Can be:
             * dict: a dictionary mapping keys to a value
-            * pd.DataFrame: a Pandas DataFrame whose first row is used to 
+            * pd.DataFrame: a Pandas DataFrame whose first row is used to
                 initialize variable elements by mapping fields (key) to values
             * pd.Series: a Pandas Series used to map indicies (key) to values
-        
-        Keyword Arguments
+
+        Keyword Arguments:
         -----------------
         attribute_as_property : bool
-            Try to initialize attributes as properties of the model variable 
-            itself? If true, sets an attribute passed in the variable schema as 
+            Try to initialize attributes as properties of the model variable
+            itself? If true, sets an attribute passed in the variable schema as
             an accessible property of the ModelVariable.
 
-            * E.g., if "unit_mass" is an attribute from the schema, then it is 
-                accessible from ModelVariable.unit_mass if 
+            * E.g., if "unit_mass" is an attribute from the schema, then it is
+                accessible from ModelVariable.unit_mass if
                 attribute_as_property == True.
-            * NOTE: this should be used with caution. If an attribute conflicts 
-                with an existing property, it will not be set. 
+            * NOTE: this should be used with caution. If an attribute conflicts
+                with an existing property, it will not be set.
 
         delim_categories : str
             Delimeter used to split categories specified in variable_init
         flag_all_cats : str
-            Flag in category specification used to point to the use of all 
+            Flag in category specification used to point to the use of all
             category values to define the variable
         flag_no_dims : str
-            Flag in category specification used to point to the use of no 
+            Flag in category specification used to point to the use of no
             category values to define the variable
         stop_without_default : bool
             If no default value is found, stop?  If not, defaults to np.nan
+
         """
-        
         # get the variable information dictionary
         dict_varinfo = self.get_variable_init_dictionary(variable_init)
         name = dict_varinfo.get(self.key_name)
         name_clean = self.get_clean_name(name)
-        name_fs_safe = self.get_clean_name(name, fs_safe = True)
+        name_fs_safe = self.get_clean_name(name, fs_safe=True)
 
         # set the schema
         try:
             schema = VariableSchema(dict_varinfo.get(self.key_schema))
         except Exception as e:
             msg = f"Error initializing variable schema: {e}"
-            self._log(msg, type_log = "error")
+            self._log(msg, type_log="error")
             raise RuntimeError(msg)
 
         # try to set some properties
         if attribute_as_property:
             try:
-
                 dict_attributes = dict(
                     (schema.dict_attribute_keys_to_attribute_keys_clean.get(k), v)
                     for k, v in schema.dict_attributes.items()
                 )
-                errors, num_errors, warns = sf.set_properties_from_dict(self, dict_attributes, )
+                errors, num_errors, warns = sf.set_properties_from_dict(
+                    self, dict_attributes
+                )
 
                 # pass errors
-                errors = (":" + ("\n\t".join(errors))) if isinstance(errors, list) else "."
+                errors = (
+                    (":" + ("\n\t".join(errors))) if isinstance(errors, list) else "."
+                )
                 if num_errors > 0:
                     msg = f"Properties for variable {name} successfully set with {num_errors} errors{errors}."
-                    self._log(msg, type_log = "error")
+                    self._log(msg, type_log="error")
 
                 # pass warnings
                 warns = ("\n\t".join(warns)) if isinstance(warns, list) else ""
-                self._log(warns, type_log = "warning") if (warns != "") else None
-
+                self._log(warns, type_log="warning") if (warns != "") else None
 
             except Exception as e:
                 msg = f"Error trying to initialize properties of variable {name} from dict_varinfo: {e}"
-                self._log(msg, type_log = "warning") 
+                self._log(msg, type_log="warning")
 
         # build the expression-bounding regular expression
-        regex_expression_bounds = re.compile(f"(?<={schema.container_expressions})(.*?)(?={schema.container_expressions})")
-        
+        regex_expression_bounds = re.compile(
+            f"(?<={schema.container_expressions})(.*?)(?={schema.container_expressions})"
+        )
+
         # get the default value
         default_value = self.get_default_value(
             dict_varinfo,
-            stop_without_default = stop_without_default,
+            stop_without_default=stop_without_default,
         )
 
-        
         ##  SET PROPERTIES
 
         self.container_elements = schema.container_elements
@@ -546,27 +525,19 @@ class ModelVariable:
         self.schema = schema
         self.space_char = schema.space_char
 
-        return None
-
-
-
-    def _initialize_uuid(self,
+    def _initialize_uuid(
+        self,
     ) -> None:
-        """Initialize the UUID
-        """
-
+        """Initialize the UUID"""
         self._uuid = _MODULE_UUID
 
-        return None
-
-
-
-    def _log(self,
+    def _log(
+        self,
         msg: str,
         type_log: str = "log",
-        **kwargs
+        **kwargs,
     ) -> None:
-        """Clean implementation of sf._optional_log in-line using default 
+        """Clean implementation of sf._optional_log in-line using default
             logger. See ?sf._optional_log for more information.
 
         Function Arguments
@@ -574,49 +545,48 @@ class ModelVariable:
         msg : str
             Message to log
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         type_log : str
             Type of log to use
-        **kwargs : 
+        **kwargs :
             Passed as logging.Logger.METHOD(msg, **kwargs)
+
         """
-        sf._optional_log(self.logger, msg, type_log = type_log, **kwargs)
+        sf._optional_log(self.logger, msg, type_log=type_log, **kwargs)
 
-        return None
-
-    
     ############################
     #    NON-INIT FUNCTIONS    #
     ############################
 
-    def build_init_me_to_cat_dictionary(self,
+    def build_init_me_to_cat_dictionary(
+        self,
         dict_category_space: Union[Dict[str, List[str]], None],
         return_on_none: Union[Any, None] = None,
     ) -> Dict:
-        """Initialize the dictionary mapping the variable schema's mutable 
-            elements to categories in the variable field. Differs from 
-            self.dict_category_key_space in that the keys are schema mutable 
-            elements, not root elements. 
+        """Initialize the dictionary mapping the variable schema's mutable
+            elements to categories in the variable field. Differs from
+            self.dict_category_key_space in that the keys are schema mutable
+            elements, not root elements.
 
-        If keys in dict_category_space are child elements, returns those 
+        If keys in dict_category_space are child elements, returns those
             elements.
 
         Support function for self.get_categories_by_element()
 
-        
+
         Function Arguments
         ------------------
         dict_category_space : Union[Dict[str, List[str]], None]
-            Optional dictionary specifying the space of possible. If None, no 
+            Optional dictionary specifying the space of possible. If None, no
             checks are performed
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         return_on_none : Union[Any, None]
             Element to return if dict_category_space is None
-        """
 
+        """
         dict_out = return_on_none
 
         if isinstance(dict_category_space, dict):
@@ -624,11 +594,7 @@ class ModelVariable:
 
             for x in self.schema.mutable_elements_clean_ordered:
                 vec = dict_category_space.get(self.schema.get_root_element(x)[0])
-                vec = (
-                    dict_category_space.get(x)
-                    if vec is None
-                    else vec
-                )
+                vec = dict_category_space.get(x) if vec is None else vec
 
                 dict_out.update({x: vec})
 
@@ -641,38 +607,38 @@ class ModelVariable:
             if isinstance(dict_category_space, dict)
             else return_on_none
         )
-        """;
+        """
 
         return dict_out
 
-
-
-    def get_categories_by_element(self,
+    def get_categories_by_element(
+        self,
         category_subspace: Union[Dict[str, str], str, None] = None,
         dict_category_space: Union[Dict[str, List[str]], None] = None,
     ) -> Union[Dict[str, Union[List[str], None]], None]:
         """Convert categories specified in an attribute table into a dictionary
             where keys are cleaned mutable elements of the variable schema and
-            values are lists of category restrictions for that element. 
-        
+            values are lists of category restrictions for that element.
+
         NOTE: if category_subspace is specified as a single string, it will be
-            passed to EACH mutable element stored in 
+            passed to EACH mutable element stored in
             self.schema.mutable_elements_clean_ordered
 
 
         Function Arguments
         ------------------
-        
-        Keyword Arguments
+
+        Keyword Arguments:
         -----------------
         category_subspace : Union[Dict[str, str], str, None]
-            Either a single string of delimited categories or a dictionary 
-            mapping a mutable element to a delimited string. 
-            * If None, uses those specified in self.dict_varinfo (in 
+            Either a single string of delimited categories or a dictionary
+            mapping a mutable element to a delimited string.
+            * If None, uses those specified in self.dict_varinfo (in
                 self.key_categories)
         dict_category_space : Union[Dict[str, List[str]], None]
-            Optional dictionary specifying the space of possible. If None, no 
+            Optional dictionary specifying the space of possible. If None, no
             checks are performed
+
         """
         # check specification
         proceed = isinstance(category_subspace, dict)
@@ -680,7 +646,7 @@ class ModelVariable:
         proceed |= category_subspace is None
         if not proceed:
             return None
-        
+
         # get the subspace(s) of categories
         category_subspace = (
             self.dict_varinfo.get(self.key_categories)
@@ -688,11 +654,9 @@ class ModelVariable:
             else category_subspace
         )
 
-
         ##  CHECK SPECIFICATION OF category_subspace AND CONVERT TO DICTIONARY
 
         if isinstance(category_subspace, str):
-
             # in this case, the variable is defined for all categories associated with each dimension
             if category_subspace.lower() == self.flag_all_cats:
                 dict_out = self.build_init_me_to_cat_dictionary(dict_category_space)
@@ -701,7 +665,7 @@ class ModelVariable:
             # in this case, the variable is intentionally associated with no categories
             if category_subspace.lower() == self.flag_no_dims:
                 return {}
-            
+
             # try to convert to a dictionary
             category_subspace = self.parse_categories_string(category_subspace)
             if isinstance(category_subspace, str):
@@ -710,29 +674,23 @@ class ModelVariable:
                     (elem, category_subspace)
                     for elem in self.schema.mutable_elements_clean_ordered
                 )
-           
-        
+
         ##  BUILD OUTPUT DICTIONARY MAPPING CLEANED MUTABLE ELEMENTS TO LISTS OF CATEGORIES
 
         # initialize the space as a list if defined that way; otherwise, each iteration will check for list elements
-        space = (
-            dict_category_space 
-            if sf.islistlike(dict_category_space) 
-            else None
-        )
-        
-        flags_skip =  [
-            self.flag_all_cats, 
-            f"{self.container_expressions}{self.flag_all_cats}{self.container_expressions}"
+        space = dict_category_space if sf.islistlike(dict_category_space) else None
+
+        flags_skip = [
+            self.flag_all_cats,
+            f"{self.container_expressions}{self.flag_all_cats}{self.container_expressions}",
         ]
 
         # initialize the dictionary out
         dict_out = self.build_init_me_to_cat_dictionary(
             dict_category_space,
-            return_on_none = {},
+            return_on_none={},
         )
 
-       
         ##  ITERATE
 
         # set ordering for iteration; put root elements first (if they are specified)
@@ -747,10 +705,8 @@ class ModelVariable:
             )
         elements_iter = elements_root + elements_children
 
-
         # iterate over each of the mutable element categories to get specified category subsets
         for elem in elements_iter:
-            
             v = category_subspace.get(elem)
             children = self.schema.dict_root_element_to_children.get(elem, [elem])
 
@@ -764,7 +720,7 @@ class ModelVariable:
                 E.g., X -> R will set X-DIM1, X-DIM2, and X-DIM3 to R; then, 
                 additionally specifying X-DIM2 as s will overwrite X-DIM2 (only)
                 as S.
-            """;
+            """
             for k in children:
                 # check the space to ensure it's defined
                 if isinstance(dict_category_space, dict):
@@ -776,10 +732,10 @@ class ModelVariable:
                         if key_space[0] in dict_category_space.keys()
                         else dict_category_space.get(k, "__skip")
                     )
-                        
+
                     if space == "__skip":
                         continue
-                
+
                 # if defined as all, set to the space
                 categories = (
                     space
@@ -788,40 +744,40 @@ class ModelVariable:
                 )
                 if not isinstance(categories, list):
                     continue
-                
+
                 categories = (
                     [x for x in space if x in categories]
                     if sf.islistlike(space)
                     else categories
                 )
-                
+
                 dict_out.update({k: categories})
-            
 
         return dict_out
 
-
-
-    def get_category_definition(self,
-        category_definition: Union[at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]],
+    def get_category_definition(
+        self,
+        category_definition: Union[
+            at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]
+        ],
     ) -> Union[Dict[str, at.AttributeTable], None]:
-        """Read in category_definition and convert to dictionary for use in 
+        """Read in category_definition and convert to dictionary for use in
             _initialize_categories()
 
 
         Function Arguments
         ------------------
         category_definition : Union[at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]]
-            Initializer for variable categories (i.e., mutable elements in the 
+            Initializer for variable categories (i.e., mutable elements in the
             variable schema). Can be:
-                * attribute_table.AttributeTable: Can be provided if there is 
+                * attribute_table.AttributeTable: Can be provided if there is
                     only a single known mutable element
-                * Dict[str, attribute_table.AttributeTable]: Can be provided if 
-                    there are multiple mutable elements or a number of tables in 
-                    a centralized location. 
-                    * NOTE: Dictionary keys are assumed to be the corresponding 
+                * Dict[str, attribute_table.AttributeTable]: Can be provided if
+                    there are multiple mutable elements or a number of tables in
+                    a centralized location.
+                    * NOTE: Dictionary keys are assumed to be the corresponding
                         AttributeTable.key
-                * List[attribute_table.AttributeTable]: optional list of 
+                * List[attribute_table.AttributeTable]: optional list of
                     AttributeTable objects
         """
         # initialize
@@ -832,26 +788,26 @@ class ModelVariable:
             category_definition_out = {category_definition.key: category_definition}
 
         elif sf.islistlike(category_definition):
-            category_definition_out = dict((x.key, x) for x in category_definition if hasattr(x, "key"))
+            category_definition_out = dict(
+                (x.key, x) for x in category_definition if hasattr(x, "key")
+            )
 
         elif isinstance(category_definition, dict):
             category_definition_out = dict(
-                (v.key, v) for v in category_definition.values() 
+                (v.key, v)
+                for v in category_definition.values()
                 if hasattr(v, "key") & hasattr(v, "key_values")
             )
 
-
         return category_definition_out
-    
 
-
-    def get_categories_from_specification(self,
+    def get_categories_from_specification(
+        self,
         category_str: Union[List[str], str],
     ) -> Union[List[str], None]:
         """Split categories defined in a string into a list. Performs checks on
-            specification to ensure that elements are cleaned. 
+        specification to ensure that elements are cleaned.
         """
-        
         # some cases--return a list
         if sf.islistlike(category_str):
             return list(category_str)
@@ -859,73 +815,65 @@ class ModelVariable:
         if not isinstance(category_str, str):
             return None
 
-
         # MECHANISM FOR DICTIONARY EXTRACTION!
-        
+
         categories = self.regex_expression_bounds.findall(category_str)
         if len(categories) == 0:
             return None
-        
+
         if self.delim_categories in categories[0]:
             categories = categories[0].split(self.delim_categories)
 
-        else:    
+        else:
             categories = category_str.split(self.delim_categories)
             categories = [
                 x.replace(self.container_expressions, "")
-                for x in categories 
-                if x.startswith(self.container_expressions) & x.endswith(self.container_expressions)
+                for x in categories
+                if x.startswith(self.container_expressions)
+                & x.endswith(self.container_expressions)
             ]
 
         return categories
-    
 
-
-    def get_clean_name(self,
+    def get_clean_name(
+        self,
         name: str,
         fs_safe: bool = False,
     ) -> str:
-        """Return the cleaned version of the name, which excludes LaTeX, 
-            Markdown, and RST special characters that are part of the full name. 
-            Set fs_safe = True to generate file system safe version (no spaces, 
-            all lower case)
+        """Return the cleaned version of the name, which excludes LaTeX,
+        Markdown, and RST special characters that are part of the full name.
+        Set fs_safe = True to generate file system safe version (no spaces,
+        all lower case)
         """
         chars_repl = [":math:\\text", "{", "}_", "}"]
 
         name_clean = sf.str_replace(name, dict((x, "") for x in chars_repl))
         if fs_safe:
-            name_clean = (
-                name_clean
-                .lower()
-                .strip()
-                .replace(" ", "_")
-            )
+            name_clean = name_clean.lower().strip().replace(" ", "_")
 
         return name_clean
 
-
-
-    def get_default_value(self,
+    def get_default_value(
+        self,
         dict_varinfo: dict,
         default_if_missing: Any = np.nan,
         stop_without_default: bool = False,
     ) -> None:
-        """Get the default value based on the initialization dictionary. 
-
+        """Get the default value based on the initialization dictionary.
 
         Function Arguments
         ------------------
         dict_varinfo : dict
             Dictionary containing key self.key_default_value
-        
-        Keyword Arguments
+
+        Keyword Arguments:
         -----------------
         default_if_missing : Any
             Default value if not found
         stop_without_default : bool
             If no default value is found, stop?  If not, defaults to np.nan
-        """
 
+        """
         if not isinstance(dict_varinfo, dict):
             return None
 
@@ -938,67 +886,60 @@ class ModelVariable:
                 missing from var_init; no default value can be set.
                 """
                 raise KeyError(msg)
-            
+
             out = default_if_missing
 
         return out
-    
 
-
-    def get_merged_category_key_dictionary(self,
+    def get_merged_category_key_dictionary(
+        self,
     ) -> dict:
         """Passing dict_category_key_space to dict_category space in
-            get_categories_by_element() can allow for users to specify 
-            categories that fall outside of the variable definition. 
-        
-        This merge operation begins with dict_category_key_space, then 
-            overwrites any keys with available values from dict_category_keys. 
+            get_categories_by_element() can allow for users to specify
+            categories that fall outside of the variable definition.
+
+        This merge operation begins with dict_category_key_space, then
+            overwrites any keys with available values from dict_category_keys.
             This choice, instead of simply using self.dict_category_keys,
-            allows for the space still be expansive when there are not 
+            allows for the space still be expansive when there are not
             restrictions and for dimensional elements in self.dict_category_keys
-            to restrict the space further than the use of 
+            to restrict the space further than the use of
             self.dict_category_key_space would on its own.
         """
+        dict_out = {}  # self.dict_category_key_space.copy()
 
-        dict_out = {}#self.dict_category_key_space.copy()
-        
         # decompose and drop root from dictionary
         for k, v in self.dict_category_key_space.items():
-    
             elems_child = self.schema.dict_root_element_to_children.get(k)
-            
+
             dict_update = (
-                dict((x, v) for x in elems_child)
-                if elems_child is not None
-                else {k: v}
+                dict((x, v) for x in elems_child) if elems_child is not None else {k: v}
             )
-            
+
             dict_out.update(dict_update)
 
         dict_update = self.dict_category_keys.copy()
         dict_out.update(dict_update)
 
         return dict_out
-    
 
-
-    def get_property(self,
+    def get_property(
+        self,
         prop: str,
         return_on_none: Any = None,
     ) -> Any:
         """Try to retrieve the variable prop--associated with dict_varinfo--
-            for the variable. Returns `return_on_none` if no value is found.
+        for the variable. Returns `return_on_none` if no value is found.
         """
         out = self.dict_varinfo.get(prop, return_on_none)
-        
+
         return out
 
-
-
-    def get_variable_init_dictionary(self,
+    def get_variable_init_dictionary(
+        self,
         variable_init: Union[dict, pd.DataFrame, pd.Series],
     ) -> dict:
-        """Verify the variable initialization dictionary, pd.Series, or 
+        """Verify the variable initialization dictionary, pd.Series, or
             pd.DataFrame and convert to a dictionary.
 
         Function Arguments
@@ -1006,13 +947,12 @@ class ModelVariable:
         variable_init : Union[dict, pd.DataFrame, pd.Series]
             Initializer for the variable. Can be:
                 * dict: a dictionary mapping keys to a value
-                * pd.DataFrame: a Pandas DataFrame whose first row is used to 
-                    initialize variable elements by smapping fields (key) to 
+                * pd.DataFrame: a Pandas DataFrame whose first row is used to
+                    initialize variable elements by smapping fields (key) to
                     values
-                * pd.Series: a Pandas Series used to map indicies (key) to 
+                * pd.Series: a Pandas Series used to map indicies (key) to
                     values
         """
-
         # check type
         invalid_type_q = not isinstance(variable_init, dict)
         invalid_type_q &= not isinstance(variable_init, pd.DataFrame)
@@ -1020,39 +960,40 @@ class ModelVariable:
 
         if invalid_type_q:
             tp = str(type(variable_init))
-            msg = f"Error initializing ModelVariable: invalid type {tp} for variable_init"
+            msg = (
+                f"Error initializing ModelVariable: invalid type {tp} for variable_init"
+            )
             raise RuntimeError(msg)
 
-        
         # convert type
         if isinstance(variable_init, pd.DataFrame):
             variable_init = variable_init.iloc[0].to_dict()
-        
+
         if isinstance(variable_init, pd.Series):
             variable_init = variable_init.to_dict()
-        
+
         # next, check keys
         s_req = set(self.keys_required)
         s_avail = set(variable_init.keys())
         if not s_req.issubset(s_avail):
             fields_missing = sf.format_print_list(s_req - s_avail)
-            raise KeyError(f"Error initializing ModelVariable: keys {fields_missing} not found in variable_init")
-
+            raise KeyError(
+                f"Error initializing ModelVariable: keys {fields_missing} not found in variable_init"
+            )
 
         return variable_init
-    
 
-
-    def parse_categories_string(self,
+    def parse_categories_string(
+        self,
         categories_string: str,
         assignment_dict: str = "=",
         delim_dict: str = ",",
         endpoints_dict: Tuple[str] = ("(", ")"),
     ) -> Union[Dict[str, str], str, None]:
-        """Read input categories_string and parse into a string or dictionary 
-            mapping mutable elements to the applicable category string. 
+        """Read input categories_string and parse into a string or dictionary
+            mapping mutable elements to the applicable category string.
 
-        If categories_string is specified as a dictionary, then 
+        If categories_string is specified as a dictionary, then
             ModelVariable.parse_categories_string() returns a dictionary. If it
             is entered only as a string, then the categories string is returned.
 
@@ -1061,14 +1002,14 @@ class ModelVariable:
         categories_string : str
             categories specification string from attribute table
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         assignment_dict : str
-            assignment string in the dictionary that maps keys to values 
-        delim_dict : str delimiter in dictionaries splitting key value pairs 
+            assignment string in the dictionary that maps keys to values
+        delim_dict : str delimiter in dictionaries splitting key value pairs
         endpoints_dict : Tuple[str]
-        """
 
+        """
         # check input
         return_none = not isinstance(categories_string, str)
         return_none |= not isinstance(endpoints_dict, tuple)
@@ -1081,26 +1022,24 @@ class ModelVariable:
             categories_string = categories_string.split(endpoints_dict[0])
             if len(categories_string) == 1:
                 return None
-            
+
             categories_string = categories_string[1].split(endpoints_dict[1])
             if len(categories_string) == 1:
                 return None
 
             categories_string = categories_string[0]
-        
+
         categories_string = categories_string.split(delim_dict)
 
-        # 
         as_dict = False
         out = []
 
         # first, check if it should be read as a dictionary
         for cat in categories_string:
-            
             get_exp = self.regex_expression_bounds.findall(cat)
             if len(get_exp) == 0:
                 continue
-            
+
             is_key_pair = assignment_dict in get_exp[0]
             as_dict |= is_key_pair
 
@@ -1118,153 +1057,142 @@ class ModelVariable:
                 dictionary; in practice, this means that ALL elements
                 associated with that mutable element will be included when
                 building the field list (checks for null string).
-            """;
+            """
             if len(cat_new[1]) == 0:
                 continue
-            
+
             key = self.schema.clean_element(cat_new[0].strip())
             value = cat_new[1].strip()
             # need to add the container so that self.get_categories_from_specification() will find the categories
             value = f"{self.container_expressions}{value}{self.container_expressions}"
 
             out.append((key, value))
-        
-        # check out 
+
+        # check out
         if len(out) == 0:
             return None
 
-        out = (
-            dict(x for x in out if isinstance(x, tuple)) 
-            if as_dict 
-            else out[0]
-        )
+        out = dict(x for x in out if isinstance(x, tuple)) if as_dict else out[0]
 
         return out
-    
 
-
-    def replace_mutable_element(self,
+    def replace_mutable_element(
+        self,
         schema: str,
         elem: str,
         value: Any,
     ) -> str:
-        """In schema `schema`, replace the mutable elemenet `elem` with value 
-            `value`
+        """In schema `schema`, replace the mutable elemenet `elem` with value
+        `value`
         """
-        
         # get the element
         elem = self.schema.dict_mutable_elements_clean_to_original.get(elem, elem)
         elem = f"{self.container_elements}{elem}{self.container_elements}"
-        
+
         out = schema.replace(elem, str(value))
-        
+
         return out
-    
-
-
 
     ############################
     #    CORE FUNCTIONALITY    #
     ############################
-    
-    def attribute(self,
+
+    def attribute(
+        self,
         attr: str,
         return_on_none: Union[Any, None] = None,
     ) -> Any:
         """Retrieve an attribute attr from the model variable. If not found,
-            returns value return_on_none.
+        returns value return_on_none.
         """
         out = self.schema.get_attribute(
-            attr, 
-            return_on_none = return_on_none,
+            attr,
+            return_on_none=return_on_none,
         )
 
         return out
 
-
-
-    def build_fields(self,
+    def build_fields(
+        self,
         allow_full_space: bool = False,
         category_restrictions: Union[Dict[str, List[str]], List[str], str, None] = None,
         category_restrictions_as_full_spec: bool = False,
         stop_on_error: bool = True,
     ) -> Union[List[str], None]:
         """Build fields associated with the variable.
-        
+
         Function Argumnents
         -------------------
-        
+
         Keyword Argumnents
         ------------------
         allow_full_space : bool
-            Allow the variable to access categories in the complete space, 
-            beyond those for which it is defined? If True, can let the variable 
-            be built for undefined categories. 
+            Allow the variable to access categories in the complete space,
+            beyond those for which it is defined? If True, can let the variable
+            be built for undefined categories.
         category_restrictions : Union[Dict[str, List[str]], List[str], str, None]
-            Optional dictionary to overwrite `self.dict_category_keys` with; 
-            i.e., keys in `category_restrictions` will overwrite those in 
-            `self.dict_category_keys` IF 
+            Optional dictionary to overwrite `self.dict_category_keys` with;
+            i.e., keys in `category_restrictions` will overwrite those in
+            `self.dict_category_keys` IF
             `category_restrictions_as_full_spec == False`. Accepts the following
             types:
                 * dict: should map a mutable element to a list of categories
-                    associated with that element. 
+                    associated with that element.
                     * RETURNS: list of fields
 
                 * list: only available if the number of mutable elements in the
-                    schema is 1; assumes that categories are associated with 
+                    schema is 1; assumes that categories are associated with
                     that element.
                     * RETURNS: list of fields
 
-                    NOTE: If the mutable elements are all associated with a 
-                    single root element (e.g., cat_landuse_dim1 and 
-                    cat_landuse_dim2 both share the parent cat_landuse), then 
+                    NOTE: If the mutable elements are all associated with a
+                    single root element (e.g., cat_landuse_dim1 and
+                    cat_landuse_dim2 both share the parent cat_landuse), then
                     a list is assumed to specify the space for the root element;
                     all dimensions will take this restriction.
-                    
+
 
                 * str: only available if the number of mutable elements in the
                     schema is 1; behavior is the same as a single-element list.
                     * RETURNS: field (string) or None if the category is not
                         associated with the variable subsector
-            
-            * NOTE: if `category_restrictions_as_full_spec == True`, then 
-                category_restrictions is treated as the initialization 
+
+            * NOTE: if `category_restrictions_as_full_spec == True`, then
+                category_restrictions is treated as the initialization
                 dictionary
-            
+
         category_restrictions_as_full_spec : bool
-            Set to True to treat `category_restrictions` as the full 
+            Set to True to treat `category_restrictions` as the full
             specification dictionary
         stop_on_error : bool
-            Set to False to return None on a known error. 
+            Set to False to return None on a known error.
         """
-        
         # INITIALIZATION
-        
+
         # basic
         dims = self.schema.mutable_elements_clean_ordered.copy()
         fields = [self.schema.schema]
         schema = self.schema.schema
-        
+
         # check input specification
         return_type = "list"
         if isinstance(category_restrictions, str):
             category_restrictions = [category_restrictions]
             return_type = "str"
-        
-        # if categories are entered as a list, ensure that there is only 
-        # one mutable element; if there are none, then just proceed without the 
+
+        # if categories are entered as a list, ensure that there is only
+        # one mutable element; if there are none, then just proceed without the
         # restrictions
         if isinstance(category_restrictions, list):
-
             # initialize the mutable element
             elem = (
                 self.schema.mutable_elements_clean_ordered[0]
                 if self.schema.n_mutable_elements == 1
                 else None
             )
-            
+
             if self.schema.n_mutable_elements > 1:
-                # HERE, assume that, in the presence of multiple dimensions, 
+                # HERE, assume that, in the presence of multiple dimensions,
                 # that the list is specifying category restrictions for the root
                 # element
                 if len(self.dict_category_key_space) == 1:
@@ -1280,21 +1208,19 @@ class ModelVariable:
                         instead.
                         """
                         raise RuntimeError(msg)
-                    
+
                     return None
 
             elif self.schema.n_mutable_elements == 0:
                 # here, there are no categories, so the specification isn't considered
-                category_restrictions = None 
-    
+                category_restrictions = None
 
             if elem is not None:
                 category_restrictions = {
-                    elem: category_restrictions
+                    elem: category_restrictions,
                 }
 
-
-        # keys to keep from the dictionary (if applicable) 
+        # keys to keep from the dictionary (if applicable)
         # - allow for child elements, since get_categories_by_element()
         #   can generate those elements
         keys_keep = None
@@ -1305,41 +1231,36 @@ class ModelVariable:
                 for x in category_restrictions.keys()
             ]
             keys_keep = set(sum(keys_keep, []))
-        
-        
+
         dict_space = (
             self.dict_category_key_space
             if allow_full_space
             else self.get_merged_category_key_dictionary()
         )
 
-
         # run through filtering and split elements
         category_restrictions = self.get_categories_by_element(
             category_restrictions,
-            dict_category_space = dict_space,
+            dict_category_space=dict_space,
         )
 
         if not isinstance(category_restrictions, dict):
             category_restrictions = {}
 
-        # if full specification, then get_categories_by_element() will  
+        # if full specification, then get_categories_by_element() will
         # fill out keys as though the dictionaries are being initialized
         if (not category_restrictions_as_full_spec) and (keys_keep is not None):
             category_restrictions = dict(
-                (k, v) for k, v in category_restrictions.items()
-                if k in keys_keep
+                (k, v) for k, v in category_restrictions.items() if k in keys_keep
             )
-        
 
-        ##  ITERATE 
-        
+        ##  ITERATE
+
         for dim in dims:
-            
             # try the input dictionary, return internal restrictions if not defined
             restrictions = category_restrictions.get(
                 dim,
-                self.dict_category_keys.get(dim)
+                self.dict_category_keys.get(dim),
             )
 
             fields_new = []
@@ -1348,7 +1269,7 @@ class ModelVariable:
                     # field_elem.replace(dim, cat)
                     field = self.replace_mutable_element(field_elem, dim, cat)
                     fields_new.append(field)
-                    
+
             fields = fields_new
 
         # finally, reduce to string if needed
@@ -1357,9 +1278,8 @@ class ModelVariable:
 
         return fields
 
-    
-
-    def get(self,
+    def get(
+        self,
         obj: Union[pd.DataFrame, pd.Series, Dict[str, Any]],
         expand_to_all_categories: bool = False,
         extraction_logic: str = "all",
@@ -1373,48 +1293,46 @@ class ModelVariable:
         obj : Union[pd.DataFrame, pd.Series, Dict[str, Any]]
             The input object to retrieve the variable from
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         expand_to_all_categories : bool
-            Extract and expand output to all categories? 
+            Extract and expand output to all categories?
         extraction_logic : str
             Set logic used on extraction
             * "all": throws an error if any field in self.fields is missing
             * "any": extracts any field in self.fields available in `obj`
                 and fills any missing values with fill_value (or default value)
         fill_value : Any
-            If `expand_to_all_categories == True` OR `extract_any == True`, 
-            missing categories will be filled with this value (cannot be None). 
+            If `expand_to_all_categories == True` OR `extract_any == True`,
+            missing categories will be filled with this value (cannot be None).
             * If None, reverts to self.default_value
-        **kwargs : 
-            Additional method specific keyword arguments. 
+        **kwargs :
+            Additional method specific keyword arguments.
             * If obj is a pd.DataFrame:
                 - return_type: one of the following values:
-                    * "data_frame": return the subset data frame that includes 
+                    * "data_frame": return the subset data frame that includes
                         the variable
                     * "array": return a numpy array
-        """
 
+        """
         out = None
 
         if isinstance(obj, pd.DataFrame):
-
             args, kwpass = sf.get_args(self.get_from_dataframe)
             kwpass = dict((k, v) for k, v in kwargs.items() if k in kwpass)
 
             out = self.get_from_dataframe(
-                obj, 
-                expand_to_all_categories = expand_to_all_categories,
-                extraction_logic = extraction_logic,
-                fill_value = fill_value,
-                **kwpass
+                obj,
+                expand_to_all_categories=expand_to_all_categories,
+                extraction_logic=extraction_logic,
+                fill_value=fill_value,
+                **kwpass,
             )
 
         return out
-    
 
-
-    def get_from_dataframe(self,
+    def get_from_dataframe(
+        self,
         df: pd.DataFrame,
         expand_to_all_categories: bool = False,
         extraction_logic: str = "all",
@@ -1429,10 +1347,10 @@ class ModelVariable:
         df : pd.DataFrame
             The input DataFrame to retrieve the variable from
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         expand_to_all_categories : bool
-            Extract and expand output to all categories? 
+            Extract and expand output to all categories?
         extraction_logic : str
             Set logic used on extraction. Must be one of the following:
             * "all": throws an error if any field in self.fields is missing
@@ -1440,22 +1358,22 @@ class ModelVariable:
             * "any_fill": extracts any field in self.fields available in `obj`
                 and fills any missing values with fill_value (or default value)
         fields_additional : Union[List[str], None]
-            Optional specification of additional fields to extract (such as 
+            Optional specification of additional fields to extract (such as
             index fields)
         fill_value : Any
-            If `expand_to_all_categories == True` OR `extract_any == True`, 
-            missing categories will be filled with this value. 
+            If `expand_to_all_categories == True` OR `extract_any == True`,
+            missing categories will be filled with this value.
             * If None, reverts to self.default_value
         return_type : str
             One of the following values:
             * "array": return a numpy array
-            * "data_frame": return the subset data frame that includes the 
-                variable  
+            * "data_frame": return the subset data frame that includes the
+                variable
+
         """
-        
         ##  INITIALIZATION
 
-        # verify input types 
+        # verify input types
         if not isinstance(df, pd.DataFrame):
             return None
 
@@ -1467,17 +1385,11 @@ class ModelVariable:
         )
 
         # check fill value
-        fill_value = (
-            self.default_value
-            if fill_value is None
-            else fill_value
-        )
+        fill_value = self.default_value if fill_value is None else fill_value
 
         # check return type specification
         return_type = (
-            "data_frame"
-            if return_type not in ["data_frame", "array"]
-            else return_type
+            "data_frame" if return_type not in ["data_frame", "array"] else return_type
         )
 
         # check fields that can be extracted
@@ -1488,32 +1400,29 @@ class ModelVariable:
         )
         if len(fields_ext) == 0:
             return None
-        
+
         fields_additional = (
             []
             if not sf.islistlike(fields_additional)
             else [x for x in fields_additional if x in df.columns]
         )
-        
-        
+
         ##  MAIN OPERATIONS
 
         try:
             df_out = df[fields_additional + fields_ext]
 
-        except Exception as e:
-
+        except Exception:
             fields_missing = sf.print_setdiff(
-                fields_ext, 
-                [x for x in fields_ext if x not in df.columns]
+                fields_ext,
+                [x for x in fields_ext if x not in df.columns],
             )
 
             msg = f"Error trying to retrieve variable {self.name}: fields {fields_missing} not found."
-            self._log(msg, type_log = "error")
+            self._log(msg, type_log="error")
 
             return None
 
-        
         # if using "any_fill", set to expand to all categories
         if extraction_logic == "any_fill":
             expand_to_all_categories = True
@@ -1537,56 +1446,56 @@ class ModelVariable:
 
             df_concat = pd.DataFrame(
                 np.full((df_out.shape[0], n_complement), fill_value),
-                columns = fields_complement
+                columns=fields_complement,
             )
 
             df_out = pd.concat(
                 [
                     df_out,
-                    df_concat
+                    df_concat,
                 ],
-                axis = 1
+                axis=1,
             )
 
             fields_out = (
-                self.fields_space 
-                if (extraction_logic not in ["any_fill"]) 
+                self.fields_space
+                if (extraction_logic not in ["any_fill"])
                 else self.fields
             )
             df_out = df_out[fields_additional + fields_out]
 
-        df_out.reset_index(drop = True, inplace = True)
+        df_out.reset_index(drop=True, inplace=True)
         df_out = df_out.to_numpy() if (return_type == "array") else df_out
 
         return df_out
-    
 
-
-    def spawn_default_dataframe(self,
+    def spawn_default_dataframe(
+        self,
         df_base: Union[pd.DataFrame, None] = None,
         fill_value: Union[Any, None] = None,
         length: Union[int, None] = None,
     ) -> pd.DataFrame:
-        """Spawn a DataFrame of defaults of length 1. Specify either the 
-            `df_base` or `length` keyword arguments to expand. If both are 
-            specified, `df_base` takes precendence. 
+        """Spawn a DataFrame of defaults of length 1. Specify either the
+            `df_base` or `length` keyword arguments to expand. If both are
+            specified, `df_base` takes precendence.
 
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         df_base : Union[pd.DataFrame, None]
-            Optional base DataFrame to use for concatenation. Will return a 
-            DataFrame of variables concatenated (by column) to this DataFrame if 
+            Optional base DataFrame to use for concatenation. Will return a
+            DataFrame of variables concatenated (by column) to this DataFrame if
             passed.
         fill_value : Union[Any, None]
             Optional fill value to pass
         length : Union[int, None]
             Optional length to pass for output.
+
         """
         field_dummy = "_DUMmYF__IELD_TO_DROP_xmq1"
-        
+
         # set default
-        if not (sf.isnumber(length, integer = True) | isinstance(df_base, pd.DataFrame)):
+        if not (sf.isnumber(length, integer=True) | isinstance(df_base, pd.DataFrame)):
             length = 1
 
         # initialize output
@@ -1604,21 +1513,16 @@ class ModelVariable:
         df_out[self.fields[0]] = fill_value
         df_out = self.get_from_dataframe(
             df_out,
-            expand_to_all_categories = True,
-            extraction_logic = "any_fill",
-            fields_additional = fields_ext,
-            fill_value = fill_value, 
+            expand_to_all_categories=True,
+            extraction_logic="any_fill",
+            fields_additional=fields_ext,
+            fill_value=fill_value,
         )
 
-        if field_dummy in df_out.columns: 
-            df_out.drop(columns = field_dummy, inplace = True, )
+        if field_dummy in df_out.columns:
+            df_out.drop(columns=field_dummy, inplace=True)
 
         return df_out
-
-
-
-
-
 
 
 class VariableSchema:
@@ -1628,55 +1532,53 @@ class VariableSchema:
     ------------------------
     schema_raw : str
         Initialization schema
-    
+
     Optional Arguments
     ------------------
     container_elements : str
-        String used to delimit elements--such as a category, unit, or 
+        String used to delimit elements--such as a category, unit, or
         gas--within a schema
     container_expressions : str
         Substring used to parse out schema and associated elements
     flag_dim : str
-        Protected string that allows users to pass the same mutable element as 
-        multiple dimensions (e.g., field_$CAT-X-DIM1$_$CAT-X-DIM2$ passes the 
-        element X twice) and giving the outer product of the space 
+        Protected string that allows users to pass the same mutable element as
+        multiple dimensions (e.g., field_$CAT-X-DIM1$_$CAT-X-DIM2$ passes the
+        element X twice) and giving the outer product of the space
     space_char : str
         Character used to replace spaces
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         schema_raw: str,
         container_elements: str = "$",
         container_expressions: str = "``",
         flag_dim: str = "DIM",
         space_char: str = "-",
     ) -> None:
-
         self._initialize_properties(
-            container_elements = container_elements,
-            container_expressions = container_expressions,
-            flag_dim = flag_dim,
-            space_char = space_char,
+            container_elements=container_elements,
+            container_expressions=container_expressions,
+            flag_dim=flag_dim,
+            space_char=space_char,
         )
 
         self._initialize_schema(
             schema_raw,
         )
 
-
-
-
     ##################################
     #    INITIALIZATION FUNCTIONS    #
     ##################################
 
-    def _initialize_properties(self,
+    def _initialize_properties(
+        self,
         container_elements: str = "$",
         container_expressions: str = "``",
         flag_dim: str = "DIM",
         space_char: str = "-",
     ) -> None:
-        """Initialize some key properties of the schema. Sets the following 
+        """Initialize some key properties of the schema. Sets the following
             properties:
 
             * self.container_elements:
@@ -1686,12 +1588,12 @@ class VariableSchema:
             * self.regex_elements (regular expression used to identify elements
                 in the schema)
             * self.space_char
-    
+
 
         Function Arguments
         ------------------
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         container_elements : str
             String used to delimit elements--such as a category, unit, or gas--
@@ -1699,30 +1601,29 @@ class VariableSchema:
         container_expressions : str
             Substring used to parse out schema and associated elements
         flag_dim : str
-            Protected string that allows users to pass the same mutable element 
-            as multiple dimensions (e.g., field_$CAT-X-DIM1$_$CAT-X-DIM2$ passes 
-            the element X twice) and giving the outer product of the space 
+            Protected string that allows users to pass the same mutable element
+            as multiple dimensions (e.g., field_$CAT-X-DIM1$_$CAT-X-DIM2$ passes
+            the element X twice) and giving the outer product of the space
         space_char : str
             Character used to replace spaces
-        """
 
+        """
         # check some specifications
         return_error = not isinstance(container_elements, str)
         return_error |= not isinstance(flag_dim, str)
         return_error |= not isinstance(container_expressions, str)
         return_error |= not isinstance(space_char, str)
         if return_error:
-            msg = f"""
+            msg = """
             Error initializing variable schema: invalid type detected for 
             container_elements, container_expressions, and/or space_char. Check 
             that all elements are a string.
             """
             raise RuntimeError(msg)
 
-
         # build the element-wise regular expression
         delim_regex = (
-            f"\{container_elements}" 
+            rf"\{container_elements}"
             if container_elements in ["$", "[", "]"]
             else container_elements
         )
@@ -1732,13 +1633,12 @@ class VariableSchema:
         regex_component = f"{space_char}{flag_dim}"
         regex_component_clean = clean_element(
             regex_component,
-            container_elements = container_elements,
-            container_expressions = container_expressions,
-            space_char = space_char,
+            container_elements=container_elements,
+            container_expressions=container_expressions,
+            space_char=space_char,
         )
-        regex_dims = re.compile(f".*{regex_component}(\d+)$")
-        regex_dims_clean = re.compile(f".*{regex_component_clean}(\d+)$")
-
+        regex_dims = re.compile(rf".*{regex_component}(\d+)$")
+        regex_dims_clean = re.compile(rf".*{regex_component_clean}(\d+)$")
 
         ##  SET PROPERTIES
 
@@ -1750,36 +1650,33 @@ class VariableSchema:
         self.regex_elements = regex_elements
         self.space_char = space_char
 
-        return None
-    
-
-
-    def _initialize_schema(self,
+    def _initialize_schema(
+        self,
         schema_raw: str,
     ) -> None:
-        """Initialize some key properties of the schema. Sets the following 
+        """Initialize some key properties of the schema. Sets the following
             properties:
 
-            * self.attributes: 
+            * self.attributes:
                 list of attributes (keys) that can be accessed
-            * self.dict_attribute_keys_clean_to_attribute_keys: 
-                dictionary mapping attribute keys from the schema to cleaned 
+            * self.dict_attribute_keys_clean_to_attribute_keys:
+                dictionary mapping attribute keys from the schema to cleaned
                 versions of the keys
-            * self.dict_attribute_keys_to_attribute_keys_clean: 
-                dictionary mapping cleaned versions of attribute keys to the 
+            * self.dict_attribute_keys_to_attribute_keys_clean:
+                dictionary mapping cleaned versions of attribute keys to the
                 original version of the keys
-            * self.dict_attributes: 
-                dictionary mapping original attribute (not cleaned) to 
+            * self.dict_attributes:
+                dictionary mapping original attribute (not cleaned) to
                 specification
             * dict_mutable_elements_clean_to_original:
                 dictionary mapping cleaned mutable elements to originals
-            * dict_mutable_elements_original_to_clean: 
+            * dict_mutable_elements_original_to_clean:
                 dictionary mapping original mutable elements to cleaned elements
             * self.mutable_elements_clean_ordered:
-                ordered list of elements--cleaned--that can be replaced in the 
+                ordered list of elements--cleaned--that can be replaced in the
                 schema
-            * self.mutable_elements_ordered: 
-                ordered list of elements that can be replaced in the schema 
+            * self.mutable_elements_ordered:
+                ordered list of elements that can be replaced in the schema
             * self.n_mutable_elements:
                 number of mutable elements
             * self.schema: schema to use that includes mutable elements
@@ -1792,34 +1689,32 @@ class VariableSchema:
         schema_raw : str
             Raw input schema string to intialize
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
-        """
 
+        """
         # verify input type
         sf._check_type(
             schema_raw,
-            str, 
-            prependage = "Error in schema_raw initializing variable schema: "
+            str,
+            prependage="Error in schema_raw initializing variable schema: ",
         )
         # replace any paired delimiters with null
-        schema_raw = schema_raw.replace(self.container_elements*2, "")
-
+        schema_raw = schema_raw.replace(self.container_elements * 2, "")
 
         # check the elements in the input string
         n_delims = schema_raw.count(self.container_elements)
-        if n_delims%2 != 0:
+        if n_delims % 2 != 0:
             msg = f"Error initializing variable schema from {schema_raw}: invalid number of element delimiters {n_delims}--it must be even."
             raise RuntimeError(msf)
-
 
         # decompose the schema
         dict_replacements, schema = decompose_schema(
             schema_raw,
-            container_expressions = self.container_expressions,
-            container_elements = self.container_elements,
-            return_type = "all",
-            space_char = self.space_char,
+            container_expressions=self.container_expressions,
+            container_elements=self.container_elements,
+            return_type="all",
+            space_char=self.space_char,
         )
 
         # map keys to clean keys/vis versa
@@ -1830,36 +1725,48 @@ class VariableSchema:
             (v, k) for k, v in dict_attribute_keys_to_attribute_keys_clean.items()
         )
 
-        attributes_all = sorted(list(dict_attribute_keys_to_attribute_keys_clean.keys()))
-        
+        attributes_all = sorted(
+            list(dict_attribute_keys_to_attribute_keys_clean.keys())
+        )
+
         # next, get mutable elements
         mutable_elements_ordered = self.get_mutable_elements(schema)
-        mutable_elements_clean_ordered = self.get_mutable_elements(schema, clean = True, )
+        mutable_elements_clean_ordered = self.get_mutable_elements(schema, clean=True)
         n_mutable_elements = len(mutable_elements_clean_ordered)
 
         dict_mutable_elements_original_to_clean = dict(
             zip(
                 mutable_elements_ordered,
-                mutable_elements_clean_ordered
-            )
+                mutable_elements_clean_ordered,
+                strict=False,
+            ),
         )
-        dict_mutable_elements_clean_to_original = sf.reverse_dict(dict_mutable_elements_original_to_clean)
-        
-        # finally, get dictionary mapping root element to all its childred
-        dict_root_element_to_children = self.get_child_elements(
-            dict_melems_to_melems_clean = dict_mutable_elements_original_to_clean,
-            mutable_elements_ordered = mutable_elements_ordered,
+        dict_mutable_elements_clean_to_original = sf.reverse_dict(
+            dict_mutable_elements_original_to_clean
         )
 
+        # finally, get dictionary mapping root element to all its childred
+        dict_root_element_to_children = self.get_child_elements(
+            dict_melems_to_melems_clean=dict_mutable_elements_original_to_clean,
+            mutable_elements_ordered=mutable_elements_ordered,
+        )
 
         ##  SET PROPERTIES
 
         self.attributes = attributes_all
-        self.dict_attribute_keys_clean_to_attribute_keys = dict_attribute_keys_clean_to_attribute_keys
-        self.dict_attribute_keys_to_attribute_keys_clean = dict_attribute_keys_to_attribute_keys_clean
+        self.dict_attribute_keys_clean_to_attribute_keys = (
+            dict_attribute_keys_clean_to_attribute_keys
+        )
+        self.dict_attribute_keys_to_attribute_keys_clean = (
+            dict_attribute_keys_to_attribute_keys_clean
+        )
         self.dict_attributes = dict_replacements
-        self.dict_mutable_elements_clean_to_original = dict_mutable_elements_clean_to_original
-        self.dict_mutable_elements_original_to_clean = dict_mutable_elements_original_to_clean
+        self.dict_mutable_elements_clean_to_original = (
+            dict_mutable_elements_clean_to_original
+        )
+        self.dict_mutable_elements_original_to_clean = (
+            dict_mutable_elements_original_to_clean
+        )
         self.dict_root_element_to_children = dict_root_element_to_children
         self.mutable_elements_ordered = mutable_elements_ordered
         self.mutable_elements_clean_ordered = mutable_elements_clean_ordered
@@ -1867,57 +1774,51 @@ class VariableSchema:
         self.schema = schema
         self.schema_raw = schema_raw
 
-        return None
-    
-
-
-    def get_mutable_elements(self,
+    def get_mutable_elements(
+        self,
         schema: str,
         clean: bool = False,
     ) -> Union[List[str], None]:
         """Retrieve mutable elements (e.g., categories) from schema. Returns an
-            ordered list of elements (ordered by appearance) or None if no 
-            mutable elements are found. 
+            ordered list of elements (ordered by appearance) or None if no
+            mutable elements are found.
 
         Function Arguments
         ------------------
         schema : str
             Schema (with attributes filled) to extract elements from
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         clean : bool
             Clean the output elements?
-        """
 
+        """
         list_elements = self.regex_elements.findall(schema)
-        list_elements = [
-            x for i, x in enumerate(list_elements) if i%2 == 0
-        ]
+        list_elements = [x for i, x in enumerate(list_elements) if i % 2 == 0]
 
         if clean:
             list_elements = [
                 clean_element(
                     x,
-                    container_elements = self.container_elements,
-                    container_expressions = self.container_expressions,
-                    space_char = self.space_char,
-                ) 
+                    container_elements=self.container_elements,
+                    container_expressions=self.container_expressions,
+                    space_char=self.space_char,
+                )
                 for x in list_elements
             ]
 
         return list_elements
-    
-
 
     ############################
     #    CORE FUNCTIONALITY    #
     ############################
 
-    def clean_element(self,
-        element: str, 
+    def clean_element(
+        self,
+        element: str,
     ) -> Union[str, None]:
-        """Clean a variable schema element to a manageable, shared name that 
+        """Clean a variable schema element to a manageable, shared name that
             excludes special characters.
 
         Function Arguments
@@ -1925,28 +1826,27 @@ class VariableSchema:
         element : str
             Element to clean
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
-        """
 
+        """
         out = clean_element(
             element,
-            container_elements = self.container_elements,
-            container_expressions = self.container_expressions,
-            space_char = self.space_char,
+            container_elements=self.container_elements,
+            container_expressions=self.container_expressions,
+            space_char=self.space_char,
         )
 
         return out
 
-
-
-    def get_attribute(self,
+    def get_attribute(
+        self,
         key: str,
         return_on_none: Union[Any, None] = None,
     ) -> Union[str, None]:
-        """Retrieve an attribute of a variable schema associated with key. If 
-            none is found, returns None. 
-            
+        """Retrieve an attribute of a variable schema associated with key. If
+            none is found, returns None.
+
         NOTE: Looks for the key in two stages. It starts by checking if the key
             is cleaned; if not found, it defaults to the original element and
             tries to retrieve the attribute.
@@ -1956,37 +1856,37 @@ class VariableSchema:
         key : str
             Attribute to retrieve
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         return_on_none : Union[Any, None]
             Value to return if no key is found
+
         """
         # if in the clean dictionary, assume that it is the cleaned version of the key
-        key = self.dict_attribute_keys_clean_to_attribute_keys.get(key, key) 
+        key = self.dict_attribute_keys_clean_to_attribute_keys.get(key, key)
         out = self.dict_attributes.get(key, return_on_none)
 
         return out
-    
 
-
-    def get_child_elements(self,
+    def get_child_elements(
+        self,
         dict_melems_to_melems_clean: Union[Dict[str, str], None] = None,
         mutable_elements_ordered: Union[Dict[str, str], None] = None,
     ) -> Dict:
         """Build a dictionary to map root elements to all child elements; maps
-            clean and unclean elements to the same dictionary. 
+            clean and unclean elements to the same dictionary.
 
         Function Arguments
         ------------------
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         dict_melems_to_melems_clean : Union[Dict[str, str], None]
             Dictionary mapping mutable elements to their cleaned version
         mutable_elements_ordered : Union[Dict[str, str], None]
-            List of ordered (by replacement hierarchy) mutable elements 
+            List of ordered (by replacement hierarchy) mutable elements
+
         """
-        
         ##  INITIALIZE
 
         dict_melems_to_melems_clean = (
@@ -2001,18 +1901,17 @@ class VariableSchema:
             else mutable_elements_ordered
         )
 
-
         dict_out = {}
-        
+
         # loop over elements to add both origina & clean
         for elem in mutable_elements_ordered:
-            elem_root = self.get_root_element(elem)[0]  
+            elem_root = self.get_root_element(elem)[0]
             (
                 dict_out.update({elem_root: [elem]})
-                if elem_root not in dict_out.keys()
+                if elem_root not in dict_out
                 else dict_out[elem_root].append(elem)
             )
-            
+
             # add clean
             elem_clean = dict_melems_to_melems_clean.get(elem)
             if elem_clean is None:
@@ -2021,24 +1920,22 @@ class VariableSchema:
             elem_clean_root = self.get_root_element(elem_clean)[0]
             (
                 dict_out.update({elem_clean_root: [elem_clean]})
-                if elem_clean_root not in dict_out.keys()
+                if elem_clean_root not in dict_out
                 else dict_out[elem_clean_root].append(elem_clean)
             )
 
-
         return dict_out
-    
 
-
-    def get_mutable_element(self,
+    def get_mutable_element(
+        self,
         field: str,
         element: str,
         return_on_none: Union[Any, None] = None,
         return_regex: bool = False,
     ) -> Union[str, None]:
-        """Retrieve the value of a mutable element 
-            
-        NOTE: Looks for the element in two stages. It starts by checking if the 
+        """Retrieve the value of a mutable element
+
+        NOTE: Looks for the element in two stages. It starts by checking if the
             element is cleaned; if not found, it defaults to the original
             specification.
 
@@ -2049,14 +1946,14 @@ class VariableSchema:
         element : str
             Element to retrieve
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         return_on_none : Union[Any, None]
             Value to return if no key is found
         return_regex : bool
             Return the regular expression used to match?
-        """
 
+        """
         # try getting the element from the clean dictionary; if not present, assume original form
         element = self.dict_mutable_elements_clean_to_original.get(element, element)
         element = (
@@ -2071,42 +1968,39 @@ class VariableSchema:
         if return_regex:
             return regex
 
-        # 
         out = regex.match(field)
         out = return_on_none if (out is None) else out.groups()[0]
 
         return out
-    
 
-
-    def get_root_element(self,
+    def get_root_element(
+        self,
         elem: str,
     ) -> Union[Tuple, None]:
-        """For a mutable element `elem`, get the root element--i.e., stripped of 
+        """For a mutable element `elem`, get the root element--i.e., stripped of
             dimensional specification.
-            
-            E.g., maps 
+
+            E.g., maps
                 "XXXX-DIM1" -> "XXXX"  AND  "XXXX" -> "XXXX"
             (with DIM being self.flag_dim)
-            
-        NOTE: Returns a tuple of element (element, index) where `index` is the 
+
+        NOTE: Returns a tuple of element (element, index) where `index` is the
             dimensional index of the root element. If the input element is
             equivalent to the root, then the index is -1. Otherwise, the index
             is as specified.
 
             If `elem` is not a string, then index is None.
-        
-        
+
+
         Function Arguments
         ------------------
         elem : str
             Element to retrieve root from
         """
-        
         if not isinstance(elem, str):
             return (elem, None)
 
-        #elem_orig = self.dict_mutable_elements_clean_to_original.get(elem, elem)
+        # elem_orig = self.dict_mutable_elements_clean_to_original.get(elem, elem)
 
         is_clean = False
         if self.regex_dims.match(elem) is None:
@@ -2115,42 +2009,47 @@ class VariableSchema:
             if not is_clean:
                 return (elem, None)
 
-        space_char = self.clean_element(self.space_char) if is_clean else self.space_char 
+        space_char = (
+            self.clean_element(self.space_char) if is_clean else self.space_char
+        )
         flag_dim = self.clean_element(self.flag_dim) if is_clean else self.flag_dim
 
         cat = elem.split(flag_dim)
-        ind = int(cat[1]) # should successfully parse since the regular expressions searche for intes
+        ind = int(
+            cat[1]
+        )  # should successfully parse since the regular expressions searche for intes
         cat = cat[0].strip(space_char)
-        
-        cat = self.clean_element(cat) if is_clean else cat # clean root again if needed (may not be in dictionary)
+
+        cat = (
+            self.clean_element(cat) if is_clean else cat
+        )  # clean root again if needed (may not be in dictionary)
         out = (cat, ind)
 
-        return out 
+        return out
 
-
-
-    def replace(self,
+    def replace(
+        self,
         dict_repl: Dict[str, str],
         keys_are_clean: bool = False,
     ) -> str:
-        """Replace the schema with mutable elements as specified in the 
+        """Replace the schema with mutable elements as specified in the
             dictionary dict_repl. Returns a string.
 
         Function Arguments
         ------------------
         dict_repl : Dict[str, str]
-            Dictionary mapping mutable elements (unclean if clean_keys is False 
+            Dictionary mapping mutable elements (unclean if clean_keys is False
             OR clean if clean_keys is True) to new strings
 
-        Keyword Arguments
+        Keyword Arguments:
         -----------------
         keys_are_clean : bool
             Set to True if the keys in dict_repl are cleaned mutable elements
-        """
 
+        """
         dict_replace = dict_repl
 
-        # if keys in dict_replace are cleaned, try to replace with known originals 
+        # if keys in dict_replace are cleaned, try to replace with known originals
         if keys_are_clean:
             dict_replace = {}
 
@@ -2158,16 +2057,16 @@ class VariableSchema:
                 elem_orig = self.dict_mutable_elements_clean_to_original.get(k)
                 if elem_orig is None:
                     continue
-                
-                elem_orig = f"{self.container_elements}{elem_orig}{self.container_elements}"
+
+                elem_orig = (
+                    f"{self.container_elements}{elem_orig}{self.container_elements}"
+                )
                 dict_replace.update({elem_orig: v})
 
         # replace the substrings and return
-        out = sf.str_replace(self.schema, dict_replace, )
+        out = sf.str_replace(self.schema, dict_replace)
 
         return out
-
-
 
 
 ########################
@@ -2176,12 +2075,12 @@ class VariableSchema:
 
 
 def clean_element(
-    element: str, 
+    element: str,
     container_elements: str = "$",
     container_expressions: str = "``",
     space_char: str = "-",
 ) -> Union[str, None]:
-    """Clean a variable schema element to a manageable, shared name that 
+    """Clean a variable schema element to a manageable, shared name that
         excludes special characters.
 
     Function Arguments
@@ -2189,7 +2088,7 @@ def clean_element(
     element : str
         Element to clean
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     container_elements: str
         String used to delimit elements--such as a category, unit, or gas--
@@ -2198,14 +2097,13 @@ def clean_element(
         Substring used to parse out schema and associated elements
     space_char : str
         Character used within an element in place of a space
-    """
 
+    """
     if not isinstance(element, str):
         return None
 
     element = (
-        element
-        .lower()
+        element.lower()
         .replace(container_elements, "")
         .replace(container_expressions, "")
         .replace(space_char, "_")
@@ -2214,9 +2112,8 @@ def clean_element(
     return element
 
 
-
 def decompose_schema(
-    var_schema: str, 
+    var_schema: str,
     container_elements: str = "$",
     container_expressions: str = "``",
     return_type: str = "schema",
@@ -2230,12 +2127,12 @@ def decompose_schema(
     var_schema : str
         Raw schema definition from variable definition
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     container_elements : str
         String used to delimit elements--such as a category, unit, or gas--
         within a schema
-    container_expressions : str 
+    container_expressions : str
         Substring used to parse out schema and associated elements
     return_type : str
         Return type to pass. Can take the following values:
@@ -2243,39 +2140,30 @@ def decompose_schema(
             - dict_replacements
             - schema (cleaned)
             - category tuple
-        * "replacements": return the replacement dictinary defined in the raw 
+        * "replacements": return the replacement dictinary defined in the raw
             schema
         * "schema": return the schema only
     space_char : str
         Character used within an element in place of a space
+
     """
     valid_returns = ["all", "replacements", "schema"]
     return_type = "schema" if (return_type not in valid_returns) else return_type
 
     # split dictionary and variable schema apart
     var_schema = var_schema.split("(")
-    var_schema[0] = (
-        var_schema[0]
-        .replace(container_expressions, "")
-        .replace(" ", "")
-    )
+    var_schema[0] = var_schema[0].replace(container_expressions, "").replace(" ", "")
 
     # get dictionary of elements (without cleaning the keys)
     dict_repls = {}
     if len(var_schema) > 1:
         repls = var_schema[1].replace("`", "").split(",")
         for dr in repls:
-            dr0 = (
-                dr
-                .replace(" ", "")
-                .replace(")", "")
-                .split("=")
-            )
+            dr0 = dr.replace(" ", "").replace(")", "").split("=")
 
             var_schema[0] = var_schema[0].replace(dr0[0], dr0[1])
-            key = dr0[0].replace(container_elements, "") # remove the delimiter
+            key = dr0[0].replace(container_elements, "")  # remove the delimiter
             dict_repls.update({key: dr0[1]})
-    
 
     # return different elements based on desired return
     if return_type == "all":
@@ -2288,32 +2176,20 @@ def decompose_schema(
     return out
 
 
-
 def is_model_variable(
     obj: Any,
 ) -> bool:
-    """Determine if the object is a ModelVariable
-    """
+    """Determine if the object is a ModelVariable"""
     out = hasattr(obj, "is_model_variable")
     uuid = getattr(obj, "_uuid", None)
 
-    out &= (
-        uuid == _MODULE_UUID
-        if uuid is not None
-        else False
-    )
+    out &= uuid == _MODULE_UUID if uuid is not None else False
 
     return out
 
 
-
 def unclean_category(
-    cat: str
+    cat: str,
 ) -> str:
-    """Convert a category to "unclean" by adding tick marks
-    """
+    """Convert a category to "unclean" by adding tick marks"""
     return f"``{cat}``"
-
-
-    
-    

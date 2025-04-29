@@ -1,66 +1,50 @@
-
-import pandas as pd
-import os, os.path
+import os
+import os.path
 from typing import *
 
+import pandas as pd
 
 import sisepuede.manager.sisepuede_file_structure as sfs
-import sisepuede.core.model_attributes as ma
-import sisepuede.utilities._toolbox as sf
-
-
-
 
 ##  SET THE UUID
 
 _MODULE_UUID = "9D55CF8B-CAFF-4213-9A4E-24466C9160E8"
 
 
-
-
 ##  BUILD MAIN CLASS
 
-class SISEPUEDEExamples:
-    """
-    Load and access example data used to demonstrate SISEPUEDE.
 
+class SISEPUEDEExamples:
+    """Load and access example data used to demonstrate SISEPUEDE.
 
     Optional Arguments
     ------------------
-    
+
     """
 
-
-    def __init__(self,
+    def __init__(
+        self,
     ) -> None:
-
         self._initialize_file_structure()
         self._initialize_examples()
         self._initialize_uuid()
 
-        return None
-    
-
-
-    def __call__(self,
+    def __call__(
+        self,
         *args,
     ) -> None:
+        out = self.get_example(*args)
 
-        out = self.get_example(*args,)
-        
         return out
-    
-
 
     ##################################
     #    INITIALIZATION FUNCTIONS    #
     ##################################
 
-    def _initialize_file_structure(self,
+    def _initialize_file_structure(
+        self,
     ) -> None:
-
-        """
-        Intialize the SISEPUEDEFileStructure object and model_attributes object.
+        """Intialize the SISEPUEDEFileStructure object and model_attributes object.
             Initializes the following properties:
 
             * self.analysis_id
@@ -75,33 +59,26 @@ class SISEPUEDEExamples:
         Optional Arguments
         ------------------
         """
-
         file_struct = None
 
         try:
             file_struct = sfs.SISEPUEDEFileStructure(
-                initialize_directories = False,
+                initialize_directories=False,
             )
 
         except Exception as e:
             msg = f"Error trying to initialize SISEPUEDEFileStructure: {e}"
             raise RuntimeError(msg)
 
-
         ##  SET PROPERTIES
 
         self.file_struct = file_struct
         self.model_attributes = file_struct.model_attributes
 
-        return None
-    
-
-
-    def _initialize_examples(self,
+    def _initialize_examples(
+        self,
     ) -> None:
-
-        """
-        Intialize examples as properties. Sets the following properties:
+        """Intialize examples as properties. Sets the following properties:
 
             * self.EXAMPLE_NAME_HERE (files contained in ref/examples)
             * self.all_examples
@@ -110,7 +87,6 @@ class SISEPUEDEExamples:
         Optional Arguments
         ------------------
         """
-
         dir_examples = self.file_struct.dir_ref_examples
         files_example = os.listdir(dir_examples)
 
@@ -118,13 +94,11 @@ class SISEPUEDEExamples:
 
         all_examples = []
 
-
         ##  CSVs
 
         files_example_csvs = [x for x in files_example if x.endswith(".csv")]
 
         for fl in files_example_csvs:
-
             fp_read = os.path.join(dir_examples, fl)
 
             try:
@@ -133,56 +107,40 @@ class SISEPUEDEExamples:
 
                 setattr(self, attr_name, df_cur)
 
-            except Exception as e:
+            except Exception:
                 continue
 
             all_examples.append(attr_name)
 
-        
         ##  OTHER FILE TYPES (PLACEHOLDER)
-
 
         ##  SET PROPERTIES
 
         self.all_examples = all_examples
 
-        return None
-    
-
-
-    def _initialize_uuid(self,
+    def _initialize_uuid(
+        self,
     ) -> None:
-        """
-        Initialize the UUID. Sets the following properties:
+        """Initialize the UUID. Sets the following properties:
 
-            * self.is_sisepuede_examples
-            * self._uuid
+        * self.is_sisepuede_examples
+        * self._uuid
         """
-
         self.is_sisepuede_examples = True
         self._uuid = _MODULE_UUID
-
-        return None
-
-
-
 
     ########################
     #    CORE FUNCTIONS    #
     ########################
 
-    def get_example(self,
+    def get_example(
+        self,
         example: str,
     ) -> Any:
-        """
-        Retrieve an example dataset from the SISEPUEDE Example system.
-        """
-
+        """Retrieve an example dataset from the SISEPUEDE Example system."""
         out = getattr(self, example, None)
 
         return out
-
-
 
 
 ###################################
@@ -191,20 +149,14 @@ class SISEPUEDEExamples:
 ###                             ###
 ###################################
 
+
 def is_sisepuede_examples(
     obj: Any,
 ) -> bool:
-    """
-    check if obj is a SISEPUEDEExamples object
-    """
-
+    """Check if obj is a SISEPUEDEExamples object"""
     out = hasattr(obj, "is_sisepuede_examples")
     uuid = getattr(obj, "_uuid", None)
 
-    out &= (
-        uuid == _MODULE_UUID
-        if uuid is not None
-        else False
-    )
+    out &= uuid == _MODULE_UUID if uuid is not None else False
 
     return out

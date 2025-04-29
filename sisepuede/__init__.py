@@ -1,14 +1,4 @@
-#
-#
-#
-
-
 # import sisepuede.some objects for access
-from sisepuede.manager.sisepuede import (
-    SISEPUEDE
-)
-
-
 import sisepuede.cloud
 import sisepuede.core
 import sisepuede.data_management
@@ -19,3 +9,4 @@ import sisepuede.pipeline
 import sisepuede.plotting
 import sisepuede.transformers
 import sisepuede.utilities
+from sisepuede.manager.sisepuede import SISEPUEDE

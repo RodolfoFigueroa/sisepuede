@@ -1,35 +1,30 @@
-# 
+#
 #  COMMAND LINE RUNTIME FOR SISEPUEDE
 #
 # NOTE NOTE: SHOULD START WITH JULIA_NUM_THREADS=XX TO SET THREADS ACCESSIBLE TO JULIA WHEN RUNNING NemoMod
-#  
+#
 #
 import argparse
-import numpy as np
-import os, os.path
-import pandas as pd
-from typing import *
 import warnings
+from typing import *
 
-from sisepuede.core.model_attributes import ModelAttributes
 import sisepuede.core.support_classes as sc
-import sisepuede.manager.sisepuede_file_structure as sfs
 import sisepuede.manager.sisepuede as ssp
+import sisepuede.manager.sisepuede_file_structure as sfs
 import sisepuede.utilities.support_functions as sf
-
+from sisepuede.core.model_attributes import ModelAttributes
 
 ###################################
 #    SOME SUPPORTING FUNCTIONS    #
 ###################################
+
 
 def get_models(
     models: str,
     model_attributes: ModelAttributes,
     delim: str = ",",
 ) -> Union[List[str], str, None]:
-    """
-    Return list of regions to run. Splits argument with delimiter `delim`
-    """
+    """Return list of regions to run. Splits argument with delimiter `delim`"""
     # if invalid, return a list of length 0
     if not isinstance(models, str):
         return None
@@ -41,13 +36,9 @@ def get_models(
     attr_sector = model_attributes.get_sector_attribute_table()
     valid_models = attr_sector.key_values + list(attr_sector.table["sector"])
 
-    models = [
-        x for x in models.split(delim)
-        if x in valid_models
-    ]
+    models = [x for x in models.split(delim) if x in valid_models]
 
     return models
-
 
 
 def get_regions(
@@ -55,9 +46,7 @@ def get_regions(
     regions_obj: sc.Regions,
     delim: str = ",",
 ) -> Union[List[str], str, None]:
-    """
-    Return list of regions to run. Splits argument with delimiter `delim`
-    """
+    """Return list of regions to run. Splits argument with delimiter `delim`"""
     # if invalid, return a list of length 0
     if not isinstance(region_args, str):
         return []
@@ -67,20 +56,18 @@ def get_regions(
         return None
 
     regions = sf.get_dimensional_values(
-        region_args, 
+        region_args,
         regions_obj.key,
-        delim = delim,
-        return_type = str,
+        delim=delim,
+        return_type=str,
     )
     regions = [
-        regions_obj.return_region_or_iso(x, return_type = "region")
-        for x in regions
+        regions_obj.return_region_or_iso(x, return_type="region") for x in regions
     ]
 
     regions = [x for x in regions if x is not None]
 
     return regions
-
 
 
 def get_dimensional_dict(
@@ -91,20 +78,16 @@ def get_dimensional_dict(
     cl_key_primary: str = "keys_primary",
     cl_key_strategy: str = "keys_strategy",
 ) -> Union[Dict, None]:
-    """
-    From args, get dimensional keys. Use model_attributes to assign.
-    """
-    
+    """From args, get dimensional keys. Use model_attributes to assign."""
     if not isinstance(args, dict):
         return None
-    
 
     # initialize dictionary mapping command-line key to sisepuede key
     dict_key_map = {
         cl_key_design: model_attributes.dim_design_id,
         cl_key_future: model_attributes.dim_future_id,
         cl_key_primary: model_attributes.dim_primary_id,
-        cl_key_strategy: model_attributes.dim_strategy_id
+        cl_key_strategy: model_attributes.dim_strategy_id,
     }
 
     # initialize dictionary
@@ -113,36 +96,21 @@ def get_dimensional_dict(
     if args.get(cl_key_primary) is not None:
         key = dict_key_map.get(cl_key_primary)
         vals = sf.get_dimensional_values(args.get(cl_key_primary), key)
-        (
-            dict_out.update({key: vals})
-            if vals is not None
-            else None
-        )
+        (dict_out.update({key: vals}) if vals is not None else None)
 
     else:
         for k in [cl_key_design, cl_key_future, cl_key_strategy]:
             key = dict_key_map.get(k)
             vals = sf.get_dimensional_values(args.get(k), key)
-            (
-                dict_out.update({key: vals})
-                if vals is not None
-                else None
-            )
+            (dict_out.update({key: vals}) if vals is not None else None)
 
-    dict_out =(
-        None
-        if len(dict_out) == 0
-        else dict_out
-    )
+    dict_out = None if len(dict_out) == 0 else dict_out
 
     return dict_out
 
 
-
-def parse_arguments(
-) -> dict:
-
-    desc = f"""
+def parse_arguments() -> dict:
+    desc = """
     Command line utility to run SImulating SEctoral Pathways and Uncertainty 
         Exploration for DEcarbonization (SISEPUEDE). 
 
@@ -202,146 +170,134 @@ def parse_arguments(
 
     """
     parser = argparse.ArgumentParser(
-        description = ""
+        description="",
     )
-
 
     ##  REQUIRED ARGUMENTS
 
     # regions to run
-    msg_hlp_regions = f"""
+    msg_hlp_regions = """
     Comma-delimited list of regions or ISO codes to run. Required argument. To
         run all available regions, set to ALLREGIONS
     """
     parser.add_argument(
         "--regions",
-        help = msg_hlp_regions,
+        help=msg_hlp_regions,
     )
-
 
     ##  AT LEAST ONE MUST BE SPECIFIED
 
     # design keys
-    msg_hlp_key_design = f"""
+    msg_hlp_key_design = """
     Comma-delimited list of design keys to read OR file path to table 
         containing list of key values (as rows)
     """
     parser.add_argument(
         "--keys-design",
-        default = None,
-        help = msg_hlp_key_design,
-        type = str,
+        default=None,
+        help=msg_hlp_key_design,
+        type=str,
     )
 
-
     # future keys
-    msg_hlp_key_future = f"""
+    msg_hlp_key_future = """
     Comma-delimited list of future keys to read OR file path to table 
         containing list of key values (as rows). Only those that are <= n_trials
         will be included.
     """
     parser.add_argument(
         "--keys-future",
-        default = None,
-        help = msg_hlp_key_future,
-        type = str,
+        default=None,
+        help=msg_hlp_key_future,
+        type=str,
     )
 
-
     # primary keys
-    msg_hlp_key_primary = f"""
+    msg_hlp_key_primary = """
     Comma-delimited list of primary keys to read OR file path to table 
         containing list of key values (as rows)
     """
     parser.add_argument(
         "--keys-primary",
-        default = None,
-        help = msg_hlp_key_primary,
-        type = str,
+        default=None,
+        help=msg_hlp_key_primary,
+        type=str,
     )
 
-
     # strategy keys
-    msg_hlp_key_strategy = f"""
+    msg_hlp_key_strategy = """
     Comma-delimited list of strategy keys to read OR file path to table 
         containing list of key values (as rows)
     """
     parser.add_argument(
         "--keys-strategy",
-        default = None,
-        help = msg_hlp_key_strategy,
-        type = str,
+        default=None,
+        help=msg_hlp_key_strategy,
+        type=str,
     )
-
-
 
     ##  OPTIONAL ARGUMENTS/FLAGS
 
     # optional database type specification
-    msg_hlp_db_type = f"""
+    msg_hlp_db_type = """
     Optional specification of output database type (str). Default is sqlite. 
         Acceptable options are "csv" and "sqlite"
     """
     parser.add_argument(
         "--database-type",
-        type = str,
-        help = msg_hlp_db_type,
-        default = "sqlite",
+        type=str,
+        help=msg_hlp_db_type,
+        default="sqlite",
     )
 
-
-    # optional flag to *exclude* electricity model 
-    msg_hlp_exclude_fuel_prod = f"""
+    # optional flag to *exclude* electricity model
+    msg_hlp_exclude_fuel_prod = """
     Exclude the fuel production (NemoMod) model from runs. 
     """
     parser.add_argument(
         "--exclude-fuel-production",
-        action = "store_true",
-        help = msg_hlp_exclude_fuel_prod,
+        action="store_true",
+        help=msg_hlp_exclude_fuel_prod,
     )
 
-
     # optional AnalysisID string to pass
-    msg_hlp_id = f"""
+    msg_hlp_id = """
     Optinal id to pass on instantiation.
     """
     parser.add_argument(
         "--id",
-        default = None,
-        help = msg_hlp_id,
-        type = str,
+        default=None,
+        help=msg_hlp_id,
+        type=str,
     )
 
-
     # optional flag for number of trials
-    msg_hlp_n_trials = f"""
+    msg_hlp_n_trials = """
     Specify the number of Latin Hypercube trials to run (number of futures, 
         which represent exogenous uncertainties and/or lever effect
         uncertainties). If unspecified, defaults to configuration value.
     """
     parser.add_argument(
         "--n-trials",
-        help = msg_hlp_n_trials,
-        type = int,
-        default = None,
+        help=msg_hlp_n_trials,
+        type=int,
+        default=None,
     )
 
-
     # optional flag for models to include
-    msg_hlp_max_solve_attempts = f"""
+    msg_hlp_max_solve_attempts = """
     Maximum number of times to attempt solving a problem due to numerical 
         instability or solve issues. Default is 2.
     """
     parser.add_argument(
         "--max-solve-attempts",
-        type = int,
-        help = msg_hlp_max_solve_attempts,
-        default = 2,
+        type=int,
+        help=msg_hlp_max_solve_attempts,
+        default=2,
     )
 
-
     # optional flag for models to include
-    msg_hlp_models = f"""
+    msg_hlp_models = """
     Optional flag used to specify models to run. Possible values include 'All' 
         (run all models [default]) or any comma-delimited combination of the 
         following: 
@@ -356,14 +312,13 @@ def parse_arguments(
     """
     parser.add_argument(
         "--models",
-        type = str,
-        help = msg_hlp_models,
-        default = "All"
+        type=str,
+        help=msg_hlp_models,
+        default="All",
     )
 
-
-    # optional random seed 
-    msg_hlp_random_seed = f"""
+    # optional random seed
+    msg_hlp_random_seed = """
     Optional random seed to specify for runs. If not specified, defaults to 
         configuration random seed. 
         
@@ -371,14 +326,13 @@ def parse_arguments(
     """
     parser.add_argument(
         "--random-seed",
-        type = int,
-        help = msg_hlp_random_seed,
-        default = None
+        type=int,
+        help=msg_hlp_random_seed,
+        default=None,
     )
 
-
     # optional save inputs
-    msg_hlp_save_inputs = f"""
+    msg_hlp_save_inputs = """
     Include the --save-inputs flag to save off inputs to the 
         SISEPUEDEOutputDatabase. In general, model inputs are not saved off to 
         reduce space requirements and can generally be accessed using
@@ -386,12 +340,12 @@ def parse_arguments(
     """
     parser.add_argument(
         "--save-inputs",
-        action = "store_true",
-        help = msg_hlp_save_inputs,
+        action="store_true",
+        help=msg_hlp_save_inputs,
     )
 
     # optional attempt to read exogenous XL types
-    msg_hlp_try_exogenous_xl_types = f"""
+    msg_hlp_try_exogenous_xl_types = """
     Include the --try-exogenous-xl-types flag to try to read exogenous XL types 
         for variable specifications (as fed to SamplingUnit). Reads from 
         SISEPUEDE.file_struct.fp_variable_specification_xl_types. If None, 
@@ -405,15 +359,13 @@ def parse_arguments(
     """
     parser.add_argument(
         "--try-exogenous-xl-types",
-        action = "store_true",
-        help = msg_hlp_try_exogenous_xl_types,
+        action="store_true",
+        help=msg_hlp_try_exogenous_xl_types,
     )
-
-    
 
     if False:
         # optional input csv
-        msg_hlp_from_input = f"""
+        msg_hlp_from_input = """
         Path to an input CSV, long by time_period, that contains required input 
             variables. 
             
@@ -422,24 +374,22 @@ def parse_arguments(
         """
         parser.add_argument(
             "--from-input",
-            type = str,
-            help = msg_hlp_from_input,
-            default = None,
+            type=str,
+            help=msg_hlp_from_input,
+            default=None,
         )
 
-
         # optional output csv
-        msg_hlp_from_input = f"""
+        msg_hlp_from_input = """
         Path to an output CSV, long by time_period. Only used it --from-input is 
             specified.
         """
         parser.add_argument(
             "--to-output",
-            type = str,
-            help = msg_hlp_from_input,
-            default = None,
+            type=str,
+            help=msg_hlp_from_input,
+            default=None,
         )
-
 
     ##  PARSE ARGUMENTS
 
@@ -449,9 +399,9 @@ def parse_arguments(
     errors = []
     if parsed_args.regions is None:
         errors.append(
-            "Missing --regions argument. Use --regions ALLREGIONS to run all available regions."
+            "Missing --regions argument. Use --regions ALLREGIONS to run all available regions.",
         )
-    
+
     if errors:
         raise ValueError(f"Missing arguments detected: {sf.format_print_list(errors)}")
 
@@ -461,29 +411,23 @@ def parse_arguments(
     return parsed_args_as_dict
 
 
-
-
-
 def main(
     args: dict,
 ) -> None:
-    """
-    SImulation of SEctoral Pathways and Uncertaintay Exploration for DEcarbonization
+    """SImulation of SEctoral Pathways and Uncertaintay Exploration for DEcarbonization
     (SISEPUEDE)
-    
-    Copyright (C) 2023 James Syme
-    
-    This program comes with ABSOLUTELY NO WARRANTY. This is free software, and 
-    you are welcome to redistribute it under certain conditions. See LICENSE.md 
-    for the conditions. 
-    """
 
+    Copyright (C) 2023 James Syme
+
+    This program comes with ABSOLUTELY NO WARRANTY. This is free software, and
+    you are welcome to redistribute it under certain conditions. See LICENSE.md
+    for the conditions.
+    """
     warnings.filterwarnings("ignore")
 
     # get file structure to activate model attributes before instantiating SISEPUEDE
     file_struct = sfs.SISEPUEDEFileStructure()
     regions_obj = sc.Regions(file_struct.model_attributes)
-
 
     ##  1. GET INPUTS
 
@@ -494,16 +438,16 @@ def main(
     regions_run = get_regions(
         args.get("regions"),
         regions_obj,
-        delim = ",",
+        delim=",",
     )
 
     # scenario information
     dict_scenarios = get_dimensional_dict(
-        args, 
-        file_struct.model_attributes
+        args,
+        file_struct.model_attributes,
     )
     if dict_scenarios is None:
-        msg = f"""
+        msg = """
         No valid dimensional subsets or scenarios were specified. Ensure that 
             either primary_id OR any combination of design_id, future_id, and/or
             straetgy_id are specified.
@@ -516,7 +460,7 @@ def main(
     db_type = "sqlite" if (db_type not in ["sqlite", "csv"]) else db_type
     id_str = args.get("id")
 
-    include_fuel_prod = (not args.get("exclude_fuel_production"))
+    include_fuel_prod = not args.get("exclude_fuel_production")
     max_solve_attempts = args.get("max_solve_attempts")
     n_trials = args.get("n_trials")
     random_seed = args.get("random_seed")
@@ -524,49 +468,47 @@ def main(
     try_xl_types = args.get("try_exogenous_xl_types")
 
     # checks
-    return_none = (regions_run is None)
-    return_none |= ((len(dict_scenarios) == 0) if not return_none else False)
-    return_none |= (dict_scenarios is None)
+    return_none = regions_run is None
+    return_none |= (len(dict_scenarios) == 0) if not return_none else False
+    return_none |= dict_scenarios is None
 
     if return_none:
-        raise RuntimeError("Invalid specification of regions, input dimensions. Check arguments and try again")
+        raise RuntimeError(
+            "Invalid specification of regions, input dimensions. Check arguments and try again"
+        )
         return None
-
 
     ##  2. INITIALIZE SISEPUEDE AND RUN
 
     sisepuede = ssp.SISEPUEDE(
         "calibrated",
-        db_type = db_type,
-        id_str = id_str,
-        n_trials = n_trials,
-        random_seed = random_seed,
-        regions = regions_run,
-        try_exogenous_xl_types_in_variable_specification = try_xl_types,
+        db_type=db_type,
+        id_str=id_str,
+        n_trials=n_trials,
+        random_seed=random_seed,
+        regions=regions_run,
+        try_exogenous_xl_types_in_variable_specification=try_xl_types,
     )
 
     dict_primaries_complete = sisepuede(
         dict_scenarios,
-        chunk_size = 2,
-        check_results = True,
-        include_electricity_in_energy = include_fuel_prod,
-        max_attempts = max_solve_attempts,
-        reinitialize_output_table_on_verification_failure = True,
-        save_inputs = save_inputs,
+        chunk_size=2,
+        check_results=True,
+        include_electricity_in_energy=include_fuel_prod,
+        max_attempts=max_solve_attempts,
+        reinitialize_output_table_on_verification_failure=True,
+        save_inputs=save_inputs,
     )
 
     sisepuede._log(
-        f"SISEPUEDE run '{sisepuede.id}' complete.", 
-        type_log = "info"
+        f"SISEPUEDE run '{sisepuede.id}' complete.",
+        type_log="info",
     )
 
     return 0
 
-    
 
 if __name__ == "__main__":
-
     args = parse_arguments()
-        
+
     main(args)
-    

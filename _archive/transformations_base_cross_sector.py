@@ -1,14 +1,11 @@
-import sisepuede.core.model_attributes as ma
-import sisepuede.models.ippu as mi
-import sisepuede.models.socioeconomic as se
-import numpy as np
-import pandas as pd
-import sisepuede.utilities._toolbox as sf
-from transformations_base_general import *
 from typing import *
 
+import numpy as np
+import pandas as pd
+from transformations_base_general import *
 
-
+import sisepuede.core.model_attributes as ma
+import sisepuede.models.ippu as mi
 
 ##########################################
 ###                                    ###
@@ -20,6 +17,7 @@ NOTE: use MLTI for multi-sector transformations. Some are specified in one
     sector but are called from different models
 """
 
+
 def transformation_mlti_industrial_carbon_capture(
     df_input: pd.DataFrame,
     magnitude_efficacy: Union[Dict[str, float], float],
@@ -28,25 +26,24 @@ def transformation_mlti_industrial_carbon_capture(
     model_attributes: ma.ModelAttributes,
     categories: Union[List[str], None] = None,
     model_ippu: Union[mi.IPPU, None] = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Capture carbon at point of emission in industry (excludes Fuel Production
+    """Capture carbon at point of emission in industry (excludes Fuel Production
         and electricity). Uses IPPU (input variable is associated with IPPU due
         to heavy CO2 emissions in cement and metal production)
 
     Function Arguments
     ------------------
     - df_input: input data frame containing baseline trajectories
-    - magnitude_efficacy: float specifying capture efficacy as a final value 
-        (e.g., a 90% target efficacy is entered as 0.9)  OR  dictionary mapping 
-        individual categories to target efficacies (must be specified for each 
-        category). 
+    - magnitude_efficacy: float specifying capture efficacy as a final value
+        (e.g., a 90% target efficacy is entered as 0.9)  OR  dictionary mapping
+        individual categories to target efficacies (must be specified for each
+        category).
         * If None, does not modify
         * NOTE: overrides `categories` keyword argument if both are specified
-    - magnitude_prevalence: float specifying capture prevalence as a final value 
-        (e.g., a 90% target prevalence is entered as 0.9)  OR  dictionary 
-        mapping individual categories to target prevalence (must be specified 
+    - magnitude_prevalence: float specifying capture prevalence as a final value
+        (e.g., a 90% target prevalence is entered as 0.9)  OR  dictionary
+        mapping individual categories to target prevalence (must be specified
         for each category)
         * If None, does not modify
         * NOTE: overrides `categories` keyword argument if both are specified
@@ -54,7 +51,7 @@ def transformation_mlti_industrial_carbon_capture(
         variables
     - vec_ramp: ramp vec used for implementation
 
-    Keyword Arguments
+    Keyword Arguments:
     -----------------
     - categories: optional subset of categories to apply to
     - field_region: field in df_input that specifies the region
@@ -63,16 +60,12 @@ def transformation_mlti_industrial_carbon_capture(
         applies to all regions.
     - strategy_id: optional specification of strategy id to add to output
         dataframe (only added if integer)
-    """
 
+    """
     # get attribute table, CircularEconomy model for variables, and check categories
     attr_ippu = model_attributes.get_attribute_table(model_attributes.subsec_name_ippu)
     bounds = (0, 1)
-    model_ippu = (
-        mi.IPPU(model_attributes) 
-        if model_ippu is None
-        else model_ippu
-    )
+    model_ippu = mi.IPPU(model_attributes) if model_ippu is None else model_ippu
 
     # initialize model variables and output dataframe
     modvar_eff = model_ippu.modvar_ippu_capture_efficacy_co2
@@ -87,10 +80,10 @@ def transformation_mlti_industrial_carbon_capture(
             modvar_eff,
             vec_ramp,
             model_attributes,
-            bounds = bounds,
-            categories = categories,
-            magnitude_type = "final_value_floor",
-            **kwargs
+            bounds=bounds,
+            categories=categories,
+            magnitude_type="final_value_floor",
+            **kwargs,
         )
 
     if magnitude_prevalence is not None:
@@ -100,10 +93,10 @@ def transformation_mlti_industrial_carbon_capture(
             modvar_prev,
             vec_ramp,
             model_attributes,
-            bounds = bounds,
-            categories = categories,
-            magnitude_type = "final_value_floor",
-            **kwargs
+            bounds=bounds,
+            categories=categories,
+            magnitude_type="final_value_floor",
+            **kwargs,
         )
 
     return df_out

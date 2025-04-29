@@ -4,14 +4,13 @@
 
 #
 # set juliapkg path environment variable here to point to julia json
-# install julia 
+# install julia
 #
 
-import os, os.path
+import os
+import os.path
+
 from setuptools import setup
-
-
-
 
 # read in requirements and install
 dir_cur = os.path.dirname(os.path.realpath(__file__))
@@ -21,24 +20,24 @@ fp_requirements = os.path.join(dir_cur, "requirements.txt")
 flag_version = "python_version"
 
 if os.path.isfile(fp_requirements):
-    with open(fp_requirements, "r") as fl:
+    with open(fp_requirements) as fl:
         reqs = fl.readlines()
-        
+
         # get python version
-        #py_version = [x.replace(flag_version, "") for x in reqs if flag_version in x]
-        #py_version = py_version[0] if (len(py_version) > 0) else None
+        # py_version = [x.replace(flag_version, "") for x in reqs if flag_version in x]
+        # py_version = py_version[0] if (len(py_version) > 0) else None
         reqs = [x for x in reqs if flag_version not in x]
 
 
 # call setup
 setup(
-    author = "James Syme",
-    author_email = "jsyme@tec.mx",
-    description = "SImulation of SEctoral Pathways and Uncertainty Exploration for DEcarbonization is a multi-sector, integrated emission accounting and modeling framework for evalauting decarboniation policies under uncertainty.",
-    include_package_data = True,
-    license = "MIT",
-    name = "SISEPUEDE",
-    packages = [
+    author="James Syme",
+    author_email="jsyme@tec.mx",
+    description="SImulation of SEctoral Pathways and Uncertainty Exploration for DEcarbonization is a multi-sector, integrated emission accounting and modeling framework for evalauting decarboniation policies under uncertainty.",
+    include_package_data=True,
+    license="MIT",
+    name="SISEPUEDE",
+    packages=[
         "sisepuede",
         "sisepuede.cloud",
         "sisepuede.core",
@@ -50,22 +49,19 @@ setup(
         "sisepuede.plotting",
         "sisepuede.transformers",
         "sisepuede.transformers.lib",
-        "sisepuede.utilities"
+        "sisepuede.utilities",
     ],
-    package_data = {
+    package_data={
         "": [
             "attributes/**",
             "docs/**",
             "julia/**",
             "ref/**",
-            "sisepuede.config"
-        ]
+            "sisepuede.config",
+        ],
     },
-    #python_requires = py_version,
-    url = "http://github.com/jcsyme/sisepuede",
-    version = "1.1",
-    zip_safe = False
+    # python_requires = py_version,
+    url="http://github.com/jcsyme/sisepuede",
+    version="1.1",
+    zip_safe=False,
 )
-
-
-
