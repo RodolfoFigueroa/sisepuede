@@ -415,7 +415,7 @@ class SISEPUEDEExperimentalManager:
                 self.dict_future_trajectories.update(
                     {
                         region: future_trajectories_cur,
-                    }
+                    },
                 )
 
                 ##  GET SOME NUMBERS OF FACTORS ETC.
@@ -436,31 +436,31 @@ class SISEPUEDEExperimentalManager:
                 self.dict_sampling_units_varying.update(
                     {
                         region: sampling_units_varying_x,
-                    }
+                    },
                 )
                 # total number of factors
                 self.dict_n_factors.update(
                     {
                         region: n_factors,
-                    }
+                    },
                 )
                 # number of factors that vary as exogenous uncertainties (can include baselines for strategies)
                 self.dict_n_factors_varying.update(
                     {
                         region: n_factors_varying,
-                    }
+                    },
                 )
                 # number of L(ever) factors
                 self.dict_n_factors_l.update(
                     {
                         region: len(future_trajectories_cur.all_sampling_units_l),
-                    }
+                    },
                 )
                 # number of (e)X(ogenous uncertainties)
                 self.dict_n_factors_x.update(
                     {
                         region: len(future_trajectories_cur.all_sampling_units_x),
-                    }
+                    },
                 )
 
                 self._log(
@@ -483,7 +483,7 @@ class SISEPUEDEExperimentalManager:
         self.regions = [x for x in self.regions if (x not in drop_regions)]
         if len(self.regions) == 0:
             raise RuntimeError(
-                "Error initializing SISEPUEDE: no regions left to instantiate."
+                "Error initializing SISEPUEDE: no regions left to instantiate.",
             )
 
     def _initialize_lhs_design(
@@ -532,7 +532,7 @@ class SISEPUEDEExperimentalManager:
                 self.dict_lhs_design.update(
                     {
                         region: lhs_design_cur,
-                    }
+                    },
                 )
 
                 self.vector_lhs_key_values = (
@@ -561,7 +561,7 @@ class SISEPUEDEExperimentalManager:
         self.regions = [x for x in self.regions if (x not in drop_regions)]
         if len(self.regions) == 0:
             raise RuntimeError(
-                "Error initializing SISEPUEDE: no regions left to instantiate."
+                "Error initializing SISEPUEDE: no regions left to instantiate.",
             )
 
     def _initialize_other_properties(
@@ -703,7 +703,7 @@ class SISEPUEDEExperimentalManager:
         """
         # some basic checks on inputs; if fed None, will return None
         return_none = not isinstance(
-            fp_exogenous_xl_type_for_variable_specifcations, str
+            fp_exogenous_xl_type_for_variable_specifcations, str,
         )
         return_none |= (
             not os.path.exists(fp_exogenous_xl_type_for_variable_specifcations)
@@ -729,7 +729,7 @@ class SISEPUEDEExperimentalManager:
 
         # check fields
         if not set([self.field_variable, self.field_xl_type]).issubset(
-            set(df_inputs.columns)
+            set(df_inputs.columns),
         ):
             self._log(
                 f"Error in try_retrieving_exogenous_xl_types: one or more of '{self.field_variable}', '{self.field_xl_type}' not found in the data frame. Exogenous XL types for variable specifications will be inferred.",

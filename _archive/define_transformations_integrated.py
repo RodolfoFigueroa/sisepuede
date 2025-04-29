@@ -235,7 +235,7 @@ class TransformationsIntegrated:
         error_q = error_q | (self.model_attributes is None)
         if error_q:
             raise RuntimeError(
-                "Error: invalid specification of model_attributes in TransformationsIPPU"
+                "Error: invalid specification of model_attributes in TransformationsIPPU",
             )
 
         # get strategy attribute, baseline strategy, and some fields
@@ -292,10 +292,10 @@ class TransformationsIntegrated:
         self._log("Initializing BaseInputDatabase", type_log="info")
 
         dir_templates = self.file_struct.dict_data_mode_to_template_directory.get(
-            "calibrated"
+            "calibrated",
         )
         dir_templates_demo = self.file_struct.dict_data_mode_to_template_directory.get(
-            "demo"
+            "demo",
         )
 
         # trying building for demo
@@ -491,7 +491,7 @@ class TransformationsIntegrated:
                 regex_template_prepend=regex_template_prepend,
             )
             self._log(
-                "Successfully initialized SISEPUEDEFileStructure.", type_log="info"
+                "Successfully initialized SISEPUEDEFileStructure.", type_log="info",
             )
 
         except Exception as e:
@@ -671,7 +671,7 @@ class TransformationsIntegrated:
             df_template = pd.read_excel(
                 fp_read,
                 sheet_name=input_template.name_sheet_from_index(
-                    input_template.baseline_strategy
+                    input_template.baseline_strategy,
                 ),
             )
 
@@ -717,7 +717,7 @@ class TransformationsIntegrated:
         dict_transformations = {}
         dict_transformations.update(self.transformations_afolu.dict_transformations)
         dict_transformations.update(
-            self.transformations_circular_economy.dict_transformations
+            self.transformations_circular_economy.dict_transformations,
         )
         dict_transformations.update(self.transformations_energy.dict_transformations)
         dict_transformations.update(self.transformations_ippu.dict_transformations)
@@ -841,7 +841,7 @@ class TransformationsIntegrated:
             attr_strategy,
         )
         all_transformations.append(
-            self.pflo_ccdr_india_with_partial_reallocation_india_cc
+            self.pflo_ccdr_india_with_partial_reallocation_india_cc,
         )
 
         ##  BUILD AN INDIA PLUR THAT INCLUDES CLIMATE (FLAG:INDIA)
@@ -883,7 +883,7 @@ class TransformationsIntegrated:
             attr_strategy,
         )
         all_transformations.append(
-            self.pflo_all_with_partial_reallocation_no_silvopasture
+            self.pflo_all_with_partial_reallocation_no_silvopasture,
         )
 
         ##  PROVIDE ALL W/O PREVENTING DEFORESTATION
@@ -896,7 +896,7 @@ class TransformationsIntegrated:
             attr_strategy,
         )
         all_transformations.append(
-            self.pflo_all_with_deforestation_and_partial_reallocation
+            self.pflo_all_with_deforestation_and_partial_reallocation,
         )
 
         """
@@ -1150,7 +1150,7 @@ class TransformationsIntegrated:
         n_tp = len(self.time_periods.all_time_periods)  # 25
 
         vec_out = np.array(
-            [max(0, min((x - tp_0) / n_years_ramp, 1)) for x in range(n_tp)]
+            [max(0, min((x - tp_0) / n_years_ramp, 1)) for x in range(n_tp)],
         )
 
         return vec_out
@@ -1366,7 +1366,7 @@ class TransformationsIntegrated:
 
         # try getting exogenous strategies grouped by region (as dict) -- if fails, will return None
         dict_exogenous_grouped = self.check_exogenous_strategies(
-            df_exogenous_strategies
+            df_exogenous_strategies,
         )
 
         # iterate over regions
@@ -1457,7 +1457,7 @@ class TransformationsIntegrated:
                         try:
                             df_out_list[1] = df_exog
                             df_cur = pd.concat(df_out_list, axis=0).reset_index(
-                                drop=True
+                                drop=True,
                             )
                             self._log(
                                 f"\tSuccessfully integrated exogenous strategy {self.key_strategy} = {strat}.",
@@ -1501,7 +1501,7 @@ class TransformationsIntegrated:
             if not return_q:
                 for sector_abv in attr_sector.key_values:
                     sector = attr_sector.field_maps.get(
-                        f"{attr_sector.key}_to_sector"
+                        f"{attr_sector.key}_to_sector",
                     ).get(sector_abv)
                     if sector not in sectors:
                         continue
@@ -1558,7 +1558,7 @@ class TransformationsIntegrated:
         for sector_abv in attr_sector.key_values:
             # get sector name
             sector = attr_sector.field_maps.get(f"{attr_sector.key}_to_sector").get(
-                sector_abv
+                sector_abv,
             )
             df_template = self.dict_sectoral_templates.get(sector)
 
@@ -1735,7 +1735,7 @@ class TransformationsIntegrated:
         # call transformations from other sectors
         df_out = self.transformations_afolu.transformation_af_baseline(df_out)
         df_out = self.transformations_circular_economy.transformation_ce_baseline(
-            df_out
+            df_out,
         )
         df_out = self.transformations_energy.transformation_en_baseline(df_out)
         df_out = self.transformations_ippu.transformation_ip_baseline(df_out)

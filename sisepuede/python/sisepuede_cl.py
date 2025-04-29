@@ -474,7 +474,7 @@ def main(
 
     if return_none:
         raise RuntimeError(
-            "Invalid specification of regions, input dimensions. Check arguments and try again"
+            "Invalid specification of regions, input dimensions. Check arguments and try again",
         )
         return None
 

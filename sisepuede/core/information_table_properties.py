@@ -61,7 +61,7 @@ def build_emissions_information_table(
         ModelAttributes object used to generate and manage variables
     """
     attr_gas = model_attributes.get_other_attribute_table(
-        "emission_gas"
+        "emission_gas",
     ).attribute_table
     dict_gas_to_name = attr_gas.field_maps.get(f"{attr_gas.key}_to_name")
     dict_gas_to_emision_modvars = model_attributes.dict_gas_to_total_emission_variables
@@ -91,11 +91,11 @@ def build_emissions_information_table(
             # get some attributes
             subsec = model_attributes.get_variable_subsector(modvar)
             field_subsector_total = model_attributes.get_subsector_emission_total_field(
-                subsec
+                subsec,
             )
             sector = model_attributes.get_subsector_attribute(subsec, "sector")
             pycat_primary = model_attributes.get_subsector_attribute(
-                subsec, "pycategory_primary_element"
+                subsec, "pycategory_primary_element",
             )
 
             # fields and categories
@@ -113,7 +113,7 @@ def build_emissions_information_table(
                     field_out_field_emission: fields,
                     field_out_categories: cats,
                     field_out_category_primary_name: pycats_primary,
-                }
+                },
             )
             df_cur[field_out_field_subsector_total] = field_subsector_total
             df_cur[field_out_model_variable] = modvar
@@ -161,7 +161,7 @@ def build_variable_information_table(
         * If None, returns all ModelVariables
     """
     attr_gas = model_attributes.get_other_attribute_table(
-        "emission_gas"
+        "emission_gas",
     ).attribute_table
     dict_gas_to_name = attr_gas.field_maps.get(f"{attr_gas.key}_to_name")
     dict_gas_to_emision_modvars = model_attributes.dict_gas_to_total_emission_variables
@@ -189,7 +189,7 @@ def build_variable_information_table(
     # loop over available modvars
     for modvar in modvars:
         gas = model_attributes.get_variable_characteristic(
-            modvar, model_attributes.varchar_str_emission_gas
+            modvar, model_attributes.varchar_str_emission_gas,
         )
         gas_name = dict_gas_to_name.get(gas)
         gas = "" if (gas is None) else gas
@@ -199,7 +199,7 @@ def build_variable_information_table(
         subsec = model_attributes.get_variable_subsector(modvar)
         sector = model_attributes.get_subsector_attribute(subsec, "sector")
         pycat_primary = model_attributes.get_subsector_attribute(
-            subsec, "pycategory_primary_element"
+            subsec, "pycategory_primary_element",
         )
 
         # fields and categories
@@ -233,7 +233,7 @@ def build_variable_information_table(
                 field_out_field_emission: fields,
                 field_out_categories: cats,
                 field_out_category_primary_name: pycats_primary,
-            }
+            },
         )
         df_cur[field_out_model_variable] = modvar
         df_cur[field_out_gas] = gas

@@ -324,7 +324,7 @@ def exogenous_demands_to_sispeuede_ies(
         df_elast = pd.DataFrame(arr_elast, columns=fields_elast)
         df_hist = pd.concat([df_hist, df_elast], axis=1)
         df_hist = df_hist[df_hist[field_year].isin(years_historical)].reset_index(
-            drop=True
+            drop=True,
         )
 
         vec_means = np.zeros(arr_elast.shape[1])
@@ -408,7 +408,7 @@ def exogenous_demands_to_sispeuede_ies(
         df_prod_0 = (
             df[
                 df[field_year].isin(
-                    list(years_historical) + [max(years_historical) + 1]
+                    list(years_historical) + [max(years_historical) + 1],
                 )
             ][[field_iso, field_year] + fields_dem]
             .sort_values(by=[field_year])

@@ -75,7 +75,7 @@ class Units:
         if not isinstance(attributes, AttributeTable):
             tp = str(type(attributes))
             raise RuntimeError(
-                f"Invalid type '{tp}' for attributes found in Units initialization."
+                f"Invalid type '{tp}' for attributes found in Units initialization.",
             )
 
         key = attributes.key
@@ -330,7 +330,7 @@ class Units:
         # if asking for error, raise one
         if (out is None) and (stop_on_missing):
             raise InvalidUnitError(
-                f"Unit key value '{unit_specification}' not found in units '{self.key}'."
+                f"Unit key value '{unit_specification}' not found in units '{self.key}'.",
             )
 
         return out

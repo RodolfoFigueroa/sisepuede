@@ -353,7 +353,7 @@ def transformation_entc_hydrogen_electrolysis(
 
         # if the total does not exceed 1, div by 1; if it does, divide by that total
         vec_exceed_one = sf.vec_bounds(
-            vec_total_maintain + vec_total_adjust - 1, (0.0, np.inf)
+            vec_total_maintain + vec_total_adjust - 1, (0.0, np.inf),
         )
         vec_scalar_adj = np.nan_to_num(
             (vec_total_adjust - vec_exceed_one) / vec_total_adjust,
@@ -808,7 +808,7 @@ def transformation_entc_renewable_target(
             # check that vectors are properly specified
             if keep_q:
                 keep_q = keep_q & isinstance(
-                    dict_cats_entc_max_investment.get(cat).get("vec"), np.ndarray
+                    dict_cats_entc_max_investment.get(cat).get("vec"), np.ndarray,
                 )
                 keep_q = keep_q & (
                     dict_cats_entc_max_investment.get(cat).get("type")
@@ -928,10 +928,10 @@ def transformation_entc_renewable_target(
             )
 
             magnitude = arr_entc_residual_capacity[
-                ind_vec_ramp_first_zero_deviation, inds_renewable
+                ind_vec_ramp_first_zero_deviation, inds_renewable,
             ].sum()
             magnitude /= arr_entc_residual_capacity[
-                ind_vec_ramp_first_zero_deviation, :
+                ind_vec_ramp_first_zero_deviation, :,
             ].sum()
 
         # get the current minimum share of production (does not change when df_transformed is assigned below, since that only modifies the renewable target)
@@ -943,7 +943,7 @@ def transformation_entc_renewable_target(
         )
 
         vec_entc_msp_total_mass_original = arr_entc_min_share_production[
-            :, inds_entc_drop + inds_entc_no_drop
+            :, inds_entc_drop + inds_entc_no_drop,
         ].sum(axis=1)
         vec_entc_msp_final_period = arr_entc_min_share_production[-1, :]
         dict_vec_entc_msp_final_period.update({region: vec_entc_msp_final_period})
@@ -996,7 +996,7 @@ def transformation_entc_renewable_target(
                         "magnitude_type": "final_value",
                         "vec_ramp": vec_ramp,
                         "time_period_baseline": get_time_period(
-                            model_attributes, "max"
+                            model_attributes, "max",
                         ),
                     },
                 },
@@ -1042,7 +1042,7 @@ def transformation_entc_renewable_target(
             )
             if magnitude_renewables_by_region is not None
             else arr_entc_min_share_production[
-                ind_vec_ramp_first_zero_deviation, inds_renewable
+                ind_vec_ramp_first_zero_deviation, inds_renewable,
             ].sum()
         )
         scalar_renewables_div = min(magnitude / total_magnitude_msp_renewables, 1.0)
@@ -1061,7 +1061,7 @@ def transformation_entc_renewable_target(
                             "magnitude_type": "final_value",
                             "vec_ramp": vec_ramp,
                             "time_period_baseline": get_time_period(
-                                model_attributes, "max"
+                                model_attributes, "max",
                             ),
                         },
                     },
@@ -1083,7 +1083,7 @@ def transformation_entc_renewable_target(
                         "magnitude_type": "final_value",
                         "vec_ramp": vec_ramp,
                         "time_period_baseline": get_time_period(
-                            model_attributes, "max"
+                            model_attributes, "max",
                         ),
                     },
                 },
@@ -1104,13 +1104,13 @@ def transformation_entc_renewable_target(
                             "bounds": (0, 1),
                             "categories": [cat],
                             "magnitude": arr_entc_min_share_production[
-                                ind_vec_ramp_first_zero_deviation, ind_cat_cur
+                                ind_vec_ramp_first_zero_deviation, ind_cat_cur,
                             ]
                             * scalar_renewables_div,
                             "magnitude_type": "final_value",
                             "vec_ramp": vec_ramp,
                             "time_period_baseline": get_time_period(
-                                model_attributes, "max"
+                                model_attributes, "max",
                             ),
                         },
                     },
@@ -1159,7 +1159,7 @@ def transformation_entc_renewable_target(
 
         # get total MSP for renewables + total for unspecified/specified
         vec_entc_total_msp_renewables = arr_entc_min_share_production[
-            :, inds_renewable
+            :, inds_renewable,
         ].sum(axis=1)
         vec_entc_total_msp_renewables_unspecified = (
             arr_entc_min_share_production[:, inds_renewable_unspecified].sum(axis=1)
@@ -1171,7 +1171,7 @@ def transformation_entc_renewable_target(
             vec_entc_total_msp_renewables - vec_entc_total_msp_renewables_unspecified
         )
         vec_entc_total_msp_renewable_cap = sf.vec_bounds(
-            vec_entc_total_msp_renewables, (0, 1.0)
+            vec_entc_total_msp_renewables, (0, 1.0),
         )
 
         if cats_renewable_unspecified is not None:
@@ -1213,7 +1213,7 @@ def transformation_entc_renewable_target(
 
             # get total MSP for renewables + total for unspecified/specified
             vec_entc_total_msp_renewables = arr_entc_min_share_production[
-                :, inds_renewable
+                :, inds_renewable,
             ].sum(axis=1)
             vec_entc_total_msp_renewables_unspecified = (
                 arr_entc_min_share_production[:, inds_renewable_unspecified].sum(axis=1)
@@ -1225,7 +1225,7 @@ def transformation_entc_renewable_target(
                 - vec_entc_total_msp_renewables_unspecified
             )
             vec_entc_total_msp_renewable_cap = sf.vec_bounds(
-                vec_entc_total_msp_renewables, (0, magnitude)
+                vec_entc_total_msp_renewables, (0, magnitude),
             )
 
             # scale unspecfied categories downward
@@ -1326,7 +1326,7 @@ def transformation_entc_renewable_target(
         else max(1.0, factor_vec_ramp_msp)
     )
     vec_implementation_ramp_short = sf.vec_bounds(
-        vec_ramp * factor_vec_ramp_msp, (0.0, 1.0)
+        vec_ramp * factor_vec_ramp_msp, (0.0, 1.0),
     )
 
     # if scaling MSPs, calculate here
@@ -1341,10 +1341,10 @@ def transformation_entc_renewable_target(
 
         # get total for categories that were specified
         vec_entc_msp_total_mass_drops = arr_entc_min_share_production[
-            :, inds_entc_drop
+            :, inds_entc_drop,
         ].sum(axis=1)
         vec_entc_msp_total_mass_no_drops = arr_entc_min_share_production[
-            :, inds_entc_no_drop
+            :, inds_entc_no_drop,
         ].sum(axis=1)
         vec_entc_msp_total_mass_original = np.array(df_out[field_total_mass_original])
         vec_entc_msp_surplus = sf.vec_bounds(
@@ -1567,7 +1567,7 @@ def transformation_entc_specify_transmission_losses(
                         "magnitude": magnitude,
                         "magnitude_type": "final_value",
                         "time_period_baseline": get_time_period(
-                            model_attributes, "max"
+                            model_attributes, "max",
                         ),
                         "vec_ramp": vec_ramp,
                     },
@@ -1637,7 +1637,7 @@ def transformation_entc_retire_fossil_fuel_early(
                             "magnitude_type": "final_value",
                             "vec_ramp": vec_ramp,
                             "time_period_baseline": get_time_period(
-                                model_attributes, "max"
+                                model_attributes, "max",
                             ),
                         },
                     },
@@ -1899,7 +1899,7 @@ def transformation_inen_shift_modvars(
     all_regions = sorted(list(set(df_input[field_region])))
     attr_inen = model_attributes.get_attribute_table(model_attributes.subsec_name_inen)
     attr_time_period = model_attributes.get_dimensional_attribute_table(
-        model_attributes.dim_time_period
+        model_attributes.dim_time_period,
     )
 
     df_out = []
@@ -1983,7 +1983,7 @@ def transformation_inen_shift_modvars(
                 val_final_target = sum(vec_final_vals)
 
                 target_value = float(
-                    sf.vec_bounds(magnitude + val_initial_target, (0.0, 1.0))
+                    sf.vec_bounds(magnitude + val_initial_target, (0.0, 1.0)),
                 )  # *dict_modvar_specs.get(modvar_target)
                 scale_non_elec = np.nan_to_num(
                     (1 - target_value) / (1 - val_final_target),
@@ -2010,9 +2010,9 @@ def transformation_inen_shift_modvars(
                 modvars_adjust = []
                 for modvar in modvars:
                     modvars_adjust.append(
-                        modvar
+                        modvar,
                     ) if cat in model_attributes.get_variable_categories(
-                        modvar
+                        modvar,
                     ) else None
 
                 # loop over adjustment variables to build new trajectories
@@ -2097,7 +2097,7 @@ def transformation_scoe_electrify_category_to_target(
 
     # dertivative vars (alphabetical)
     attr_time_period = model_attributes.get_dimensional_attribute_table(
-        model_attributes.dim_time_period
+        model_attributes.dim_time_period,
     )
     df_out = []
     regions_apply = (
@@ -2134,7 +2134,7 @@ def transformation_scoe_electrify_category_to_target(
 
         # get electric categories and build dictionary of target values
         cats_elec_all = model_attributes.get_variable_categories(
-            model_enercons.modvar_scoe_frac_heat_en_electricity
+            model_enercons.modvar_scoe_frac_heat_en_electricity,
         )
         cats_elec = (
             [x for x in cats_elec_all if x in cats_elec]
@@ -2152,7 +2152,7 @@ def transformation_scoe_electrify_category_to_target(
 
                 val_final_elec = float(df_in[field_elec].iloc[n_tp - 1])
                 target_value = min(
-                    max(dict_targets_final_tp.get(cat) + val_final_elec, 0), 1
+                    max(dict_targets_final_tp.get(cat) + val_final_elec, 0), 1,
                 )
                 scale_non_elec = 1 - target_value
 
@@ -2160,9 +2160,9 @@ def transformation_scoe_electrify_category_to_target(
                 modvars_adjust = []
                 for modvar in modvars:
                     modvars_adjust.append(
-                        modvar
+                        modvar,
                     ) if cat in model_attributes.get_variable_categories(
-                        modvar
+                        modvar,
                     ) else None
 
                 # loop over adjustment variables to build new trajectories
@@ -2490,7 +2490,7 @@ def transformation_trns_fuel_shift_to_target(
     # dertivative vars (alphabetical)
     attr_trns = model_attributes.get_attribute_table("Transportation")
     attr_time_period = model_attributes.get_dimensional_attribute_table(
-        model_attributes.dim_time_period
+        model_attributes.dim_time_period,
     )
 
     df_out = []
@@ -2600,7 +2600,7 @@ def transformation_trns_fuel_shift_to_target(
                     np.array(df_in[fields_target]).astype(float).sum(axis=1)
                 )
                 vec_initial_vals = np.array(
-                    df_in[fields_target].iloc[tp_baseline]
+                    df_in[fields_target].iloc[tp_baseline],
                 ).astype(float)
                 vec_initial_distribution = np.nan_to_num(
                     vec_initial_vals / vec_initial_vals.sum(),
@@ -2661,7 +2661,7 @@ def transformation_trns_fuel_shift_to_target(
                 )
                 val_initial_target = vec_magnitude_base[tp_baseline]
                 vec_target_with_ramp = sf.vec_bounds(
-                    magnitude_shift * vec_ramp + vec_magnitude_base, (0.0, 1.0)
+                    magnitude_shift * vec_ramp + vec_magnitude_base, (0.0, 1.0),
                 )
                 scale_non_elec = np.nan_to_num(
                     (vec_bounds - vec_target_with_ramp)
@@ -2671,12 +2671,12 @@ def transformation_trns_fuel_shift_to_target(
                 )
 
                 target_distribution = magnitude_shift * np.array(
-                    [dict_modvar_specs.get(x) for x in modvars_target]
+                    [dict_modvar_specs.get(x) for x in modvars_target],
                 )
                 target_distribution += val_initial_target * vec_initial_distribution
                 target_distribution /= max(magnitude_shift + val_initial_target, 1.0)
                 target_distribution = np.nan_to_num(
-                    target_distribution, nan=0.0, posinf=0.0
+                    target_distribution, nan=0.0, posinf=0.0,
                 )
 
                 dict_target_distribution = dict(
@@ -2770,7 +2770,7 @@ def transformation_trns_electrify_category_to_target_old(
 
     # dertivative vars (alphabetical)
     attr_time_period = model_attributes.get_dimensional_attribute_table(
-        model_attributes.dim_time_period
+        model_attributes.dim_time_period,
     )
     df_out = []
     regions_apply = (
@@ -2804,7 +2804,7 @@ def transformation_trns_electrify_category_to_target_old(
 
         # get electric categories and build dictionary of target values
         cats_elec_all = model_attributes.get_variable_categories(
-            model_enercons.modvar_trns_fuel_fraction_electricity
+            model_enercons.modvar_trns_fuel_fraction_electricity,
         )
         cats_elec = (
             [x for x in cats_elec_all if x in cats_elec]
@@ -2829,9 +2829,9 @@ def transformation_trns_electrify_category_to_target_old(
                 modvars_adjust = []
                 for modvar in modvars:
                     modvars_adjust.append(
-                        modvar
+                        modvar,
                     ) if cat in model_attributes.get_variable_categories(
-                        modvar
+                        modvar,
                     ) else None
 
                 # loop over adjustment variables to build new trajectories

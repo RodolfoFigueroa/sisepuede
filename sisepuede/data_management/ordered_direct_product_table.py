@@ -117,20 +117,20 @@ class OrderedDirectProductTable:
         if not isinstance(dict_dims, dict):
             tp = str(type(dict_dims))
             raise RuntimeError(
-                f"Invalid type '{tp}' for dict_dims: dict_dims must be a dict."
+                f"Invalid type '{tp}' for dict_dims: dict_dims must be a dict.",
             )
 
         if not isinstance(list_dims_ordered, list):
             tp = str(type(list_dims_ordered))
             raise RuntimeError(
-                f"Invalid type '{tp}' for list_dims_ordered: dict_dims must be a list."
+                f"Invalid type '{tp}' for list_dims_ordered: dict_dims must be a list.",
             )
 
         # check ordered dims
         dims_ordered = [x for x in list_dims_ordered if x in dict_dims.keys()]
         if len(dims_ordered) == 0:
             raise RuntimeError(
-                "Invalid specification of dimensions: no dimensions were found in list_dims_ordered."
+                "Invalid specification of dimensions: no dimensions were found in list_dims_ordered.",
             )
 
         ##  SET OUTPUT PROPERTIES
@@ -160,7 +160,7 @@ class OrderedDirectProductTable:
         self.dims_ordered_reversed = dims_ordered_reversed
         self.indices_to_values_by_dim = dict_index_to_values_by_dim
         self.range_key_primary = range(
-            int(np.prod(cardinality_ordered))
+            int(np.prod(cardinality_ordered)),
         )  # store as range
         self.values_by_dim = dict_values_by_dim
         self.values_to_indices_by_dim = dict_values_to_index_by_dim

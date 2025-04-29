@@ -445,7 +445,7 @@ def transformation_frst_reduce_deforestation(
     ##  SETUP DICTIONARY--shift
     cat_frst_primary = model_afolu.cat_frst_prim
     cat_lndu_frst_primary = model_afolu.dict_cats_frst_to_cats_lndu.get(
-        cat_frst_primary
+        cat_frst_primary,
     )
     cats_lndu_forest = [
         x
@@ -730,7 +730,7 @@ def transformation_support_lndu_check_ltct_magnitude_dictionary(
 
     # pasture and grassland cannot be both specified
     if set([pasture_key, model_afolu.cat_lndu_grass]).issubset(
-        set(dict_magnitudes.keys())
+        set(dict_magnitudes.keys()),
     ):
         return None
 
@@ -754,7 +754,7 @@ def transformation_support_lndu_check_ltct_magnitude_dictionary(
 
         # reference magnitudes for scaling can be provided, including as pasture_key (hence use of cats_all)
         categories_scalar_reference = dict_magnitude_cur.get(
-            "categories_scalar_reference"
+            "categories_scalar_reference",
         )
         categories_scalar_reference = (
             [categories_scalar_reference]
@@ -775,7 +775,7 @@ def transformation_support_lndu_check_ltct_magnitude_dictionary(
 
         # category restrictions for transition inflow edges
         categories_inflow_restrict = dict_magnitude_cur.get(
-            "categories_inflow_restrict"
+            "categories_inflow_restrict",
         )
         categories_inflow_restrict = (
             None
@@ -807,7 +807,7 @@ def transformation_support_lndu_check_ltct_magnitude_dictionary(
                         "magnitude_type": magnitude_type,
                         "tp_baseline": tp_baseline,
                     },
-                }
+                },
             )
 
     return dict_magnitude_cleaned
@@ -953,7 +953,7 @@ def transformation_support_lndu_get_adjusted_fractions_from_transition_w_natural
     """
     # get some baseline values
     vec_lndu_prevalence_grass_base = arr_land_use_prevalence_out_no_intervention[
-        :, model_afolu.ind_lndu_grass
+        :, model_afolu.ind_lndu_grass,
     ]
     vec_lndu_prevalence_pasture_base = (
         vec_lndu_prevalence_grass_base * vec_lndu_pasture_frac_no_intervention
@@ -1433,7 +1433,7 @@ def transformation_support_lndu_transition_to_category_targets_single_region(
     )
     # prevalence in final time period without any adjustment
     vec_lndu_final_frac_unadj = arr_land_use[
-        -1, :
+        -1, :,
     ]  # NOTE: might need to base on ind_first_full_impl
 
     # inialize output array
@@ -1541,13 +1541,13 @@ def transformation_support_lndu_transition_to_category_targets_single_region(
     # check unadjusted final period fractions
     n_tp_scale = n_tp - ind_first_nz - 1
     fracs_unadj_first_effect_tp = np.dot(
-        vec_lndu_final_virnz_frac_unadj, qs[ind_first_nz - 1]
+        vec_lndu_final_virnz_frac_unadj, qs[ind_first_nz - 1],
     )
     fracs_unadj_first_effect_tp = np.dot(fracs_unadj_first_effect_tp, qs[ind_first_nz])[
         inds_to_modify
     ]
     fracs_target_final_tp = np.array(
-        [dict_magnitude.get(x).get("magnitude") for x in cats_to_modify]
+        [dict_magnitude.get(x).get("magnitude") for x in cats_to_modify],
     )
     """
     OPTION FOR EXPANSION: SPECIFY NON-LINEAR TARGETS (READ OFF OF vec_implementation_ramp)
@@ -1646,7 +1646,7 @@ def transformation_support_lndu_transition_to_category_targets_single_region(
             lmo = None
             if cats_inflow_restrict is not None:
                 cats_inflow_restrict = cats_inflow_restrict.get(
-                    "categories_inflow_restrict"
+                    "categories_inflow_restrict",
                 )
                 lmo = "decrease_and_increase"
 
@@ -1927,7 +1927,7 @@ def transformation_lsmm_improve_manure_management(
 
     # check dict of lsmm magnitudes
     categories_lsmm = model_attributes.get_valid_categories(
-        None, model_attributes.subsec_name_lsmm
+        None, model_attributes.subsec_name_lsmm,
     )
     dict_lsmm_magnitude = dict(
         (k, float(sf.vec_bounds(v, (0.0, 1.0))))
@@ -1965,7 +1965,7 @@ def transformation_lsmm_improve_manure_management(
             dict_transformations.update(
                 {
                     modvar: mag / magnitude,
-                }
+                },
             )
             if mag is not None
             else None

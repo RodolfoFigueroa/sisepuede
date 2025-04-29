@@ -133,7 +133,7 @@ def add_data_frame_fields_from_dict(
                     fields_added_successfully.append(key)
                 else:
                     warnings.warn(
-                        f"Unable to add key {key} to data from in add_data_frame_fields_from_dict() -- the vector associated with the value does not match the length of the data frame."
+                        f"Unable to add key {key} to data from in add_data_frame_fields_from_dict() -- the vector associated with the value does not match the length of the data frame.",
                     )
             else:
                 if val is not None:
@@ -148,7 +148,7 @@ def add_data_frame_fields_from_dict(
 
         elif key in fields_input:
             warnings.warn(
-                f"Field '{key}' found in dictionary in add_data_frame_fields_from_dict(). It will not be overwritten. "
+                f"Field '{key}' found in dictionary in add_data_frame_fields_from_dict(). It will not be overwritten. ",
             )
             fields_added_successfully.append(key)
 
@@ -234,7 +234,7 @@ def build_dict(
     """
     if (len(df_in.columns) == 2) and not force_tuple:
         dict_out = dict(
-            [x for x in zip(df_in.iloc[:, 0], df_in.iloc[:, 1], strict=False)]
+            [x for x in zip(df_in.iloc[:, 0], df_in.iloc[:, 1], strict=False)],
         )
     else:
         if dims == None:
@@ -243,7 +243,7 @@ def build_dict(
         n_val = dims[1]
         if n_key + n_val != len(df_in.columns):
             raise ValueError(
-                f"Invalid dictionary dimensions {dims}: the sum of dims should be equal to the number of columns in the input dataframe ({len(df_in.columns)}). They sum to {n_key + n_val}."
+                f"Invalid dictionary dimensions {dims}: the sum of dims should be equal to the number of columns in the input dataframe ({len(df_in.columns)}). They sum to {n_key + n_val}.",
             )
 
         # keys to zip
@@ -259,7 +259,7 @@ def build_dict(
                         [
                             (None if (isinstance(x, float) and np.isnan(x)) else x)
                             for x in key
-                        ]
+                        ],
                     )
 
             else:
@@ -870,7 +870,7 @@ def df_get_missing_fields_from_source_df(
     """
     if df_target.shape[0] != df_source.shape[0]:
         raise RuntimeError(
-            f"Incompatible shape found in data frames; the target number of rows ({df_target.shape[0]}) should be the same as the source ({df_source.shape[0]})."
+            f"Incompatible shape found in data frames; the target number of rows ({df_target.shape[0]}) should be the same as the source ({df_source.shape[0]}).",
         )
 
     # concatenate
@@ -984,7 +984,7 @@ def do_array_mult(
         return np.outer(arr_stable, arr_variable)
     else:
         raise ValueError(
-            f"Error in do_array_mult: Incompatable shape {arr_variable.shape} in arr_variable. The stable array has shape {arr_stable.shape}."
+            f"Error in do_array_mult: Incompatable shape {arr_variable.shape} in arr_variable. The stable array has shape {arr_stable.shape}.",
         )
 
 
@@ -1197,7 +1197,7 @@ def fill_nas_for_simplex(
         total = vec[~np.isnan(vec)].sum()
         if total > sum_val + chop_val:
             warnings.warn(
-                f"Warning at row {i}: invalid sum {total} found in fill_nas_for_simplex for simplex total {sum_val}. "
+                f"Warning at row {i}: invalid sum {total} found in fill_nas_for_simplex for simplex total {sum_val}. ",
             )
             continue
 
@@ -1341,7 +1341,7 @@ def filter_df_on_reference_df_rows(
 
     if fields_groupby is None:
         df_check = df_compare[fields_compare] != df_compare[fields_compare_ref].rename(
-            columns=dict_rnm_rev
+            columns=dict_rnm_rev,
         )
         series_keep = (
             df_check.any(axis=1) if (filter_method == "any") else df_check.all(axis=1)
@@ -1354,7 +1354,7 @@ def filter_df_on_reference_df_rows(
 
         for i, df in df_group:
             df_check = df[fields_compare] != df[fields_compare_ref].rename(
-                columns=dict_rnm_rev
+                columns=dict_rnm_rev,
             )
             series_keep = (
                 df_check.any(axis=1)
@@ -1399,7 +1399,7 @@ def format_print_list(
 ) -> str:
     """Print (as string) values of list_in to string separated by `delim`"""
     str_return = ((f"{delim} ").join(["'%s'" for x in range(len(list_in))])) % tuple(
-        list_in
+        list_in,
     )
 
     return str_return
@@ -1711,7 +1711,7 @@ def get_dimensional_values(
             values = [return_type(x) for x in keys_in]
         except Exception as e:
             raise RuntimeError(
-                f"Error converting elements to integer in get_dimensional_values(): {e}"
+                f"Error converting elements to integer in get_dimensional_values(): {e}",
             )
         return values
 
@@ -1733,7 +1733,7 @@ def get_dimensional_values(
 
         if key not in df.columns:
             raise RuntimeError(
-                f"Error reading keys from file {keys_in}: key '{key}' not found in the file."
+                f"Error reading keys from file {keys_in}: key '{key}' not found in the file.",
             )
 
         values = [return_type(x) for x in list(df[key])]
@@ -1826,7 +1826,7 @@ def get_repeating_vec_element_inds(
         inds = np.array([x for x in inds if x < n_elements])
     except Exception as e:
         raise RuntimeError(
-            f"Error trying to set inds in get_repeating_vec_element_inds(): {e}"
+            f"Error trying to set inds in get_repeating_vec_element_inds(): {e}",
         )
 
     inds = inds if (len(inds.shape) == 1) else inds.flatten()
@@ -2177,7 +2177,7 @@ def merge_output_df_list(
     if merge_type not in valid_merge_types:
         str_valid_types = format_print_list(valid_merge_types)
         raise ValueError(
-            f"Invalid merge_type '{merge_type}': valid types are {str_valid_types}."
+            f"Invalid merge_type '{merge_type}': valid types are {str_valid_types}.",
         )
 
     # start building the output dataframe and retrieve dimensions of analysis for merging/ordering
@@ -2280,7 +2280,7 @@ def merge_replace(
     field_shared = set(df.columns) & set(df_to_merge.columns)
     if len(field_shared) > 1:
         warnings.warn(
-            "Warning in merge_replace(): multiple shared fields found between df and df_to_merge"
+            "Warning in merge_replace(): multiple shared fields found between df and df_to_merge",
         )
         return df
 
@@ -2355,7 +2355,7 @@ def mix_tensors(
     if constraints_mix is not None:
         if constraints_mix[0] >= constraints_mix[1]:
             raise ValueError(
-                "Constraints to the mixing vector should be passed as (min, max)"
+                "Constraints to the mixing vector should be passed as (min, max)",
             )
         v_alpha = v_alpha.clip(*constraints_mix)
 
@@ -2433,7 +2433,7 @@ def _optional_log(
 
         if type_log not in valid_type_log:
             warnings.warn(
-                f"Warning in optional_log: log type '{type_log}' not found. Defaulting to type 'log'."
+                f"Warning in optional_log: log type '{type_log}' not found. Defaulting to type 'log'.",
             )
             type_log = "log"
 
@@ -2558,7 +2558,7 @@ def orient_df_by_reference_vector(
             {
                 field_merge_tmp: range(len(vector_reference)),
                 field_compare: vector_reference,
-            }
+            },
         )
         df_out = (
             pd.merge(df_out, df_tmp)
@@ -2600,7 +2600,7 @@ def overwrite_df_nas_from_source(
 
     """
     if not isinstance(df_source, pd.DataFrame) or not isinstance(
-        df_target, pd.DataFrame
+        df_target, pd.DataFrame,
     ):
         return df_target
 
@@ -2813,14 +2813,14 @@ def project_growth_scalar_from_elasticity(
     # CHEKCS
     if vec_rates.shape[0] + 1 != vec_elasticity.shape[0]:
         raise ValueError(
-            f"Invalid vector lengths of vec_rates ('{len(vec_rates)}') and vec_elasticity ('{len(vec_elasticity)}'). Length of vec_elasticity should be equal to the length vec_rates + 1."
+            f"Invalid vector lengths of vec_rates ('{len(vec_rates)}') and vec_elasticity ('{len(vec_elasticity)}'). Length of vec_elasticity should be equal to the length vec_rates + 1.",
         )
 
     valid_types = ["standard", "log"]
     if elasticity_type not in valid_types:
         v_types = format_print_list(valid_types)
         raise ValueError(
-            f"Invalid elasticity_type {elasticity_type}: valid options are {v_types}."
+            f"Invalid elasticity_type {elasticity_type}: valid options are {v_types}.",
         )
 
     # check factors
@@ -2854,7 +2854,7 @@ def project_growth_scalar_from_elasticity(
             else np.ones((1, vec_rates.shape[1]))
         )
         vec_growth_scalar = np.cumprod(
-            np.concatenate([ones, vec_rates], axis=0) ** vec_elasticity
+            np.concatenate([ones, vec_rates], axis=0) ** vec_elasticity,
         )
 
     return vec_growth_scalar
@@ -2869,7 +2869,7 @@ def prepend_first_element(
         [
             np.repeat(array[0:1], n_rows, axis=0),
             array,
-        ]
+        ],
     )
 
     return out
@@ -2931,7 +2931,7 @@ def ramp_value1(
 
     if r_0 >= r_1:
         raise RuntimeError(
-            f"Invalid values found in ramp_value1(): r_0 = {r_0} and r_1 = {r_1}; r_1 > r_0"
+            f"Invalid values found in ramp_value1(): r_0 = {r_0} and r_1 = {r_1}; r_1 > r_0",
         )
 
     # check value of r_0 & r_1
@@ -3005,7 +3005,7 @@ def ramp_vector(
     # check that center is specific properly
     if (d >= window_logistic[1]) | (d <= window_logistic[0]):
         raise RuntimeError(
-            f"Invalid value of d = {d} in ramp_vector: out of bounds {logistic_window}"
+            f"Invalid value of d = {d} in ramp_vector: out of bounds {logistic_window}",
         )
 
     ##  CALCULATE PARAMETERS FOR THE CURVE
@@ -3018,7 +3018,7 @@ def ramp_vector(
     r_1 = n - 1 if not isinstance(r_1, int) else min(r_1, n - 1)
     if r_0 >= r_1:
         raise RuntimeError(
-            f"Invalid values found in ramp_value1(): r_0 = {r_0} and r_1 = {r_1}; r_1 > r_0"
+            f"Invalid values found in ramp_value1(): r_0 = {r_0} and r_1 = {r_1}; r_1 > r_0",
         )
 
     # check value of r_0 & r_1
@@ -3348,7 +3348,7 @@ def replace_numerical_column_from_merge(
 
     # merge in
     fields_merge = list(
-        (set(df_target.columns) & set(df_source.columns)) - set([field_to_replace])
+        (set(df_target.columns) & set(df_source.columns)) - set([field_to_replace]),
     )
     df_source_new = df_source.copy().rename(columns={field_to_replace: field_temporary})
     df_out = df_target.copy()
@@ -3361,7 +3361,7 @@ def replace_numerical_column_from_merge(
     if len(w) > 0:
         df_out.loc[w, field_to_replace] = 0.0
         df_out[field_to_replace] = np.array(df_out[field_to_replace]) + np.array(
-            df_out[field_temporary]
+            df_out[field_temporary],
         )
     # drop temporary field, sort by index
     df_out = df_out[df_target.columns].sort_index()
@@ -3518,7 +3518,7 @@ def reverse_dict(
     if len(s_vals) != len(s_keys):
         if not allow_multi_keys:
             raise KeyError(
-                "Invalid dicionary in reverse_dict: the dictionary is not injective."
+                "Invalid dicionary in reverse_dict: the dictionary is not injective.",
             )
         dict_out = {}
         for v in list(s_vals):

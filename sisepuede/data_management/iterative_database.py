@@ -144,7 +144,7 @@ class IterativeDatabaseTable:
         if self.fields_index is not None:
             if not set(self.fields_index).issubset(df_addition.columns):
                 missing_cols = sf.print_setdiff(
-                    set(self.fields_index), set(df_addition.columns)
+                    set(self.fields_index), set(df_addition.columns),
                 )
                 msg = f"Error in check_table_indices: index columns {missing_cols} not found."
                 self._log(msg, type_log="error")
@@ -154,7 +154,7 @@ class IterativeDatabaseTable:
         if self.columns is not None:
             if not set(self.columns).issubset(df_addition.columns):
                 missing_cols = sf.print_setdiff(
-                    set(self.columns), set(df_addition.columns)
+                    set(self.columns), set(df_addition.columns),
                 )
                 msg = f"Error in check_table_indices: columns {missing_cols} not found."
                 self._log(msg, type_log="error")
@@ -553,7 +553,7 @@ class IterativeDatabaseTable:
             self.stash.update({key: df_stash})
             shp = str(df_stash.shape)
             self._log(
-                f"Successfully stashed data frame with shape {shp}", type_log="info"
+                f"Successfully stashed data frame with shape {shp}", type_log="info",
             )
         else:
             self._log("Stash failed", type_log="warning")
@@ -676,7 +676,7 @@ class IterativeDatabaseTable:
 
             except Exception as e:
                 self._log(
-                    f"Query {query_delete} failed with error: {e}", type_log="error"
+                    f"Query {query_delete} failed with error: {e}", type_log="error",
                 )
                 return
 
@@ -737,7 +737,7 @@ class IterativeDatabaseTable:
         # build query
         key = tuple(self.fields_index)
         query = sqlutil.format_tuples_to_query_filter_string(
-            self.fields_index, indices_drop
+            self.fields_index, indices_drop,
         )
         query = f"delete from {self.table_name} where {query};"
 
@@ -991,7 +991,7 @@ class IterativeDatabaseTable:
             set_indices_to_write = set_new_indices.difference(set_shared_indices)
             set_indices_to_stash = set_shared_indices
             df_out = self.filter_data_frame_from_index_tuples(
-                df_write, set_indices_to_write
+                df_write, set_indices_to_write,
             )
 
             df_stash = (
@@ -1839,7 +1839,7 @@ class IterativeDatabase:
             # this setup allows for None to be passed in the dictionary
             if dict_params is not None:
                 fields_index = dict_params.get(
-                    "fields_index", self.fields_index_default
+                    "fields_index", self.fields_index_default,
                 )
                 keep_stash = dict_params.get("keep_stash")
                 keep_stash = keep_stash if isinstance(keep_stash, bool) else False

@@ -139,14 +139,14 @@ class Grid:
 
         if not no_error_q:
             raise RuntimeError(
-                f"Error in Grid: Invalid type '{type(data_in)}' of data_in specified. Must be str or pandas.DataFrame."
+                f"Error in Grid: Invalid type '{type(data_in)}' of data_in specified. Must be str or pandas.DataFrame.",
             )
 
         # if string, try reading as file
         if isinstance(data_in, str):
             if not os.path.exists(data_in):
                 raise RuntimeError(
-                    f"Error initializing Grid: path {data_in} not found."
+                    f"Error initializing Grid: path {data_in} not found.",
                 )
 
             rx_array = rx.open_rasterio(data_in)

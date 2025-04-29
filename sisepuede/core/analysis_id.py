@@ -181,7 +181,7 @@ class AnalysisID:
         """
         self.dict_id_to_fs_safe_replacements = {":": ";"}
         self.dict_id_from_fs_safe_replacements = sf.reverse_dict(
-            self.dict_id_to_fs_safe_replacements
+            self.dict_id_to_fs_safe_replacements,
         )
         self.id_fs_safe = self.id_to_file_safe_id()
 

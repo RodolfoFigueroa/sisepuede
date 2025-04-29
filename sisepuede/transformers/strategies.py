@@ -186,7 +186,7 @@ class Strategy:
         # check if function assignment failed; if not, assign
         if function is None:
             raise ValueError(
-                f"Invalid type {type(func)}: the object 'func' is not callable."
+                f"Invalid type {type(func)}: the object 'func' is not callable.",
             )
 
         self.delimiter_transformation_codes = delim
@@ -332,7 +332,7 @@ class Strategy:
                 if stop_on_error:
                     tp = str(code_specification)
                     raise ValueError(
-                        f"Invalid input type '{tp}' for code_specification in get_code_specification()"
+                        f"Invalid input type '{tp}' for code_specification in get_code_specification()",
                     )
                 return []
 
@@ -442,7 +442,7 @@ class Strategies:
         baseline_id: int = 0,
         export_path: Union[str, pathlib.Path, None] = "transformations",
         fn_strategy_definition: Union[str, pathlib.Path] = _DICT_FILE_NAME_DEFAULTS.get(
-            "strategy_definitions"
+            "strategy_definitions",
         ),
         logger: Union[logging.Logger, None] = None,
         prebuild: bool = True,
@@ -490,11 +490,11 @@ class Strategies:
         """Retrieve the export path"""
         # get SISEPUEDE defaults
         dir_templates = self.file_struct.dict_data_mode_to_template_directory.get(
-            "calibrated"
+            "calibrated",
         )
 
         dir_templates_demo = self.file_struct.dict_data_mode_to_template_directory.get(
-            "demo"
+            "demo",
         )
 
         ##  DIFFERENT ACTIONS BASED ON TYPE
@@ -635,10 +635,10 @@ class Strategies:
         """
         # check from keyword arguments
         field_baseline = kwargs.get(
-            "field_baseline_strategy", _DICT_KEYS.get("baseline")
+            "field_baseline_strategy", _DICT_KEYS.get("baseline"),
         )
         field_description = kwargs.get(
-            "field_description", _DICT_KEYS.get("description")
+            "field_description", _DICT_KEYS.get("description"),
         )
         field_strategy_code = kwargs.get("field_strategy_code", _DICT_KEYS.get("code"))
         field_strategy_name = kwargs.get("field_strategy_name", _DICT_KEYS.get("name"))
@@ -772,7 +772,7 @@ class Strategies:
             df_template = pd.read_excel(
                 fp_read,
                 sheet_name=input_template.name_sheet_from_index(
-                    input_template.baseline_strategy
+                    input_template.baseline_strategy,
                 ),
             )
 
@@ -862,7 +862,7 @@ class Strategies:
         model_attributes = self.model_attributes
         (
             model_attributes.dict_attributes.get(
-                model_attributes.attribute_group_key_dim
+                model_attributes.attribute_group_key_dim,
             ).update(
                 {
                     model_attributes.dim_strategy_id: self.attribute_table,
@@ -967,7 +967,7 @@ class Strategies:
 
         except Exception as e:
             raise RuntimeError(
-                f"Error reading strategies definition table from '{fp}': {e}"
+                f"Error reading strategies definition table from '{fp}': {e}",
             )
 
         ##  CHECK FIELDS
@@ -1272,7 +1272,7 @@ class Strategies:
 
         # try getting exogenous strategies grouped by region (as dict) -- if fails, will return None
         dict_exogenous_grouped = self.check_exogenous_strategies(
-            df_exogenous_strategies
+            df_exogenous_strategies,
         )
 
         # iterate over regions
@@ -1428,7 +1428,7 @@ class Strategies:
             if not return_q:
                 for sector_abv in attr_sector.key_values:
                     sector = attr_sector.field_maps.get(
-                        f"{attr_sector.key}_to_sector"
+                        f"{attr_sector.key}_to_sector",
                     ).get(sector_abv)
 
                     if sector not in sectors:
@@ -1487,7 +1487,7 @@ class Strategies:
         for sector_abv in attr_sector.key_values:
             # get sector name
             sector = attr_sector.field_maps.get(f"{attr_sector.key}_to_sector").get(
-                sector_abv
+                sector_abv,
             )
 
             df_template = self.dict_sectoral_templates.get(sector)

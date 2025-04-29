@@ -82,7 +82,7 @@ class Socioeconomic:
             set_missing = list(set(check_fields) - set(df_se_trajectories.columns))
             set_missing = sf.format_print_list(set_missing)
             raise KeyError(
-                f"Socioconomic projection cannot proceed: The fields {set_missing} are missing."
+                f"Socioconomic projection cannot proceed: The fields {set_missing} are missing.",
             )
 
     def _initialize_input_output_components(
@@ -115,7 +115,7 @@ class Socioeconomic:
                         "sector": ["Socioeconomic"],
                     },
                 )["subsector"],
-            )
+            ),
         )
         subsectors_base = subsectors.copy()
 
@@ -126,7 +126,7 @@ class Socioeconomic:
 
         required_doa = [self.model_attributes.dim_time_period]
         required_vars, output_vars = self.model_attributes.get_input_output_fields(
-            subsectors
+            subsectors,
         )
 
         # get input/output model variables`
@@ -135,12 +135,12 @@ class Socioeconomic:
                 set(
                     [
                         self.model_attributes.dict_variable_fields_to_model_variables.get(
-                            x
+                            x,
                         )
                         for x in required_vars
                     ],
-                )
-            )
+                ),
+            ),
         )
 
         output_model_vars = sorted(
@@ -148,12 +148,12 @@ class Socioeconomic:
                 set(
                     [
                         self.model_attributes.dict_variable_fields_to_model_variables.get(
-                            x
+                            x,
                         )
                         for x in output_vars
                     ],
-                )
-            )
+                ),
+            ),
         )
 
         self.output_model_variables = output_model_vars
@@ -397,7 +397,7 @@ class Socioeconomic:
         if project_for_internal:
             # get internal variables that are shared between downstream sectors
             time_periods_df = np.array(
-                df_se_trajectories[self.model_attributes.dim_time_period]
+                df_se_trajectories[self.model_attributes.dim_time_period],
             )[0:-1]
             df_se_internal_shared_variables = (
                 df_se_trajectories[[self.model_attributes.dim_time_period]]

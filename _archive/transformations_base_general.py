@@ -23,7 +23,7 @@ def get_time_period(
     period.
     """
     attr_time_period = model_attributes.get_dimensional_attribute_table(
-        model_attributes.dim_time_period
+        model_attributes.dim_time_period,
     )
     return_val = (
         min(attr_time_period.key_values)
@@ -214,7 +214,7 @@ def transformation_general(
 
     # dertivative vars (alphabetical)
     attr_time_period = model_attributes.get_dimensional_attribute_table(
-        model_attributes.dim_time_period
+        model_attributes.dim_time_period,
     )
     df_out = []
     regions_apply = (
@@ -240,7 +240,7 @@ def transformation_general(
     ##  CHECK SPECIFICATION DICTIONARY
 
     modvars = sorted(
-        [x for x in dict_modvar_specs.keys() if x in model_attributes.all_variables]
+        [x for x in dict_modvar_specs.keys() if x in model_attributes.all_variables],
     )
     dict_modvar_specs_clean = {}
 
@@ -379,7 +379,7 @@ def transformation_general(
                         "vec_ramp": vec_ramp,
                         "vector_targets_ordered": vector_targets_ordered,
                     },
-                }
+                },
             )
 
     modvars = sorted(list(dict_modvar_specs_clean.keys()))
@@ -447,7 +447,7 @@ def transformation_general(
                     fields_adjust_target = model_attributes.build_variable_fields(
                         modvar,
                         restrict_to_category_values=sorted(
-                            list(categories_target.keys())
+                            list(categories_target.keys()),
                         ),
                     )
 
@@ -465,7 +465,7 @@ def transformation_general(
                     arr_base_target = np.array(df_in_new[fields_adjust_target])
                     sum_preservation = np.sum(
                         np.array(
-                            df_in_new[fields_adjust_source + fields_adjust_target]
+                            df_in_new[fields_adjust_source + fields_adjust_target],
                         ),
                         axis=1,
                     )
@@ -496,7 +496,7 @@ def transformation_general(
                     vec_transfer = magnitude_transfer * vec_distribution_transfer
 
                     vec_source_new = sf.vec_bounds(
-                        vec_source_initial - vec_transfer, bounds
+                        vec_source_initial - vec_transfer, bounds,
                     )
                     vec_transfer = (
                         (vec_source_initial - vec_source_new)
@@ -507,7 +507,7 @@ def transformation_general(
 
                     # new target vector - note that these are both ordered properly according to category
                     vec_target = magnitude_transfer * np.array(
-                        [categories_target.get(x) for x in vector_targets_ordered]
+                        [categories_target.get(x) for x in vector_targets_ordered],
                     )
                     arr_new_source = np.outer(
                         np.ones(arr_base_source.shape[0]),
@@ -519,7 +519,7 @@ def transformation_general(
                     )
 
                     arr_base = np.concatenate(
-                        [arr_base_source, arr_base_target], axis=1
+                        [arr_base_source, arr_base_target], axis=1,
                     )
                     arr_final = np.concatenate([arr_new_source, arr_new_target], axis=1)
                     fields_adjust = fields_adjust_source + fields_adjust_target
@@ -667,7 +667,7 @@ def transformation_general_shift_fractions_from_modvars(
     all_regions = sorted(list(set(df_input[field_region])))
     attr_subsec = model_attributes.get_attribute_table(subsec)
     attr_time_period = model_attributes.get_dimensional_attribute_table(
-        model_attributes.dim_time_period
+        model_attributes.dim_time_period,
     )
     regions_apply = (
         all_regions
@@ -742,7 +742,7 @@ def transformation_general_shift_fractions_from_modvars(
 
         # prep dataframe
         df_in = df_in.sort_values(by=[model_attributes.dim_time_period]).reset_index(
-            drop=True
+            drop=True,
         )
         df_in_new = df_in.copy()
         vec_tp = list(df_in[model_attributes.dim_time_period])
@@ -771,21 +771,21 @@ def transformation_general_shift_fractions_from_modvars(
                 vec_initial_vals.sum() if magnitude_relative_to_baseline else 0.0
             )
             vec_initial_distribution = np.nan_to_num(
-                vec_initial_vals / vec_initial_vals.sum(), nan=1.0, posinf=1.0
+                vec_initial_vals / vec_initial_vals.sum(), nan=1.0, posinf=1.0,
             )
 
             # get the current total value of fractions
             vec_final_vals = np.array(df_in[fields].iloc[n_tp - 1]).astype(float)
             val_final_target = sum(vec_final_vals)
             val_final_domain = np.array(
-                df_in[fields + fields_source].iloc[n_tp - 1]
+                df_in[fields + fields_source].iloc[n_tp - 1],
             ).sum()
             target_supremum = (
                 min(val_final_domain, 1.0) if preserve_modvar_domain_sum else 1.0
             )
 
             target_value = float(
-                sf.vec_bounds(magnitude + val_initial_target, (0.0, target_supremum))
+                sf.vec_bounds(magnitude + val_initial_target, (0.0, target_supremum)),
             )  # *dict_modvar_specs.get(modvar_target)
             magnitude_adj = target_value - val_initial_target
             scale_non_elec = np.nan_to_num(
@@ -800,7 +800,7 @@ def transformation_general_shift_fractions_from_modvars(
             )
             target_distribution /= max(magnitude_adj + val_initial_target, 1.0)
             target_distribution = np.nan_to_num(
-                target_distribution, nan=0.0, posinf=0.0
+                target_distribution, nan=0.0, posinf=0.0,
             )
 
             dict_target_distribution = dict(

@@ -173,7 +173,7 @@ def build_default_strategies(
 
         dict_transformation_codes_by_sector.update({k: sorted(transformation_codes)})
         dict_transformation_codes_by_sector_all.update(
-            {k: sorted(transformation_codes_all)}
+            {k: sorted(transformation_codes_all)},
         )
 
     ##  FINALLY, START BUILDING TABLE
@@ -443,7 +443,7 @@ def instantiate_default_strategy_directory(
     fn_citations: str = trn._DICT_FILE_NAME_DEFAULTS.get("citations"),
     fn_config_general: str = trn._DICT_FILE_NAME_DEFAULTS.get("config_general"),
     fn_strategy_definitions: str = st._DICT_FILE_NAME_DEFAULTS.get(
-        "strategy_definitions"
+        "strategy_definitions",
     ),
     mk_path: bool = True,
     return_dict: bool = False,

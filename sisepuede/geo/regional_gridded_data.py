@@ -306,7 +306,7 @@ class RegionalGriddedData:
                     array_0.shape,
                     array_1.shape,
                     array_areas.shape,
-                }
+                },
             )
             if not return_none
             else set({})
@@ -351,7 +351,7 @@ class RegionalGriddedData:
 
         if include_pij:
             vec_probs = np.array(df_collapsed[field_area]) / np.array(
-                df_collapsed[field_area_total_0]
+                df_collapsed[field_area_total_0],
             )
             df_collapsed[field_probability_transition] = vec_probs
 

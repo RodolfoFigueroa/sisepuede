@@ -182,7 +182,7 @@ class TransformersCircularEconomy:
         error_q = error_q | (model_attributes is None)
         if error_q:
             raise RuntimeError(
-                "Error: invalid specification of model_attributes in transformations_energy"
+                "Error: invalid specification of model_attributes in transformations_energy",
             )
 
         # get strategy attribute, baseline strategy, and some fields
@@ -505,7 +505,7 @@ class TransformersCircularEconomy:
             attr_strategy,
         )
         all_transformations.append(
-            self.waso_increase_anaerobic_treatment_and_composting
+            self.waso_increase_anaerobic_treatment_and_composting,
         )
 
         self.waso_increase_biogas_capture = trl.Transformer(
@@ -598,7 +598,7 @@ class TransformersCircularEconomy:
         n_tp = len(self.time_periods.all_time_periods)  # 25
 
         vec_out = np.array(
-            [max(0, min((x - tp_0) / n_years_ramp, 1)) for x in range(n_tp)]
+            [max(0, min((x - tp_0) / n_years_ramp, 1)) for x in range(n_tp)],
         )
 
         return vec_out
@@ -1115,7 +1115,7 @@ class TransformersCircularEconomy:
 
         # get categories and dictionary to specify parameters (move to config eventually)
         categories = self.model_attributes.get_attribute_table(
-            self.model_attributes.subsec_name_waso
+            self.model_attributes.subsec_name_waso,
         ).key_values
         # dict_specify = dict((x, 0.25) for x in categories)
         # dict_specify.update({"food": 0.3})

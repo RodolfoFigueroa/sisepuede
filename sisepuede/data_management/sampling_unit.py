@@ -447,7 +447,7 @@ class SamplingUnit:
         check_tups = (
             len(
                 set(self.required_tg_specs)
-                & set(df_in[self.field_variable_trajgroup_type])
+                & set(df_in[self.field_variable_trajgroup_type]),
             )
             > 0
         )
@@ -460,7 +460,7 @@ class SamplingUnit:
             for df in dfs_ids_intersect:
                 index, df = df
                 tups_add += sf.df_to_tuples(
-                    df[fields_id], nan_to_none=True
+                    df[fields_id], nan_to_none=True,
                 )  # [tuple(x) for x in np.array(df[fields_id])]
             tups_id = tups_id & set(tups_add)
 
@@ -583,7 +583,7 @@ class SamplingUnit:
         self.uncertainty_fan_function_type = None
         self.uncertainty_ramp_vector = None
         self.valid_fan_type_strs = self.get_f_fan_function_parameter_defaults(
-            0, "", return_type="keys"
+            0, "", return_type="keys",
         )
 
         default_fan_type = (
@@ -603,7 +603,7 @@ class SamplingUnit:
                 # raise ValueError(f"Error: fan parameter specification {fan_type} invalid. 4 Parameters are required.")
                 fan_type = default_fan_type
             elif not all(
-                set([isinstance(x, int) or isinstance(x, float) for x in fan_type])
+                set([isinstance(x, int) or isinstance(x, float) for x in fan_type]),
             ):
                 # raise ValueError(f"Error: fan parameter specification {fan_type} contains invalid parameters. Ensure they are numeric (int or float)")
                 fan_type = default_fan_type
@@ -619,7 +619,7 @@ class SamplingUnit:
                 else fan_type
             )
             params = self.get_f_fan_function_parameter_defaults(
-                n_uncertain, fan_type, return_type="params"
+                n_uncertain, fan_type, return_type="params",
             )
 
         # build ramp vector
@@ -629,7 +629,7 @@ class SamplingUnit:
             [
                 int(i > tp_0) * self.f_fan(i - tp_0, n, *params)
                 for i in range(len(self.time_periods))
-            ]
+            ],
         )
 
         self.uncertainty_fan_function_parameters = params
@@ -752,13 +752,13 @@ class SamplingUnit:
 
         # initialize variable output templates
         array_base_ans = np.zeros(
-            (len(self.df_coordinates_ans), len(fields_time_periods))
+            (len(self.df_coordinates_ans), len(fields_time_periods)),
         )
         array_base_id = np.zeros(
-            (len(self.df_coordinates_id), len(fields_time_periods))
+            (len(self.df_coordinates_id), len(fields_time_periods)),
         )
         array_base_vvt = np.zeros(
-            (len(self.df_coordinates_vvt), len(fields_time_periods))
+            (len(self.df_coordinates_vvt), len(fields_time_periods)),
         )
         vec_base_id = np.zeros(len(self.df_coordinates_id))
 
@@ -771,7 +771,7 @@ class SamplingUnit:
 
         if ind_strat is None:
             raise RuntimeError(
-                f"Error in _initialize_variable_dictionaries: Strategy key '{key_strategy}' not found in fields_id."
+                f"Error in _initialize_variable_dictionaries: Strategy key '{key_strategy}' not found in fields_id.",
             )
 
         # initialize dictionaries
@@ -824,7 +824,7 @@ class SamplingUnit:
             )
             (
                 dict_ordered_traj_arrays_by_ans.update(
-                    {id_strat: array_base_ans.copy()}
+                    {id_strat: array_base_ans.copy()},
                 )
                 if (dict_ordered_traj_arrays_by_ans.get(id_strat) is None)
                 else None
@@ -844,15 +844,15 @@ class SamplingUnit:
             dict_var_info[tup_vvt]["max_scalar"].update({tup_id: vec_max_scalar[i]})
             dict_var_info[tup_vvt]["min_scalar"].update({tup_id: vec_min_scalar[i]})
             dict_var_info[tup_vvt]["trajectories"].update(
-                {tup_id: arr_time_periods[i, :]}
+                {tup_id: arr_time_periods[i, :]},
             )
             dict_var_info[tup_vvt]["uniform_scaling_q"].update(
-                {tup_id: vec_uniform_scaling[i]}
+                {tup_id: vec_uniform_scaling[i]},
             )
 
             dict_ordered_traj_arrays[tup_vvt][ind_id, :] = arr_time_periods[i, :]
             dict_ordered_traj_arrays_by_ans[id_strat][ind_ans, :] = arr_time_periods[
-                i, :
+                i, :,
             ]
             dict_ordered_vec_max_scalars[tup_vvt][ind_id] = vec_max_scalar[i]
             dict_ordered_vec_min_scalars[tup_vvt][ind_id] = vec_min_scalar[i]
@@ -868,7 +868,7 @@ class SamplingUnit:
                         dict_ordered_vec_max_scalars.get(k),
                         dict_ordered_vec_min_scalars.get(k),
                     ),
-                }
+                },
             )
 
         # get by strat grouping and determine if strategy
@@ -891,7 +891,7 @@ class SamplingUnit:
 
         (
             dict_strategy_info.update(
-                {"difference_arrays_by_strategy": dict_diff_arrays_by_strat}
+                {"difference_arrays_by_strategy": dict_diff_arrays_by_strat},
             )
             if (type_out == "L")
             else None
@@ -943,18 +943,18 @@ class SamplingUnit:
         # raise an error if any required fields are missing
         if not set(fields_req).issubset(set(df_in.columns)):
             fields_missing = list(
-                set(fields_req) - (set(fields_req) & set(df_in.columns))
+                set(fields_req) - (set(fields_req) & set(df_in.columns)),
             )
             fields_missing.sort()
             str_missing = ", ".join([f"'{x}'" for x in fields_missing])
             raise ValueError(
-                f"Error: one or more columns are missing from the data frame. Columns {str_missing} not found"
+                f"Error: one or more columns are missing from the data frame. Columns {str_missing} not found",
             )
 
         # some cleaning
         df_out = df_in.drop_duplicates() if drop_duplicates else df_in
         df_out[field_req_variable_trajectory_group_trajectory_type].replace(
-            {np.nan: None}, inplace=True
+            {np.nan: None}, inplace=True,
         )
 
         return df_out
@@ -1010,7 +1010,7 @@ class SamplingUnit:
                         axis=0,
                     ),
                 ),
-            ]
+            ],
         ).transpose()
 
         # convert to data frame
@@ -1118,7 +1118,7 @@ class SamplingUnit:
 
         # initialize components for
         ind_filt = self.fields_id.index(
-            self.key_strategy
+            self.key_strategy,
         )  # tuple index to filter in tups_id
         tups_ans = []
         tups_drop = []
@@ -1268,7 +1268,7 @@ class SamplingUnit:
         field_min = [x for x in df_in.columns if (regex_min.match(x) is not None)]
         if len(field_min) == 0:
             raise ValueError(
-                "No field associated with a minimum scalar value found in data frame."
+                "No field associated with a minimum scalar value found in data frame.",
             )
 
         field_min = field_min[0]
@@ -1277,7 +1277,7 @@ class SamplingUnit:
         field_max = [x for x in df_in.columns if (regex_max.match(x) is not None)]
         if len(field_max) == 0:
             raise ValueError(
-                "No field associated with a maximum scalar value found in data frame."
+                "No field associated with a maximum scalar value found in data frame.",
             )
 
         field_max = field_max[0]
@@ -1286,7 +1286,7 @@ class SamplingUnit:
         tp_max = int(field_max.split("_")[1])
         if (tp_min != tp_max) | (tp_min is None):
             raise ValueError(
-                f"Fields '{tp_min}' and '{tp_max}' imply asymmetric final time periods."
+                f"Fields '{tp_min}' and '{tp_max}' imply asymmetric final time periods.",
             )
 
         tp_out = tp_min
@@ -1446,7 +1446,7 @@ class SamplingUnit:
         df_in = self.df_variable_definitions if (df_in is None) else df_in
         if self.field_variable_trajgroup not in df_in.columns:
             raise ValueError(
-                f"Field '{self.field_variable_trajgroup}' not found in data frame."
+                f"Field '{self.field_variable_trajgroup}' not found in data frame.",
             )
 
         # determine if this is associated with a trajectory group
@@ -1459,7 +1459,7 @@ class SamplingUnit:
             if len(
                 df_in[
                     df_in[self.field_variable_trajgroup] > self.missing_trajgroup_flag
-                ]
+                ],
             )
             > 0
             else None
@@ -1483,7 +1483,7 @@ class SamplingUnit:
 
         if self.field_trajgroup_no_vary_q not in df_in.columns:
             raise ValueError(
-                f"Field '{self.field_trajgroup_no_vary_q}' not found in data frame."
+                f"Field '{self.field_trajgroup_no_vary_q}' not found in data frame.",
             )
         # determine if this is associated with a trajectory group
         out = len(df_in[df_in[self.field_trajgroup_no_vary_q] == 1]) == 0
@@ -1521,7 +1521,7 @@ class SamplingUnit:
         """
         tuple_param = (
             self.get_f_fan_function_parameter_defaults(
-                self.uncertainty_fan_function_type
+                self.uncertainty_fan_function_type,
             )
             if (tuple_param is None)
             else tuple_param
@@ -1529,7 +1529,7 @@ class SamplingUnit:
 
         if len(tuple_param) != 4:
             raise ValueError(
-                f"Error: tuple_param {tuple_param} in build_ramp_vector has invalid length. It should have 4 parameters."
+                f"Error: tuple_param {tuple_param} in build_ramp_vector has invalid length. It should have 4 parameters.",
             )
 
         tp_0 = self.time_period_end_certainty
@@ -1602,10 +1602,10 @@ class SamplingUnit:
         vec_base = 1 - vec_unif_scalar
         if max(vec_unif_scalar) > 0:
             vec_max_scalar = self.ordered_by_ota_from_fid_dict(
-                dict_var_info.get("max_scalar"), vs_tuple
+                dict_var_info.get("max_scalar"), vs_tuple,
             )
             vec_min_scalar = self.ordered_by_ota_from_fid_dict(
-                dict_var_info.get("min_scalar"), vs_tuple
+                dict_var_info.get("min_scalar"), vs_tuple,
             )
             vec_unif_scalar = (
                 vec_unif_scalar
@@ -1885,13 +1885,13 @@ class SamplingUnit:
                     }
 
                     arrs_strategy_diffs = self.dict_strategy_info.get(
-                        "difference_arrays_by_strategy"
+                        "difference_arrays_by_strategy",
                     )
                     df_baseline_strategy = self.dict_strategy_info.get(
-                        "baseline_strategy_data_table"
+                        "baseline_strategy_data_table",
                     )
                     inds0 = set(
-                        np.where(df_baseline_strategy[self.field_variable] == vs)[0]
+                        np.where(df_baseline_strategy[self.field_variable] == vs)[0],
                     )
 
                     # if not mixing, using default -- NOTE order matters for the list; forms arguments to sf.mix_tensors
@@ -1929,7 +1929,7 @@ class SamplingUnit:
 
                         # initialize as list - we only do this to guarantee the sort is correct
                         df_future_strat = np.zeros(
-                            (n_inds * n_strat, len(self.fields_time_periods))
+                            (n_inds * n_strat, len(self.fields_time_periods)),
                         )
 
                         ##  ITERATE OVER STRATEGIES TO UPDATE EFFECTS
@@ -2225,7 +2225,7 @@ class FutureTrajectories:
                 dict_all_dims_out.update(
                     {
                         k: sorted(list(self.input_database[k].unique())),
-                    }
+                    },
                 )
 
         else:
@@ -2348,7 +2348,7 @@ class FutureTrajectories:
         df_in = pd.concat(
             [
                 df_in.drop(
-                    [field_variable_trajgroup, field_variable_trajgroup_type], axis=1
+                    [field_variable_trajgroup, field_variable_trajgroup_type], axis=1,
                 ),
                 df_add,
             ],
@@ -2435,7 +2435,7 @@ class FutureTrajectories:
         )
 
         vec_vars_to_assign = sorted(
-            list(set(df_in[df_in[field_variable_trajgroup] <= 0][field_variable]))
+            list(set(df_in[df_in[field_variable_trajgroup] <= 0][field_variable])),
         )
         min_val = (max(dict_var_to_su.values()) + 1) if (len(dict_var_to_su) > 0) else 1
         dict_var_to_su.update(
@@ -2508,16 +2508,16 @@ class FutureTrajectories:
         # get some key fields for defining sampling units
         field_time_period = kwargs.get("field_time_period", self.field_time_period)
         field_uniform_scaling_q = kwargs.get(
-            "field_uniform_scaling_q", self.field_uniform_scaling_q
+            "field_uniform_scaling_q", self.field_uniform_scaling_q,
         )
         field_trajgroup_no_vary_q = kwargs.get(
-            "field_trajgroup_no_vary_q", self.field_trajgroup_no_vary_q
+            "field_trajgroup_no_vary_q", self.field_trajgroup_no_vary_q,
         )
         field_variable_trajgroup = kwargs.get(
-            "field_variable_trajgroup", self.field_variable_trajgroup
+            "field_variable_trajgroup", self.field_variable_trajgroup,
         )
         field_variable_trajgroup_type = kwargs.get(
-            "field_variable_trajgroup_type", self.field_variable_trajgroup_type
+            "field_variable_trajgroup_type", self.field_variable_trajgroup_type,
         )
         field_variable = kwargs.get("field_variable", self.field_variable)
         key_strategy = kwargs.get("key_strategy", self.key_strategy)
@@ -2618,7 +2618,7 @@ class FutureTrajectories:
 
         t_elapse = sf.get_time_elapsed(t0)
         self._log(
-            f"\t{n_sg} sampling units complete in {t_elapse} seconds.", type_log="info"
+            f"\t{n_sg} sampling units complete in {t_elapse} seconds.", type_log="info",
         )
 
         ##  SET PROPERTIES
@@ -2887,7 +2887,7 @@ class FutureTrajectories:
         dict_expand_vars = (
             {
                 self.field_variable_trajgroup_type: list(
-                    df_su_input[self.field_variable_trajgroup_type].unique()
+                    df_su_input[self.field_variable_trajgroup_type].unique(),
                 ),
                 self.field_variable: list(df_su_input[self.field_variable].unique()),
             }

@@ -122,7 +122,7 @@ class Configuration:
                 if val not in dict_valid_values[param]:
                     valid_vals = sf.format_print_list(dict_valid_values[param])
                     raise ValueError(
-                        f"Invalid specification of configuration parameter '{param}': {param} '{val}' not found. Valid values are {valid_vals}"
+                        f"Invalid specification of configuration parameter '{param}': {param} '{val}' not found. Valid values are {valid_vals}",
                     )
 
         return vals
@@ -186,10 +186,10 @@ class Configuration:
         # update with defaults if a value is missing in the specified configuration
         if attr_parameters_required is not None:
             dict_key_to_required_param = attr_parameters_required.field_maps.get(
-                f"{attr_parameters_required.key}_to_{field_req_param}"
+                f"{attr_parameters_required.key}_to_{field_req_param}",
             )
             dict_key_to_default_value = attr_parameters_required.field_maps.get(
-                f"{attr_parameters_required.key}_to_{field_default_val}"
+                f"{attr_parameters_required.key}_to_{field_default_val}",
             )
 
             if (
@@ -224,36 +224,36 @@ class Configuration:
         ##  CHECK VALID CONFIGURATION VALUES AND UPDATE IF APPROPRIATE
 
         valid_area = self.get_valid_values_from_attribute_column(
-            attr_area, "area_equivalent_", str, "unit_area_to_area"
+            attr_area, "area_equivalent_", str, "unit_area_to_area",
         )
         valid_bool = [True, False]
         valid_energy = self.get_valid_values_from_attribute_column(
-            attr_energy, "energy_equivalent_", str, "unit_energy_to_energy"
+            attr_energy, "energy_equivalent_", str, "unit_energy_to_energy",
         )
         valid_gwp = self.get_valid_values_from_attribute_column(
-            attr_gas, "global_warming_potential_", int
+            attr_gas, "global_warming_potential_", int,
         )
         valid_historical_hwp_method = ["back_project", "historical"]
         valid_historical_solid_waste_method = ["back_project", "historical"]
         valid_lurmod = ["decrease_only", "increase_only", "decrease_and_increase"]
         valid_length = self.get_valid_values_from_attribute_column(
-            attr_length, "length_equivalent_", str, "unit_length_to_length"
+            attr_length, "length_equivalent_", str, "unit_length_to_length",
         )
         valid_mass = self.get_valid_values_from_attribute_column(
-            attr_mass, "mass_equivalent_", str, "unit_mass_to_mass"
+            attr_mass, "mass_equivalent_", str, "unit_mass_to_mass",
         )
         valid_monetary = self.get_valid_values_from_attribute_column(
-            attr_monetary, "monetary_equivalent_", str, "unit_monetary_to_monetary"
+            attr_monetary, "monetary_equivalent_", str, "unit_monetary_to_monetary",
         )
         valid_output_method = ["csv", "sqlite"]
         valid_power = self.get_valid_values_from_attribute_column(
-            attr_power, "power_equivalent_", str, "unit_power_to_power"
+            attr_power, "power_equivalent_", str, "unit_power_to_power",
         )
         valid_region = attr_region.key_values
         valid_solvers = ["cbc", "clp", "cplex", "gams_cplex", "glpk", "gurobi", "highs"]
         valid_time_period = attr_time_period.key_values
         valid_volume = self.get_valid_values_from_attribute_column(
-            attr_volume, "volume_equivalent_", str
+            attr_volume, "volume_equivalent_", str,
         )
 
         # map parameters to valid values
@@ -295,17 +295,17 @@ class Configuration:
         dict_conf.update(
             {
                 "historical_back_proj_n_periods": max(
-                    dict_conf.get("historical_back_proj_n_periods"), 1
+                    dict_conf.get("historical_back_proj_n_periods"), 1,
                 ),
                 "nemomod_solver_time_limit_seconds": max(
-                    dict_conf.get("nemomod_solver_time_limit_seconds"), 60
+                    dict_conf.get("nemomod_solver_time_limit_seconds"), 60,
                 ),  # set minimum solver limit to 60 seconds
                 "num_lhc_samples": max(dict_conf.get("num_lhc_samples", 0), 0),
                 "save_inputs": bool(
-                    str(dict_conf.get("save_inputs")).lower() == "true"
+                    str(dict_conf.get("save_inputs")).lower() == "true",
                 ),
                 "random_seed": max(dict_conf.get("random_seed"), 1),
-            }
+            },
         )
 
         # set some attributes
@@ -347,7 +347,7 @@ class Configuration:
                 cols = [attribute_table.field_maps[field_map_to_val][x] for x in cols]
             else:
                 raise KeyError(
-                    f"Error in get_valid_values_from_attribute_column: the field map '{field_map_to_val}' is not defined."
+                    f"Error in get_valid_values_from_attribute_column: the field map '{field_map_to_val}' is not defined.",
                 )
 
         return cols
@@ -401,7 +401,7 @@ class Configuration:
                 lines_config = fl.readlines()
         else:
             raise ValueError(
-                f"Invalid configuation file {fp_config} specified: file not found."
+                f"Invalid configuation file {fp_config} specified: file not found.",
             )
 
         dict_out = {}
@@ -579,7 +579,7 @@ class ModelAttributes:
             fp = os.path.join(dir_att, att)
             if self.substr_dimensions in att:
                 nm = att.replace(self.substr_dimensions, "").replace(
-                    self.attribute_file_extension, ""
+                    self.attribute_file_extension, "",
                 )
                 k = f"dim_{nm}"
                 att_table = AttributeTable(fp, nm)
@@ -591,12 +591,12 @@ class ModelAttributes:
 
                 # try to set key
                 nm = sf.clean_field_names(
-                    [x for x in df_cols if ("$" in x) and (" " not in x.strip())]
+                    [x for x in df_cols if ("$" in x) and (" " not in x.strip())],
                 )
                 nm = nm[0] if (len(nm) > 0) else None
                 if nm is None:
                     nm = sf.clean_field_names(
-                        [att.replace("attribute_", "").replace(".csv", "")]
+                        [att.replace("attribute_", "").replace(".csv", "")],
                     )[0]
                     nm = nm if (nm in df_cols) else None
 
@@ -612,7 +612,7 @@ class ModelAttributes:
                 self.substr_varreqs_partialcats in att
             ):
                 nm = att.replace(self.substr_varreqs, "").replace(
-                    self.attribute_file_extension, ""
+                    self.attribute_file_extension, "",
                 )
                 att_table = AttributeTable(fp, "variable")
                 dict_varreqs.update({nm: att_table})
@@ -622,7 +622,7 @@ class ModelAttributes:
                 == f"{self.substr_analytical_parameters}{self.attribute_file_extension}"
             ):
                 attribute_analytical_parameters = AttributeTable(
-                    fp, "analytical_parameter"
+                    fp, "analytical_parameter",
                 )
 
             elif (
@@ -630,12 +630,12 @@ class ModelAttributes:
                 == f"{self.substr_experimental_parameters}{self.attribute_file_extension}"
             ):
                 attribute_experimental_parameters = AttributeTable(
-                    fp, "experimental_parameter"
+                    fp, "experimental_parameter",
                 )
 
             else:
                 raise ValueError(
-                    f"Invalid attribute '{att}': ensure '{self.substr_categories}', '{self.substr_varreqs_allcats}', or '{self.substr_varreqs_partialcats}' is contained in the attribute file."
+                    f"Invalid attribute '{att}': ensure '{self.substr_categories}', '{self.substr_varreqs_allcats}', or '{self.substr_varreqs_partialcats}' is contained in the attribute file.",
                 )
 
         # add some subsector/python specific information into the subsector table
@@ -644,14 +644,14 @@ class ModelAttributes:
 
         # check sector and subsector specifications
         if not set({table_name_attr_sector, table_name_attr_subsector}).issubset(
-            set(dict_attributes.keys())
+            set(dict_attributes.keys()),
         ):
             missing_vals = sf.print_setdiff(
                 set({table_name_attr_sector, table_name_attr_subsector}),
                 set(dict_attributes.keys()),
             )
             raise RuntimeError(
-                f"Error initializing attribute tables: table names {missing_vals} not found."
+                f"Error initializing attribute tables: table names {missing_vals} not found.",
             )
 
         ##  UPDATE THE SUBSECTOR ATTRIBUTE TABLE
@@ -1088,7 +1088,7 @@ class ModelAttributes:
 
                 # get emission and add to dictionary
                 emission = self.get_variable_characteristic(
-                    modvar, self.varchar_str_emission_gas
+                    modvar, self.varchar_str_emission_gas,
                 )
 
                 key = emission if (emission is not None) else key_other_totals
@@ -1181,7 +1181,7 @@ class ModelAttributes:
 
         # some subsector splits based on w+w/o primary categories
         l_with = sorted(
-            list(attr_subsec.field_maps["subsector_to_primary_category_py"].keys())
+            list(attr_subsec.field_maps["subsector_to_primary_category_py"].keys()),
         )
         l_without = sorted(list(set(all_subsectors) - set(l_with)))
 
@@ -1224,10 +1224,10 @@ class ModelAttributes:
             # get model variables
             dict_var_type, vars_by_subsector = self.get_subsector_variables(subsector)
             dict_var_type_tmp, vars_by_subsector_input = self.get_subsector_variables(
-                subsector, var_type="input"
+                subsector, var_type="input",
             )
             dict_var_type_tmp, vars_by_subsector_output = self.get_subsector_variables(
-                subsector, var_type="output"
+                subsector, var_type="output",
             )
             dict_vars_by_subsector.update({subsector: vars_by_subsector})
             dict_vars_to_subsector.update(
@@ -1303,7 +1303,7 @@ class ModelAttributes:
         if set(vec_check) != set_ref:
             fields_print = ", ".join([f"'{x}'" for x in fields])
             raise RuntimeError(
-                f"Invalid specifcation of attribute table with key {attr.key}--the fields {fields_print} do not partition the categories."
+                f"Invalid specifcation of attribute table with key {attr.key}--the fields {fields_print} do not partition the categories.",
             )
 
     def _check_binary_fields(
@@ -1348,31 +1348,31 @@ class ModelAttributes:
         for fld in fields:
             if fld not in attr.table.columns:
                 raise ValueError(
-                    f"Error in subsector {subsec}: required field '{fld}' not found in the table at '{attr.fp_table}'."
+                    f"Error in subsector {subsec}: required field '{fld}' not found in the table at '{attr.fp_table}'.",
                 )
             try:
                 vals = list(attr.table[fld].astype(float))
             except:
                 raise ValueError(
-                    f"Error in subsector {subsec}: Non-numeric values found in field '{fld}'. Check the table at '{attr.fp_table}'."
+                    f"Error in subsector {subsec}: Non-numeric values found in field '{fld}'. Check the table at '{attr.fp_table}'.",
                 )
 
             # check additional restrictions
             if check_bounds is not None:
                 if (min(vals) < check_bounds[0]) or (max(vals) > check_bounds[1]):
                     raise ValueError(
-                        f"Error in subsector {subsec}: values in field '{fld}' outside of bounds ({check_bounds[0]}, {check_bounds[1]}) specified. Check the attribute table at '{attr.fp_table}'."
+                        f"Error in subsector {subsec}: values in field '{fld}' outside of bounds ({check_bounds[0]}, {check_bounds[1]}) specified. Check the attribute table at '{attr.fp_table}'.",
                     )
             elif nonnegative_q and (min(vals) < 0):
                 raise ValueError(
-                    f"Error in subsector {subsec}: Negative values found in field '{fld}'. The field should only have non-negative numbers. Check the table at '{attr.fp_table}'."
+                    f"Error in subsector {subsec}: Negative values found in field '{fld}'. The field should only have non-negative numbers. Check the table at '{attr.fp_table}'.",
                 )
 
             if integer_q:
                 vals_check = [int(x) == x for x in vals]
                 if not all(vals_check):
                     raise ValueError(
-                        f"Error in subsector {subsec}: Non-integer equivalent values found in the field {fld}. Entries in '{fld}' should be integers or float equivalents. Check the table at '{attr.fp_table}'."
+                        f"Error in subsector {subsec}: Non-integer equivalent values found in the field {fld}. Entries in '{fld}' should be integers or float equivalents. Check the table at '{attr.fp_table}'.",
                     )
 
     def _check_subsector_attribute_table_crosswalk(
@@ -1426,18 +1426,18 @@ class ModelAttributes:
         str_valid_types = sf.format_print_list(valid_types)
         if type_primary not in valid_types:
             raise ValueError(
-                f"Invalid type_primary '{type_primary}' specified. Valid values are '{str_valid_types}'."
+                f"Invalid type_primary '{type_primary}' specified. Valid values are '{str_valid_types}'.",
             )
         if type_target not in valid_types:
             raise ValueError(
-                f"Invalid type_target '{type_target}' specified. Valid values are '{str_valid_types}'."
+                f"Invalid type_target '{type_target}' specified. Valid values are '{str_valid_types}'.",
             )
 
         # get the primary subsector + field, then run checks
         if type(dict_subsector_primary) == dict:
             if len(dict_subsector_primary) != 1:
                 raise KeyError(
-                    "Error in dictionary dict_subsector_primary: only one key (subsector_primary) should be specified."
+                    "Error in dictionary dict_subsector_primary: only one key (subsector_primary) should be specified.",
                 )
             subsector_primary = list(dict_subsector_primary.keys())[0]
         elif type(dict_subsector_primary) == str:
@@ -1445,7 +1445,7 @@ class ModelAttributes:
         else:
             t_str = str(type(dict_subsector_primary))
             raise ValueError(
-                f"Invalid type '{t_str}' of dict_subsector_primary: 'dict' and 'str' are acceptable values."
+                f"Invalid type '{t_str}' of dict_subsector_primary: 'dict' and 'str' are acceptable values.",
             )
         # check that the subsectors are valid
         self.check_subsector(subsector_primary)
@@ -1458,11 +1458,11 @@ class ModelAttributes:
             else self.dict_varreqs
         )
         key_primary = self.get_subsector_attribute(
-            subsector_primary, dict_valid_types_to_attribute_keys[type_primary]
+            subsector_primary, dict_valid_types_to_attribute_keys[type_primary],
         )
         if not key_primary:
             raise ValueError(
-                f"Invalid type_primary '{type_primary}' specified for primary subsector '{subsector_primary}': type not found."
+                f"Invalid type_primary '{type_primary}' specified for primary subsector '{subsector_primary}': type not found.",
             )
         attr_prim = dict_tables_primary[key_primary]
 
@@ -1471,14 +1471,14 @@ class ModelAttributes:
             self.dict_attributes if (type_target == "categories") else self.dict_varreqs
         )
         key_target = self.get_subsector_attribute(
-            subsector_target, dict_valid_types_to_attribute_keys[type_target]
+            subsector_target, dict_valid_types_to_attribute_keys[type_target],
         )
         key_target_pycat = self.get_subsector_attribute(
-            subsector_target, "pycategory_primary"
+            subsector_target, "pycategory_primary",
         )
         if not key_primary:
             raise ValueError(
-                f"Invalid type_primary '{type_target}' specified for primary subsector '{subsector_target}': type not found."
+                f"Invalid type_primary '{type_target}' specified for primary subsector '{subsector_target}': type not found.",
             )
         attr_targ = dict_tables_primary[key_target]
 
@@ -1490,7 +1490,7 @@ class ModelAttributes:
         )
         if field_subsector_primary not in attr_prim.table.columns:
             raise ValueError(
-                f"Error in _check_subsector_attribute_table_crosswalk: field '{field_subsector_primary}' not found in the '{subsector_primary}' attribute table. Check the file at '{attr_prim.fp_table}'."
+                f"Error in _check_subsector_attribute_table_crosswalk: field '{field_subsector_primary}' not found in the '{subsector_primary}' attribute table. Check the file at '{attr_prim.fp_table}'.",
             )
 
         ##  CHECK ATTRIBUTE TABLE CROSSWALKS
@@ -1521,10 +1521,10 @@ class ModelAttributes:
         if not set(primary_cats_defined).issubset(set(attr_targ.key_values)):
             valid_vals = sf.format_print_list(set(attr_targ.key_values))
             invalid_vals = sf.format_print_list(
-                list(set(primary_cats_defined) - set(attr_targ.key_values))
+                list(set(primary_cats_defined) - set(attr_targ.key_values)),
             )
             raise ValueError(
-                f"Invalid categories {invalid_vals} specified in field '{field_subsector_primary}' of the {subsector_primary} attribute table at '{attr_prim.fp_table}'.\n\nValid categories from {subsector_target} are: {valid_vals}"
+                f"Invalid categories {invalid_vals} specified in field '{field_subsector_primary}' of the {subsector_primary} attribute table at '{attr_prim.fp_table}'.\n\nValid categories from {subsector_target} are: {valid_vals}",
             )
 
         if injection_q:
@@ -1536,11 +1536,11 @@ class ModelAttributes:
                             x
                             for x in primary_cats_defined
                             if primary_cats_defined.count(x) > 1
-                        ]
-                    )
+                        ],
+                    ),
                 )
                 raise ValueError(
-                    f"Error in {subsector_primary} attribute table at '{attr_prim.fp_table}': duplicate specifications of target categories {duplicate_vals}. There map of {subsector_primary} categories to {subsector_target} categories should be an injection map."
+                    f"Error in {subsector_primary} attribute table at '{attr_prim.fp_table}': duplicate specifications of target categories {duplicate_vals}. There map of {subsector_primary} categories to {subsector_target} categories should be an injection map.",
                 )
 
     ####################################################
@@ -1568,10 +1568,10 @@ class ModelAttributes:
         attr = self.get_attribute_table(self.subsec_name_agrc)
         fields_req = ["apply_vegetarian_exchange_scalar", "rice_category"]
         self._check_binary_fields(
-            attr, self.subsec_name_agrc, ["apply_vegetarian_exchange_scalar"]
+            attr, self.subsec_name_agrc, ["apply_vegetarian_exchange_scalar"],
         )
         self._check_binary_fields(
-            attr, self.subsec_name_agrc, ["rice_category"], force_sum_to_one=True
+            attr, self.subsec_name_agrc, ["rice_category"], force_sum_to_one=True,
         )
 
         # next, check the crosswalk for correct specification of soil management categories
@@ -1655,7 +1655,7 @@ class ModelAttributes:
 
         # check numeric field
         self._check_numeric_fields(
-            attr, subsec, ["minimum_charge_fraction"], check_bounds=(0, 1)
+            attr, subsec, ["minimum_charge_fraction"], check_bounds=(0, 1),
         )
 
         # check storage/technology crosswalk
@@ -1696,7 +1696,7 @@ class ModelAttributes:
         """
         # some shared values
         pycat_enfu = self.get_subsector_attribute(
-            self.subsec_name_enfu, "pycategory_primary"
+            self.subsec_name_enfu, "pycategory_primary",
         )
         subsec = self.subsec_name_entc
         attr = self.get_attribute_table(subsec)
@@ -1720,7 +1720,7 @@ class ModelAttributes:
         # check required fields - numeric
         fields_req_num = ["operational_life"]
         self._check_numeric_fields(
-            attr, subsec, fields_req_num, integer_q=False, nonnegative_q=True
+            attr, subsec, fields_req_num, integer_q=False, nonnegative_q=True,
         )
 
         # check technology/fuel crosswalks
@@ -1804,10 +1804,10 @@ class ModelAttributes:
         """Check that the land use attribute tables are specified correctly."""
         # specify some generic variables
         catstr_forest = self.get_subsector_attribute(
-            self.subsec_name_frst, "pycategory_primary"
+            self.subsec_name_frst, "pycategory_primary",
         )
         catstr_landuse = self.get_subsector_attribute(
-            self.subsec_name_lndu, "pycategory_primary"
+            self.subsec_name_lndu, "pycategory_primary",
         )
         attribute_forest = self.dict_attributes[catstr_forest]
         attribute_landuse = self.dict_attributes[catstr_landuse]
@@ -1829,20 +1829,20 @@ class ModelAttributes:
                 x.replace(matchstr_forest, "")
                 for x in cats_landuse
                 if (matchstr_forest in x)
-            ]
+            ],
         )
 
         if not set_cats_forest_in_land_use.issubset(set(cats_landuse)):
             missing_vals = set_cats_forest_in_land_use - set(cats_landuse)
             missing_str = sf.format_print_list(missing_vals)
             raise KeyError(
-                f"Missing key values in land use attribute file '{attribute_landuse.fp_table}': did not find land use categories {missing_str}."
+                f"Missing key values in land use attribute file '{attribute_landuse.fp_table}': did not find land use categories {missing_str}.",
             )
         if not set_land_use_forest_cats.issubset(cats_forest):
             extra_vals = set_land_use_forest_cats - set(cats_forest)
             extra_vals = sf.format_print_list(extra_vals)
             raise KeyError(
-                f"Undefined forest categories specified in land use attribute file '{attribute_landuse.fp_table}': did not find forest categories {extra_vals}."
+                f"Undefined forest categories specified in land use attribute file '{attribute_landuse.fp_table}': did not find forest categories {extra_vals}.",
             )
 
         # check specification of crop category & pasture category
@@ -1854,25 +1854,25 @@ class ModelAttributes:
             "wetlands_category",
         ]
         self._check_binary_fields(
-            attribute_landuse, self.subsec_name_lndu, fields_req_bin, force_sum_to_one=1
+            attribute_landuse, self.subsec_name_lndu, fields_req_bin, force_sum_to_one=1,
         )
         # check
         fields_req_bin = ["reallocation_transition_probability_exhaustion_category"]
         self._check_binary_fields(
-            attribute_landuse, self.subsec_name_lndu, fields_req_bin, force_sum_to_one=0
+            attribute_landuse, self.subsec_name_lndu, fields_req_bin, force_sum_to_one=0,
         )
 
         # check to ensure that source categories for mineralization in soil management are specified properly
         field_mnrl = "mineralization_in_land_use_conversion_to_managed"
         cats_crop = self.get_categories_from_attribute_characteristic(
-            self.subsec_name_lndu, {"crop_category": 1}
+            self.subsec_name_lndu, {"crop_category": 1},
         )
         cats_mnrl = self.get_categories_from_attribute_characteristic(
-            self.subsec_name_lndu, {field_mnrl: 1}
+            self.subsec_name_lndu, {field_mnrl: 1},
         )
         if len(set(cats_crop) & set(cats_mnrl)) > 0:
             raise ValueError(
-                f"Invalid specification of field '{field_mnrl}' in {self.subsec_name_lndu} attribute located at {attribute_landuse.fp_table}. Category '{cats_crop[0]}' cannot be specified as a target category."
+                f"Invalid specification of field '{field_mnrl}' in {self.subsec_name_lndu} attribute located at {attribute_landuse.fp_table}. Category '{cats_crop[0]}' cannot be specified as a target category.",
             )
 
         # check that land use/soil and forest/soil crosswalks are properly specified
@@ -1905,7 +1905,7 @@ class ModelAttributes:
             "secondary_forest_category",
         ]
         self._check_binary_fields(
-            attribute_forest, self.subsec_name_frst, fields_req_bin, force_sum_to_one=1
+            attribute_forest, self.subsec_name_frst, fields_req_bin, force_sum_to_one=1,
         )
 
     ##  check the livestock manure management attribute table
@@ -1921,7 +1921,7 @@ class ModelAttributes:
             vals = set(attr.table[field])
             if (not vals.issubset(set({0, 1}))) or (sum(attr.table[field]) > 1):
                 raise ValueError(
-                    f"Invalid specification of field '{field}' in {subsec} attribute located at {attr.fp_table}. Check to ensure that at most 1 is specified; all other entries should be 0."
+                    f"Invalid specification of field '{field}' in {subsec} attribute located at {attr.fp_table}. Check to ensure that at most 1 is specified; all other entries should be 0.",
                 )
 
         # next, check that the fields are not assigning categories to multiple types
@@ -1930,7 +1930,7 @@ class ModelAttributes:
         if max(vec_max) > 1:
             fields = sf.format_print_list(fields_check_sum)
             raise ValueError(
-                f"Invalid specification of fields {fields} in {subsec} attribute located at {attr.fp_table}: Non-injective mapping specified--categories can map to at most 1 of these fields."
+                f"Invalid specification of fields {fields} in {subsec} attribute located at {attr.fp_table}: Non-injective mapping specified--categories can map to at most 1 of these fields.",
             )
 
     def _check_attribute_tables_trde(
@@ -2103,13 +2103,13 @@ class ModelAttributes:
     ) -> None:
         """Ensure dimensions of analysis are properly specified"""
         if not set(self.sort_ordered_dimensions_of_analysis).issubset(
-            set(self.all_dims)
+            set(self.all_dims),
         ):
             missing_vals = sf.print_setdiff(
-                set(self.sort_ordered_dimensions_of_analysis), set(self.all_dims)
+                set(self.sort_ordered_dimensions_of_analysis), set(self.all_dims),
             )
             raise ValueError(
-                f"Missing specification of required dimensions of analysis: no attribute tables for dimensions {missing_vals} found in directory '{self.attribute_directory}'."
+                f"Missing specification of required dimensions of analysis: no attribute tables for dimensions {missing_vals} found in directory '{self.attribute_directory}'.",
             )
 
     def check_integrated_df_vars(
@@ -2135,12 +2135,12 @@ class ModelAttributes:
                     set_missing = list(set(fields_req) - set(df_in.columns))
                     set_missing = sf.format_print_list(set_missing)
                     warnings.warn(
-                        f"Integration in subsector '{subsec}' cannot proceed: The fields {set_missing} are missing."
+                        f"Integration in subsector '{subsec}' cannot proceed: The fields {set_missing} are missing.",
                     )
                     subsec_val = False
             else:
                 warnings.warn(
-                    f"Invalid subsector '{subsec}' found in check_integrated_df_vars: The subsector does not exist."
+                    f"Invalid subsector '{subsec}' found in check_integrated_df_vars: The subsector does not exist.",
                 )
                 subsec_val = False
 
@@ -2175,7 +2175,7 @@ class ModelAttributes:
         if region not in attr_region.key_values:
             valid_regions = sf.format_print_list(attr_region.key_values)
             raise ValueError(
-                f"Invalid region specification '{region}': valid sectors are {valid_region}"
+                f"Invalid region specification '{region}': valid sectors are {valid_region}",
             )
 
     def check_sector(
@@ -2192,7 +2192,7 @@ class ModelAttributes:
             if throw_error:
                 valid_sectors = sf.format_print_list(self.all_sectors)
                 raise ValueError(
-                    f"Invalid sector specification '{sector}': valid sectors are {valid_sectors}"
+                    f"Invalid sector specification '{sector}': valid sectors are {valid_sectors}",
                 )
             # return None if not throwing an error
             out = None
@@ -2210,7 +2210,7 @@ class ModelAttributes:
             valid_subsectors = sf.format_print_list(self.all_subsectors)
             if throw_error_q:
                 raise ValueError(
-                    f"Invalid subsector specification '{subsector}': valid sectors are {valid_subsectors}"
+                    f"Invalid subsector specification '{subsector}': valid sectors are {valid_subsectors}",
                 )
             return False
         return None if throw_error_q else subsector
@@ -2228,7 +2228,7 @@ class ModelAttributes:
         if arg not in valid_values:
             vrts = sf.format_print_list(valid_values)
             raise ValueError(
-                f"Invalid {func_arg} in {func_name}: valid values are {vrts}."
+                f"Invalid {func_arg} in {func_name}: valid values are {vrts}.",
             )
 
     def clean_dimension_fields(
@@ -2286,7 +2286,7 @@ class ModelAttributes:
             key_dict = self.get_subsector_attribute(subsector, table_type)
             return self.dict_varreqs.get(key_dict)
         raise ValueError(
-            f"Invalid table_type '{table_type}': valid options are 'pycategory_primary', 'key_varreqs_all', 'key_varreqs_partial'."
+            f"Invalid table_type '{table_type}': valid options are 'pycategory_primary', 'key_varreqs_all', 'key_varreqs_partial'.",
         )
 
     def get_baseline_scenario_id(
@@ -2329,7 +2329,7 @@ class ModelAttributes:
             if len(tab_red) > 1:
                 ret = tab_red[0]
                 warnings.warn(
-                    f"Multiple baselines specified for dimension {dim}. Ensure that only baseline is set in the attribute table at '{tab.fp_table}'. Defaulting to minimum value of {ret}."
+                    f"Multiple baselines specified for dimension {dim}. Ensure that only baseline is set in the attribute table at '{tab.fp_table}'. Defaulting to minimum value of {ret}.",
                 )
 
             elif len(tab_red) == 0:
@@ -2339,7 +2339,7 @@ class ModelAttributes:
                     else " Returning None."
                 )
                 warnings.warn(
-                    f"No baseline specified for dimension '{dim}'.{str_append}"
+                    f"No baseline specified for dimension '{dim}'.{str_append}",
                 )
                 ret = min_val if infer_baseline_as_minimum else None
 
@@ -2443,7 +2443,7 @@ class ModelAttributes:
         if dimension not in self.all_dims:
             valid_dims = sf.format_print_list(self.all_dims)
             raise ValueError(
-                f"Invalid dimension '{dimension}'. Valid dimensions are {valid_dims}."
+                f"Invalid dimension '{dimension}'. Valid dimensions are {valid_dims}.",
             )
 
         # add attributes here
@@ -2454,7 +2454,7 @@ class ModelAttributes:
             # warn user, but still allow a return
             valid_rts = sf.format_print_list(list(dict_out.keys()))
             warnings.warn(
-                f"Invalid dimensional attribute '{return_type}'. Valid return type values are:{valid_rts}"
+                f"Invalid dimensional attribute '{return_type}'. Valid return type values are:{valid_rts}",
             )
 
         return out_val
@@ -2514,7 +2514,7 @@ class ModelAttributes:
         if return_type not in valid_return_types:
             str_valid_types = sf.format_print_list(valid_return_types)
             raise ValueError(
-                f"Invalid return_type '{return_type}': valid types are {str_valid_types}."
+                f"Invalid return_type '{return_type}': valid types are {str_valid_types}.",
             )
 
         pycat = self.get_subsector_attribute(subsector, attr_type)
@@ -2524,12 +2524,12 @@ class ModelAttributes:
             attr_cur = self.dict_varreqs[pycat]
         else:
             raise ValueError(
-                f"Invalid attribute type '{attr_type}': select 'pycategory_primary', 'key_varreqs_all', or 'key_varreqs_partial'."
+                f"Invalid attribute type '{attr_type}': select 'pycategory_primary', 'key_varreqs_all', or 'key_varreqs_partial'.",
             )
 
         if attribute not in attr_cur.table.columns:
             raise ValueError(
-                f"Missing attribute column '{attribute}': attribute not found in '{subsector}' attribute table."
+                f"Missing attribute column '{attribute}': attribute not found in '{subsector}' attribute table.",
             )
 
         # get the dictionary and order
@@ -2546,7 +2546,7 @@ class ModelAttributes:
                     tab[attr_cur.key],
                     list(tab[attribute].apply(clean_schema)),
                     strict=False,
-                )
+                ),
             )
         )
         kv = [x for x in attr_cur.key_values if x in list(tab[attr_cur.key])]
@@ -2584,7 +2584,7 @@ class ModelAttributes:
         # check reutnr type
         if return_type not in ["inds", "vars"]:
             raise ValueError(
-                f"Invalid return_type '{return_type}' in order_vars_by_category: valid types are 'inds', 'vars'."
+                f"Invalid return_type '{return_type}' in order_vars_by_category: valid types are 'inds', 'vars'.",
             )
 
         vars_ordered = list(tab_for_cw["variable"])
@@ -2670,11 +2670,11 @@ class ModelAttributes:
 
         if map_retrieve not in maps:
             valid_rts = sf.format_print_list(
-                [x.replace(match_str_to, "") for x in maps]
+                [x.replace(match_str_to, "") for x in maps],
             )
             # warn user, but still allow a return
             warnings.warn(
-                f"Invalid sector attribute '{return_type}'. Valid return type values are:{valid_rts}"
+                f"Invalid sector attribute '{return_type}'. Valid return type values are:{valid_rts}",
             )
             return None
         # set the key
@@ -2790,7 +2790,7 @@ class ModelAttributes:
         # warn user, but still allow a return
         valid_rts = sf.format_print_list(list(dict_out.keys()))
         warnings.warn(
-            f"Invalid subsector attribute '{return_type}'. Valid return type values are:{valid_rts}"
+            f"Invalid subsector attribute '{return_type}'. Valid return type values are:{valid_rts}",
         )
 
         return None
@@ -2805,7 +2805,7 @@ class ModelAttributes:
         * n is the number of defined time periods
         """
         pydim_time_period = self.get_dimensional_attribute(
-            self.dim_time_period, "pydim"
+            self.dim_time_period, "pydim",
         )
         time_periods = self.dict_attributes[pydim_time_period].key_values
 
@@ -2819,7 +2819,7 @@ class ModelAttributes:
         SISEPUEDE. Returns None if no years are defined.
         """
         pydim_time_period = self.get_dimensional_attribute(
-            self.dim_time_period, "pydim"
+            self.dim_time_period, "pydim",
         )
         attr_tp = self.dict_attributes[pydim_time_period]
 
@@ -2893,7 +2893,7 @@ class ModelAttributes:
                 ].copy()
                 df_tmp[category_pivot] = df_tmp[category_pivot].apply(clean_schema)
                 dict_out.update(
-                    {field: sf.build_dict(df_tmp[[category_pivot, "variable"]])}
+                    {field: sf.build_dict(df_tmp[[category_pivot, "variable"]])},
                 )
 
         # next, loop over available combinations to build cross dictionaries
@@ -2912,12 +2912,12 @@ class ModelAttributes:
             dict_mapping.update(
                 {
                     key_new: dict(
-                        [(dict_out[key_1][x], dict_out[key_2][x]) for x in shared_cats]
+                        [(dict_out[key_1][x], dict_out[key_2][x]) for x in shared_cats],
                     ),
                     key_new_rev: dict(
-                        [(dict_out[key_2][x], dict_out[key_1][x]) for x in shared_cats]
+                        [(dict_out[key_2][x], dict_out[key_1][x]) for x in shared_cats],
                     ),
-                }
+                },
             )
 
         return dict_mapping
@@ -2956,15 +2956,15 @@ class ModelAttributes:
         """
         # check inputs
         if (modvar is None) and any(
-            [(x is None) for x in [output_cats, output_subsec]]
+            [(x is None) for x in [output_cats, output_subsec]],
         ):
             raise ValueError(
-                "Error in input specification. If modvar == None, then output_cats and output_subsec cannot be None."
+                "Error in input specification. If modvar == None, then output_cats and output_subsec cannot be None.",
             )
 
         if not sf.isnumber(missing_vals):
             raise ValueError(
-                "Error in input specification of missing_vals: missing_vals should be a floating point number of integer."
+                "Error in input specification of missing_vals: missing_vals should be a floating point number of integer.",
             )
 
         # get subsector/categories information
@@ -2972,7 +2972,7 @@ class ModelAttributes:
             # check variable first
             if modvar not in self.all_model_variables:
                 raise ValueError(
-                    f"Invalid model variable '{modvar}' found in get_variable_characteristic."
+                    f"Invalid model variable '{modvar}' found in get_variable_characteristic.",
                 )
 
             subsector = self.get_variable_subsector(modvar)
@@ -2987,15 +2987,15 @@ class ModelAttributes:
             # check that all categories are defined
             if not set(output_cats).issubset(set(attr_subsec.key_values)):
                 invalid_values = sf.format_print_list(
-                    list(set(output_cats) - set(attr_subsec.key_values))
+                    list(set(output_cats) - set(attr_subsec.key_values)),
                 )
                 raise ValueError(
-                    f"Error in merge_array_var_partial_cat_to_array_all_cats: Invalid categories {invalid_values} specified for subsector {subsector} in output_cats."
+                    f"Error in merge_array_var_partial_cat_to_array_all_cats: Invalid categories {invalid_values} specified for subsector {subsector} in output_cats.",
                 )
             # check that all categories are unique
             if len(set(output_cats)) != len(output_cats):
                 raise ValueError(
-                    "Error in merge_array_var_partial_cat_to_array_all_cats: Categories specified in output_cats are not unique. Check that categories are unique."
+                    "Error in merge_array_var_partial_cat_to_array_all_cats: Categories specified in output_cats are not unique. Check that categories are unique.",
                 )
 
         # return the array if all categories are specified
@@ -3033,7 +3033,7 @@ class ModelAttributes:
         # check variable first
         if modvar not in self.all_model_variables:
             raise ValueError(
-                f"Invalid model variable '{modvar}' found in get_variable_characteristic."
+                f"Invalid model variable '{modvar}' found in get_variable_characteristic.",
             )
 
         subsector = self.get_variable_subsector(modvar)
@@ -3115,7 +3115,7 @@ class ModelAttributes:
         if key_dict not in attr_cur.field_maps.keys():
             valid_units_to_match = sf.format_print_list(valid_units).lower()
             raise KeyError(
-                f"Invalid {unit_type_str} to match '{unit_to_match}': defined {unit_type_str} units to match are {valid_units_to_match}."
+                f"Invalid {unit_type_str} to match '{unit_to_match}': defined {unit_type_str} units to match are {valid_units_to_match}.",
             )
 
         # check unit and return if valid
@@ -3123,7 +3123,7 @@ class ModelAttributes:
         if out is None:
             valid_vals = sf.format_print_list(attr_cur.key_values)
             raise KeyError(
-                f"Invalid {unit_type_str} '{unit}': defined {unit_type_str} units are {valid_vals}."
+                f"Invalid {unit_type_str} '{unit}': defined {unit_type_str} units are {valid_vals}.",
             )
 
         return out
@@ -3212,7 +3212,7 @@ class ModelAttributes:
         attr_ener = self.dict_attributes.get(unit_energy_str_clean)
         name_energy_str_clean = unit_energy_str_clean.replace("unit_", "")
         secondary_key_values_energy = attr_ener.field_maps.get(
-            f"{attr_ener.key}_to_{name_energy_str_clean}"
+            f"{attr_ener.key}_to_{name_energy_str_clean}",
         )
         secondary_key_values_energy = (
             list(secondary_key_values_energy.values())
@@ -3224,7 +3224,7 @@ class ModelAttributes:
         attr_powr = self.dict_attributes.get(unit_power_str_clean)
         name_power_str_clean = unit_power_str_clean.replace("unit_", "")
         secondary_key_values_power = attr_powr.field_maps.get(
-            f"{attr_powr.key}_to_{name_power_str_clean}"
+            f"{attr_powr.key}_to_{name_power_str_clean}",
         )
         secondary_key_values_power = (
             list(secondary_key_values_power.values())
@@ -3260,7 +3260,7 @@ class ModelAttributes:
             valid_energy = sf.format_print_list(self.configuration.valid_energy).lower()
             valid_power = sf.format_print_list(self.configuration.valid_power).lower()
             raise KeyError(
-                f"Invalid input unit '{input_unit}' entered in get_energy_power_swap:\n\tDefined energy units include {valid_energy}\n\tDefined power units include {valid_power}"
+                f"Invalid input unit '{input_unit}' entered in get_energy_power_swap:\n\tDefined energy units include {valid_energy}\n\tDefined power units include {valid_power}",
             )
 
         output_unit = None if (output_unit == "none") else output_unit
@@ -3297,13 +3297,13 @@ class ModelAttributes:
         if key_dict not in self.dict_attributes["emission_gas"].field_maps.keys():
             valid_gwps = sf.format_print_list(self.configuration.valid_gwp)
             raise KeyError(
-                f"Invalid GWP '{gwp}': defined global warming potentials are {valid_gwps}."
+                f"Invalid GWP '{gwp}': defined global warming potentials are {valid_gwps}.",
             )
         # check gas and return if valid
         if gas in self.dict_attributes["emission_gas"].field_maps[key_dict].keys():
             return self.dict_attributes["emission_gas"].field_maps[key_dict][gas]
         valid_gasses = sf.format_print_list(
-            self.dict_attributes["emission_gas"].key_values
+            self.dict_attributes["emission_gas"].key_values,
         )
         raise KeyError(f"Invalid gas '{gas}': defined gasses are {valid_gasses}.")
 
@@ -3487,7 +3487,7 @@ class ModelAttributes:
         if return_type not in valid_rts:
             tps = sf.format_print_list(valid_rts)
             raise ValueError(
-                f"Invalid return type '{return_type}' in get_scalar: valid types are {tps}."
+                f"Invalid return type '{return_type}' in get_scalar: valid types are {tps}.",
             )
 
         # get scalars
@@ -3503,7 +3503,7 @@ class ModelAttributes:
         mass = self.get_variable_characteristic(modvar, self.varchar_str_unit_mass)
         scalar_mass = 1 if not mass else self.get_mass_equivalent(mass.lower())
         monetary = self.get_variable_characteristic(
-            modvar, self.varchar_str_unit_monetary
+            modvar, self.varchar_str_unit_monetary,
         )
         scalar_monetary = (
             1 if not monetary else self.get_monetary_equivalent(monetary.lower())
@@ -3567,14 +3567,14 @@ class ModelAttributes:
             df_fields_dims_notime = df_project[fields_dims_notime].drop_duplicates()
             if len(df_fields_dims_notime) > 1:
                 raise ValueError(
-                    f"Error in project: the input data frame contains multiple dimensions of analysis. The project method is restricted to a single dimension of analysis. The following dimensions were found:\n{df_fields_dims_notime}"
+                    f"Error in project: the input data frame contains multiple dimensions of analysis. The project method is restricted to a single dimension of analysis. The following dimensions were found:\n{df_fields_dims_notime}",
                 )
             dict_dims = dict(
                 zip(
                     fields_dims_notime,
                     list(df_fields_dims_notime.iloc[0]),
                     strict=False,
-                )
+                ),
             )
         else:
             dict_dims = {}
@@ -3605,7 +3605,7 @@ class ModelAttributes:
         if set_times_keep != set(range(min(set_times_keep), max(set_times_keep) + 1)):
             if not interpolate_missing_q:
                 raise ValueError(
-                    "Error in specified times: some time periods are missing and interpolate_missing_q = False. Modeling will not proceed. Set interpolate_missing_q = True to interpolate missing values."
+                    "Error in specified times: some time periods are missing and interpolate_missing_q = False. Modeling will not proceed. Set interpolate_missing_q = True to interpolate missing values.",
                 )
             set_times_keep = set(range(min(set_times_keep), max(set_times_keep) + 1))
             df_project = pd.merge(
@@ -3679,12 +3679,12 @@ class ModelAttributes:
             df_ext = None
             try:
                 df_ext = self.get_optional_or_integrated_standard_variable(
-                    df_source, var_int, None
+                    df_source, var_int, None,
                 )
             except Exception as e:
                 if stop_on_error:
                     raise RuntimeError(
-                        f"Error in transfer_df_variables: get_optional_or_integrated_standard_variable returned {e}."
+                        f"Error in transfer_df_variables: get_optional_or_integrated_standard_variable returned {e}.",
                     )
 
             if df_ext is not None:
@@ -3692,7 +3692,7 @@ class ModelAttributes:
                 varlist = self.build_varlist(subsec, var_int)
                 # drop variables that are already in the target df
                 vars_to_drop = list(
-                    set(df_ext[1].columns) & set(dfs_extract[0].columns) & set(varlist)
+                    set(df_ext[1].columns) & set(dfs_extract[0].columns) & set(varlist),
                 )
                 if len(vars_to_drop) > 0:
                     if overwrite_targets:
@@ -3742,7 +3742,7 @@ class ModelAttributes:
                 dict_totals[subsec] += array_cur
             else:
                 warning(
-                    f"In _add_specified_total_fields_to_emission_total, subsector '{subsec}' not found. Skipping..."
+                    f"In _add_specified_total_fields_to_emission_total, subsector '{subsec}' not found. Skipping...",
                 )
 
         # next, update dataframe
@@ -3794,7 +3794,7 @@ class ModelAttributes:
             for var in vars_subsec:
                 var_type = self.get_variable_attribute(var, "variable_type").lower()
                 gas = self.get_variable_characteristic(
-                    var, self.varchar_str_emission_gas
+                    var, self.varchar_str_emission_gas,
                 )
 
                 if (var_type == "output") and gas:
@@ -3815,11 +3815,11 @@ class ModelAttributes:
                 str_mf = f"Missing fields {str_mf}.%s"
                 if stop_on_missing_fields_q:
                     raise ValueError(
-                        str_mf % (" Subsector emission totals will not be added.")
+                        str_mf % (" Subsector emission totals will not be added."),
                     )
 
                 warnings.warn(
-                    str_mf % (" Subsector emission totals will exclude these fields.")
+                    str_mf % (" Subsector emission totals will exclude these fields."),
                 )
 
             keep_fields = [x for x in flds_add if x in df_in.columns]
@@ -3866,7 +3866,7 @@ class ModelAttributes:
         )
 
         key_attr = self.get_dimensional_attribute(
-            self.dim_time_period, return_type="pydim"
+            self.dim_time_period, return_type="pydim",
         )
         attribute_time_period = self.dict_attributes[key_attr]
 
@@ -3885,7 +3885,7 @@ class ModelAttributes:
 
         else:
             raise ValueError(
-                f"Invalid direction '{direction}' in exchange_year_time_period: specify 'time_period_to_year' or 'year_to_time_period'."
+                f"Invalid direction '{direction}' in exchange_year_time_period: specify 'time_period_to_year' or 'year_to_time_period'.",
             )
 
         return df_out
@@ -3936,7 +3936,7 @@ class ModelAttributes:
         if include_scalars:
             # get scalars
             gas = self.get_variable_characteristic(
-                modvar, self.varchar_str_emission_gas
+                modvar, self.varchar_str_emission_gas,
             )
             mass = self.get_variable_characteristic(modvar, self.varchar_str_unit_mass)
 
@@ -3948,7 +3948,7 @@ class ModelAttributes:
         if len(fields) != arr_in.shape[1]:
             flds_print = sf.format_print_list(fields)
             raise ValueError(
-                f"Array shape mismatch for fields {flds_print}: the array only has {arr_in.shape[1]} columns."
+                f"Array shape mismatch for fields {flds_print}: the array only has {arr_in.shape[1]} columns.",
             )
 
         return pd.DataFrame(arr_in * scalar_em * scalar_me, columns=fields)
@@ -4008,12 +4008,12 @@ class ModelAttributes:
         str_valid_types = sf.format_print_list(valid_types)
         if type_table not in valid_types:
             raise ValueError(
-                f"Invalid type_primary '{type_primary}' specified. Valid values are '{str_valid_types}'."
+                f"Invalid type_primary '{type_primary}' specified. Valid values are '{str_valid_types}'.",
             )
 
         # retrieve the attribute table and check the field specification
         attr_subsector = self.get_attribute_table(
-            subsector, dict_valid_types_to_attribute_keys[type_table]
+            subsector, dict_valid_types_to_attribute_keys[type_table],
         )
         sf.check_fields(attr_subsector.table, [field_attribute])
 
@@ -4026,7 +4026,7 @@ class ModelAttributes:
                     skip_none_q=True,
                     attr_type=dict_valid_types_to_attribute_keys[type_table],
                 ),
-            )
+            ),
         )
         all_field_values.sort()
 
@@ -4053,9 +4053,9 @@ class ModelAttributes:
             dict_vals_unassigned.update(
                 {
                     dict_out_key: list(
-                        set(dict_assignment.values()) - set(dict_assigned.keys())
-                    )
-                }
+                        set(dict_assignment.values()) - set(dict_assigned.keys()),
+                    ),
+                },
             )
 
         return dict_out, dict_vals_unassigned
@@ -4093,10 +4093,10 @@ class ModelAttributes:
             for subsector in subsectors_cur:
                 for variable in self.dict_model_variables_by_subsector[subsector]:
                     variable_type = self.get_variable_attribute(
-                        variable, "variable_type"
+                        variable, "variable_type",
                     )
                     variable_calculation = self.get_variable_attribute(
-                        variable, "internal_model_variable"
+                        variable, "internal_model_variable",
                     )
 
                     # check that variables are input/not calculated internally
@@ -4203,11 +4203,11 @@ class ModelAttributes:
         # use an exogenous specification of variable trajectory groups?
         if isinstance(df_trajgroup, pd.DataFrame):
             fields_sort_with_tg = fields_sort + [
-                field_variable_trajectory_group
+                field_variable_trajectory_group,
             ]  # HEREHERE
 
             if set([field_variable, field_variable_trajectory_group]).issubset(
-                set(df_trajgroup.columns)
+                set(df_trajgroup.columns),
             ):
                 df_trajgroup.dropna(
                     subset=[field_variable, field_variable_trajectory_group],
@@ -4220,7 +4220,7 @@ class ModelAttributes:
                 if field_variable_trajectory_group in df_out.columns:
                     vars_to_assign = sorted(list(df_trajgroup[field_variable].unique()))
                     tgs_to_assign = sorted(
-                        list(df_trajgroup[field_variable_trajectory_group].unique())
+                        list(df_trajgroup[field_variable_trajectory_group].unique()),
                     )
                     # split into values to keep (but re-index) and those to overwrite
                     df_out_keep = df_out[~df_out[field_variable].isin(vars_to_assign)]
@@ -4233,7 +4233,7 @@ class ModelAttributes:
 
                     # get values to reindex and apply
                     dict_to_reindex = sorted(
-                        list(set(df_out_keep[field_variable_trajectory_group]))
+                        list(set(df_out_keep[field_variable_trajectory_group])),
                     )
                     dict_to_reindex = dict(
                         (x, i + max(tgs_to_assign) + 1)
@@ -4386,7 +4386,7 @@ class ModelAttributes:
 
             if (cat_i not in var_schema) or (cat_j not in var_schema):
                 raise ValueError(
-                    f"Error in {var} variable schema: one of the outer categories '{cat_i}' or '{cat_j}' was not found. Check the attribute file."
+                    f"Error in {var} variable schema: one of the outer categories '{cat_i}' or '{cat_j}' was not found. Check the attribute file.",
                 )
 
             for catval_i in dict_vars_to_cats[var]:
@@ -4488,7 +4488,7 @@ class ModelAttributes:
                 else restrict_to_category_values
             )
         valid_cats = self.check_category_restrictions(
-            restrict_to_category_values, attribute_table
+            restrict_to_category_values, attribute_table,
         )
 
         ##  START BUILDING VARLIST
@@ -4562,10 +4562,10 @@ class ModelAttributes:
 
         if len(dict_vrp_vvs_outer) > 0:
             vl = self.build_vars_outer(
-                dict_vrp_vvs_outer, dict_vrp_vvs_cats_outer, category
+                dict_vrp_vvs_outer, dict_vrp_vvs_cats_outer, category,
             )
             vars_out += self.build_vars_outer(
-                dict_vrp_vvs_outer, dict_vrp_vvs_cats_outer, category
+                dict_vrp_vvs_outer, dict_vrp_vvs_cats_outer, category,
             )
 
         return vars_out
@@ -4593,7 +4593,7 @@ class ModelAttributes:
             if not isinstance(categories_to_restrict_to, list):
                 if stop_process_on_error:
                     raise TypeError(
-                        "Invalid type of categories_to_restrict_to: valid types are 'None' and 'list'."
+                        "Invalid type of categories_to_restrict_to: valid types are 'None' and 'list'.",
                     )
                 return None
 
@@ -4606,7 +4606,7 @@ class ModelAttributes:
                     x
                     for x in categories_to_restrict_to
                     if (x not in attribute_table.key_values)
-                ]
+                ],
             )
 
             if len(invalid_cats) > 0:
@@ -4644,7 +4644,7 @@ class ModelAttributes:
                 if len(missing_vals) > 0:
                     missing_vals = sf.format_print_list(missing_vals)
                     warnings.warn(
-                        f"clean_partial_category_dictionary: Invalid categories values {missing_vals} dropped when cleaning the dictionary. Category values not found."
+                        f"clean_partial_category_dictionary: Invalid categories values {missing_vals} dropped when cleaning the dictionary. Category values not found.",
                     )
         return dict_in
 
@@ -4766,7 +4766,7 @@ class ModelAttributes:
         for modvar in modvars:
             if modvar not in self.dict_model_variables_to_variables.keys():
                 raise ValueError(
-                    f"Invalid variable specified in get_standard_variables: variable '{modvar}' not found."
+                    f"Invalid variable specified in get_standard_variables: variable '{modvar}' not found.",
                 )
 
             subsector_cur = self.get_variable_subsector(modvar)
@@ -4777,7 +4777,7 @@ class ModelAttributes:
                 init_q = False
             elif subsector_cur != subsector:
                 raise ValueError(
-                    "Error in get_multivariables_with_bounded_sum_by_category: variables must be from the same subsector."
+                    "Error in get_multivariables_with_bounded_sum_by_category: variables must be from the same subsector.",
                 )
 
             # get current variable, merge to all categories, update dictionary, and check totals
@@ -4801,13 +4801,13 @@ class ModelAttributes:
             w = np.where(arr > sum_restriction + correction_threshold)[0]
             if len(w) > 0:
                 raise ValueError(
-                    f"Invalid summations found: some categories exceed the sum threshold.{msg_append}"
+                    f"Invalid summations found: some categories exceed the sum threshold.{msg_append}",
                 )
 
             # find locations where the array is in the "in-between" and correct
             w = np.where(
                 (arr <= sum_restriction + correction_threshold)
-                & (arr > sum_restriction)
+                & (arr > sum_restriction),
             )
 
             if len(w[0]) > 0:
@@ -4928,7 +4928,7 @@ class ModelAttributes:
         elif isinstance(sectors_project, str):
             list_out = sectors_project.split(delim)
         elif isinstance(sectors_project, list) or isinstance(
-            sectors_project, np.ndarray
+            sectors_project, np.ndarray,
         ):
             list_out = list(sectors_project)
 
@@ -5125,7 +5125,7 @@ class ModelAttributes:
 
         if modvar not in self.dict_model_variables_to_variables.keys():
             raise ValueError(
-                f"Invalid variable specified in get_standard_variables: variable '{modvar}' not found."
+                f"Invalid variable specified in get_standard_variables: variable '{modvar}' not found.",
             )
 
         flds = self.dict_model_variables_to_variables.get(modvar)
@@ -5139,7 +5139,7 @@ class ModelAttributes:
         if not flds_check.issubset(set(df_in.columns)):
             if throw_error_on_missing_fields:
                 raise ValueError(
-                    f"Invalid variable specified in get_standard_variables: variable '{modvar}' not found."
+                    f"Invalid variable specified in get_standard_variables: variable '{modvar}' not found.",
                 )
             return None
 
@@ -5174,7 +5174,7 @@ class ModelAttributes:
             var_bounds = [x for x in var_bounds if type(x) in [int, float]]
             if len(var_bounds) <= 1:
                 raise ValueError(
-                    f"Invalid specification of variable bounds '{var_bounds}': there must be a maximum and a minimum numeric value specified."
+                    f"Invalid specification of variable bounds '{var_bounds}': there must be a maximum and a minimum numeric value specified.",
                 )
 
             # ensure array
@@ -5205,7 +5205,7 @@ class ModelAttributes:
         if expand_to_all_cats:
             out = np.array([out]).transpose() if (len(out.shape) == 1) else out
             out = self.merge_array_var_partial_cat_to_array_all_cats(
-                np.array(out), modvar, missing_vals=all_cats_missing_val
+                np.array(out), modvar, missing_vals=all_cats_missing_val,
             )
             if return_type == "data_frame":
                 sec = self.get_variable_subsector(modvar)
@@ -5276,7 +5276,7 @@ class ModelAttributes:
                             l_vars,
                             [key_type.replace("key_varreqs_", "") for x in l_vars],
                             strict=False,
-                        )
+                        ),
                     ),
                 )
 
@@ -5294,7 +5294,7 @@ class ModelAttributes:
         # check variable first
         if variable not in self.all_model_variables:
             raise ValueError(
-                f"Invalid model variable '{variable}' found in get_variable_characteristic."
+                f"Invalid model variable '{variable}' found in get_variable_characteristic.",
             )
 
         subsector = self.dict_model_variable_to_subsector[variable]
@@ -5302,7 +5302,7 @@ class ModelAttributes:
             variable
         ]
         key_varreqs = self.get_subsector_attribute(
-            subsector, f"key_varreqs_{cat_restriction_type}"
+            subsector, f"key_varreqs_{cat_restriction_type}",
         )
         key_fm = f"variable_to_{attribute}"
 
@@ -5367,7 +5367,7 @@ class ModelAttributes:
         self.check_subsector(subsector)
         if var_type not in ["all", "partial"]:
             raise ValueError(
-                f"Invalid var_type '{var_type}' in get_variable_from_category: valid types are 'all', 'partial'"
+                f"Invalid var_type '{var_type}' in get_variable_from_category: valid types are 'all', 'partial'",
             )
 
         # get the value from the dictionary
@@ -5393,7 +5393,7 @@ class ModelAttributes:
 
         if (val_out is None) and throw_error_q:
             raise KeyError(
-                f"Invalid model variable '{modvar}': model variable not found."
+                f"Invalid model variable '{modvar}': model variable not found.",
             )
 
         return val_out
@@ -5436,10 +5436,10 @@ class ModelAttributes:
         # check values
         if units not in dict_valid_units:
             str_valid_units = sf.format_print_list(
-                sorted(list(dict_valid_units.keys()))
+                sorted(list(dict_valid_units.keys())),
             )
             raise ValueError(
-                f"Invalid units '{units}' specified in get_variable_conversion_factor: valid values are {str_valid_units}"
+                f"Invalid units '{units}' specified in get_variable_conversion_factor: valid values are {str_valid_units}",
             )
 
         # get arguments
@@ -5482,7 +5482,7 @@ class ModelAttributes:
             vars_both = sorted(vars_input + vars_output)
             return vars_both
         raise ValueError(
-            f"Invalid return_var_type specification '{return_var_type}' in get_variables_by_sector: valid values are 'input', 'output', and 'both'."
+            f"Invalid return_var_type specification '{return_var_type}' in get_variables_by_sector: valid values are 'input', 'output', and 'both'.",
         )
 
     def get_variables_from_attribute(
@@ -5737,7 +5737,7 @@ class ModelAttributes:
             if variable_type is not None:
                 if variable is not None:
                     warnings.warn(
-                        "variable and variable_type both specified in separate_varreq_dict_for_outer: the variable assignment is higher priority, and variable_type will be ignored."
+                        "variable and variable_type both specified in separate_varreq_dict_for_outer: the variable assignment is higher priority, and variable_type will be ignored.",
                     )
                 else:
                     dict_var_types = self.dict_varreqs[
@@ -5766,7 +5766,7 @@ class ModelAttributes:
                 [dict_vr_vtf.pop(x) for x in vars_outer]
             except:
                 raise ValueError(
-                    f"Invalid attribute table designations found in subsector '{subsector}': check the field '{target_field}'."
+                    f"Invalid attribute table designations found in subsector '{subsector}': check the field '{target_field}'.",
                 )
 
             if variable != None:
@@ -5815,7 +5815,7 @@ class ModelAttributes:
         attr = self.get_attribute_table(subsector)
         if len(set(vec_ordered_cats_source) & set(vec_ordered_cats_target)) > 0:
             warnings.warn(
-                "Invalid swap specification in 'swap_array_categories': categories can only exist in source or target"
+                "Invalid swap specification in 'swap_array_categories': categories can only exist in source or target",
             )
             return array_in
 
@@ -5837,7 +5837,7 @@ class ModelAttributes:
         if len(set_drops_source) > 0:
             vals_dropped_source = sf.format_print_list(list(set_drops_source))
             warnings.warn(
-                f"Source values {vals_dropped_source} dropped in swap_array_categories (either not well-defined categories or there was no associated target category)."
+                f"Source values {vals_dropped_source} dropped in swap_array_categories (either not well-defined categories or there was no associated target category).",
             )
 
         # some warnings - target
@@ -5845,7 +5845,7 @@ class ModelAttributes:
         if len(set_drops_target) > 0:
             vals_dropped_target = sf.format_print_list(list(set_drops_target))
             warnings.warn(
-                f"target values {vals_dropped_target} dropped in swap_array_categories (either not well-defined categories or there was no associated target category)."
+                f"target values {vals_dropped_target} dropped in swap_array_categories (either not well-defined categories or there was no associated target category).",
             )
 
         # build dictionary and set up the new categories
@@ -5880,13 +5880,13 @@ class ModelAttributes:
         sf.check_keys(self.dict_model_variable_to_subsector, [target_variable])
         target_subsector = self.dict_model_variable_to_subsector.get(target_variable)
         pycat_primary_source = self.get_subsector_attribute(
-            source_subsector, "pycategory_primary"
+            source_subsector, "pycategory_primary",
         )
 
         if dict_force_override is None:
             key_dict = f"{pycat_primary_source}_to_{attribute_field}"
             sf.check_keys(
-                self.dict_attributes[pycat_primary_source].field_maps, [key_dict]
+                self.dict_attributes[pycat_primary_source].field_maps, [key_dict],
             )
             dict_repl = self.dict_attributes[pycat_primary_source].field_maps[key_dict]
         else:
@@ -5896,7 +5896,7 @@ class ModelAttributes:
             self.dict_attributes[pycat_primary_source].key_values
             if cats_to_switch is None
             else self.check_category_restrictions(
-                cats_to_switch, self.dict_attributes.get(pycat_primary_source)
+                cats_to_switch, self.dict_attributes.get(pycat_primary_source),
             )
         )
         cats_target = [dict_repl[x].replace("`", "") for x in cats_all]
@@ -5933,12 +5933,12 @@ class ModelAttributes:
         pycat_primary = self.get_subsector_attribute(subsector, "pycategory_primary")
         df_tmp = self.dict_attributes[pycat_primary].table
         sum_cvs = list(
-            df_tmp[df_tmp[attribute_sum_specification_field].isin([1])][pycat_primary]
+            df_tmp[df_tmp[attribute_sum_specification_field].isin([1])][pycat_primary],
         )
 
         # get the variable list, check, and add to output
         fields_sum = self.build_varlist(
-            subsector, variable_subsec=variable, restrict_to_category_values=sum_cvs
+            subsector, variable_subsec=variable, restrict_to_category_values=sum_cvs,
         )
 
         # check return types
@@ -5947,7 +5947,7 @@ class ModelAttributes:
         if return_type == "category_values":
             return sum_cvs
         raise ValueError(
-            f"Invalid return_type '{return_type}'. Please specify 'fields' or 'category_values'."
+            f"Invalid return_type '{return_type}'. Please specify 'fields' or 'category_values'.",
         )
 
     def get_simple_input_to_output_emission_arrays(
@@ -5982,21 +5982,21 @@ class ModelAttributes:
             )
             if subsector_driver != subsector_driver:
                 warnings.warn(
-                    f"In get_simple_input_to_output_emission_arrays, driver variable '{variable_driver}' and emission variable '{var}' are in different sectors. This instance will be skipped."
+                    f"In get_simple_input_to_output_emission_arrays, driver variable '{variable_driver}' and emission variable '{var}' are in different sectors. This instance will be skipped.",
                 )
             else:
                 # get emissions factor fields and apply scalar using get_standard_variables - then, scale to ensure it is in the proper terms of the driver
                 arr_ef = np.array(
                     self.get_standard_variables(
-                        df_ef, var, True, "array_units_corrected"
-                    )
+                        df_ef, var, True, "array_units_corrected",
+                    ),
                 )
                 try:
                     scalar_units = (
                         scale_factor
                         if (scale_factor is not None)
                         else self.get_variable_unit_conversion_factor(
-                            variable_driver, var, driver_unit_type
+                            variable_driver, var, driver_unit_type,
                         )
                     )
                 except:
@@ -6007,9 +6007,9 @@ class ModelAttributes:
                     np.array(
                         df_driver[
                             self.build_target_varlist_from_source_varcats(
-                                var, variable_driver
+                                var, variable_driver,
                             )
-                        ]
+                        ],
                     )
                     * scalar_units
                 )
@@ -6037,7 +6037,7 @@ class ModelAttributes:
         if action not in valid_actions:
             str_valid = sf.format_print_list(valid_actions)
             raise ValueError(
-                f"Invalid actoion '{action}': valid actions are {str_valid}."
+                f"Invalid actoion '{action}': valid actions are {str_valid}.",
             )
         if action == "check":
             return True if (field_check in df_in.columns) else False

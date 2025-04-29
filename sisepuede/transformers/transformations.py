@@ -243,10 +243,10 @@ class Transformation:
 
         key_identifiers = kwargs.get("key_identifiers", _DICT_KEYS.get("identifiers"))
         key_transformation_code = kwargs.get(
-            "key_transformation_code", _DICT_KEYS.get("code")
+            "key_transformation_code", _DICT_KEYS.get("code"),
         )
         key_transformation_name = kwargs.get(
-            "key_transformation_name", _DICT_KEYS.get("name")
+            "key_transformation_name", _DICT_KEYS.get("name"),
         )
 
         key_yc_trasformation_code = f"{key_identifiers}.{key_transformation_code}"
@@ -256,7 +256,7 @@ class Transformation:
 
         self.key_citations = kwargs.get("key_citations", _DICT_KEYS.get("citations"))
         self.key_description = kwargs.get(
-            "key_description", _DICT_KEYS.get("description")
+            "key_description", _DICT_KEYS.get("description"),
         )
         self.key_identifiers = key_identifiers
         self.key_parameters = kwargs.get("key_parameters", _DICT_KEYS.get("parameters"))
@@ -264,7 +264,7 @@ class Transformation:
         self.key_transformation_id = _DICT_KEYS.get("id")
         self.key_transformation_name = key_transformation_name
         self.key_transformer = kwargs.get(
-            "key_transformer", _DICT_KEYS.get("transformer")
+            "key_transformer", _DICT_KEYS.get("transformer"),
         )
         self.key_yc_trasformation_code = key_yc_trasformation_code
         self.key_yc_trasformation_name = key_yc_trasformation_name
@@ -299,7 +299,7 @@ class Transformation:
         transformer = transformers.get_transformer(transformer_code)
         if not trs.is_transformer(transformer):
             raise RuntimeError(
-                f"Invalid transformation '{transformer_code}' found in Transformers"
+                f"Invalid transformation '{transformer_code}' found in Transformers",
             )
 
         # get arguments to the function
@@ -416,7 +416,7 @@ class Transformations:
         fn_config_general: str = _DICT_FILE_NAME_DEFAULTS.get("config_general"),
         logger: Union[logging.Logger, None] = None,
         regex_transformation_config: re.Pattern = re.compile(
-            rf"{_TRANSFORMATION_REGEX_FLAG_PREPEND}_(.\w*).yaml"
+            rf"{_TRANSFORMATION_REGEX_FLAG_PREPEND}_(.\w*).yaml",
         ),
         stop_on_error: bool = True,
         transformers: Union[trs.Transformers, None] = None,
@@ -471,7 +471,7 @@ class Transformations:
         )
 
         warnings.warn(
-            "NOTE: citations mechanism in Transformations needs to be set. See _initialize_citations()"
+            "NOTE: citations mechanism in Transformations needs to be set. See _initialize_citations()",
         )
 
     def _initialize_config(
@@ -577,10 +577,10 @@ class Transformations:
 
                 if transformation.code in dict_all_transformations:
                     fp_existing = dict_transformation_code_to_fp.get(
-                        transformation.code
+                        transformation.code,
                     )
                     raise KeyError(
-                        f"Transformation code {transformation.code} already specified in file '{fp_existing}'."
+                        f"Transformation code {transformation.code} already specified in file '{fp_existing}'.",
                     )
 
             except Exception as e:
@@ -871,7 +871,7 @@ class Transformations:
 
         if len(fps_transformation) == 0:
             warnings.warn(
-                f"No valid Transformation configuration files were found in '{path_init}'."
+                f"No valid Transformation configuration files were found in '{path_init}'.",
             )
 
         dict_out.update({self.key_path_transformations: fps_transformation})

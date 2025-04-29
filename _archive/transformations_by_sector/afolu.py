@@ -205,7 +205,7 @@ class TransformersAFOLU:
         error_q = error_q | (model_attributes is None)
         if error_q:
             raise RuntimeError(
-                "Error: invalid specification of model_attributes in TransformersAFOLU"
+                "Error: invalid specification of model_attributes in TransformersAFOLU",
             )
 
         # get strategy attribute, baseline strategy, and some fields
@@ -516,7 +516,7 @@ class TransformersAFOLU:
             attr_strategy,
         )
         all_transformations.append(
-            self.af_all_with_deforestation_and_partial_reallocation
+            self.af_all_with_deforestation_and_partial_reallocation,
         )
 
         """
@@ -617,7 +617,7 @@ class TransformersAFOLU:
             )
         )
         all_transformations.append(
-            self.agrc_increase_crop_productivity_with_partial_reallocation
+            self.agrc_increase_crop_productivity_with_partial_reallocation,
         )
 
         self.agrc_reduce_supply_chain_losses = trl.Transformer(
@@ -638,7 +638,7 @@ class TransformersAFOLU:
             )
         )
         all_transformations.append(
-            self.agrc_reduce_supply_chain_losses_with_partial_reallocation
+            self.agrc_reduce_supply_chain_losses_with_partial_reallocation,
         )
 
         ##############################
@@ -686,7 +686,7 @@ class TransformersAFOLU:
             attr_strategy,
         )
         all_transformations.append(
-            self.lndu_expand_silvopasture_with_partial_reallocation
+            self.lndu_expand_silvopasture_with_partial_reallocation,
         )
 
         self.lndu_stop_deforestation = trl.Transformer(
@@ -790,7 +790,7 @@ class TransformersAFOLU:
             attr_strategy,
         )
         all_transformations.append(
-            self.lvst_increase_productivity_with_partial_reallocation
+            self.lvst_increase_productivity_with_partial_reallocation,
         )
 
         self.lvst_reduce_enteric_fermentation = trl.Transformer(
@@ -873,7 +873,7 @@ class TransformersAFOLU:
         n_tp = len(self.time_periods.all_time_periods)  # 25
 
         vec_out = np.array(
-            [max(0, min((x - tp_0) / n_years_ramp, 1)) for x in range(n_tp)]
+            [max(0, min((x - tp_0) / n_years_ramp, 1)) for x in range(n_tp)],
         )
 
         return vec_out
@@ -1531,7 +1531,7 @@ class TransformersAFOLU:
 
         # get ag cats
         cats_ag = self.model_attributes.get_attribute_table(
-            self.model_attributes.subsec_name_agrc
+            self.model_attributes.subsec_name_agrc,
         )
         cats_ag = cats_ag.key_values
 

@@ -121,7 +121,7 @@ class Configuration:
                 if val not in dict_valid_values[param]:
                     valid_vals = sf.format_print_list(dict_valid_values[param])
                     raise ValueError(
-                        f"Invalid specification of configuration parameter '{param}': {param} '{val}' not found. Valid values are {valid_vals}"
+                        f"Invalid specification of configuration parameter '{param}': {param} '{val}' not found. Valid values are {valid_vals}",
                     )
 
         return vals
@@ -185,10 +185,10 @@ class Configuration:
         # update with defaults if a value is missing in the specified configuration
         if attr_parameters_required is not None:
             dict_key_to_required_param = attr_parameters_required.field_maps.get(
-                f"{attr_parameters_required.key}_to_{field_req_param}"
+                f"{attr_parameters_required.key}_to_{field_req_param}",
             )
             dict_key_to_default_value = attr_parameters_required.field_maps.get(
-                f"{attr_parameters_required.key}_to_{field_default_val}"
+                f"{attr_parameters_required.key}_to_{field_default_val}",
             )
 
             if (
@@ -330,17 +330,17 @@ class Configuration:
         dict_conf.update(
             {
                 "historical_back_proj_n_periods": max(
-                    dict_conf.get("historical_back_proj_n_periods"), 1
+                    dict_conf.get("historical_back_proj_n_periods"), 1,
                 ),
                 "nemomod_solver_time_limit_seconds": max(
-                    dict_conf.get("nemomod_solver_time_limit_seconds"), 60
+                    dict_conf.get("nemomod_solver_time_limit_seconds"), 60,
                 ),  # set minimum solver limit to 60 seconds
                 "num_lhc_samples": max(dict_conf.get("num_lhc_samples", 0), 0),
                 "save_inputs": bool(
-                    str(dict_conf.get("save_inputs")).lower() == "true"
+                    str(dict_conf.get("save_inputs")).lower() == "true",
                 ),
                 "random_seed": max(dict_conf.get("random_seed"), 1),
-            }
+            },
         )
 
         # set some attributes
@@ -441,7 +441,7 @@ class Configuration:
                 lines_config = fl.readlines()
         else:
             raise ValueError(
-                f"Invalid configuation file {fp_config} specified: file not found."
+                f"Invalid configuation file {fp_config} specified: file not found.",
             )
 
         dict_out = {}

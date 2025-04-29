@@ -547,8 +547,8 @@ class LHSDesign:
                - x: the trial to transform
                - design_id: index in design AttributeTable to use to govern
 
-               Keyword Arguments:
-               -----------------
+        Keyword Arguments:
+        -----------------
                - attr_design: AttributeTable used to pull m, b, inf, and sup
                - field_transform_b: field in AttributeTable giving the value of `b` for each design_id
                - field_transform_m: field in AttributeTable giving the value of `m` for each design_id

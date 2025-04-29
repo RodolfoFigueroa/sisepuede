@@ -78,7 +78,7 @@ def transformation_ippu_scale_emission_factor(
         # LOGGING
         return df_input
     attr_gas = model_attributes.get_other_attribute_table(
-        "emission_gas"
+        "emission_gas",
     ).attribute_table
     attr_ippu = model_attributes.get_attribute_table(model_attributes.subsec_name_ippu)
 
@@ -126,11 +126,11 @@ def transformation_ippu_scale_emission_factor(
                         "magnitude": float(sf.vec_bounds(v, (0.0, np.inf))),
                         "magnitude_type": "baseline_scalar",
                         "time_period_baseline": tbg.get_time_period(
-                            model_attributes, "max"
+                            model_attributes, "max",
                         ),
                         "vec_ramp": vec_ramp,
                     },
-                }
+                },
             )
 
     # call general transformation

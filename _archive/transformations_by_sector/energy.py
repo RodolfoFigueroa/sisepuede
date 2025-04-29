@@ -138,7 +138,7 @@ class TransformersEnergy:
         dict_config = self.config if not isinstance(dict_config, dict) else dict_config
 
         cats_entc_max_investment_ramp = self.config.get(
-            self.key_config_cats_entc_max_investment_ramp
+            self.key_config_cats_entc_max_investment_ramp,
         )
         cats_entc_max_investment_ramp = (
             list(cats_entc_max_investment_ramp)
@@ -209,7 +209,7 @@ class TransformersEnergy:
         cats_renewable = [x for x in cats_renewable if x in attr_tech.key_values]
 
         dict_entc_renewable_target_msp = dict_config.get(
-            self.key_config_dict_entc_renewable_target_msp
+            self.key_config_dict_entc_renewable_target_msp,
         )
         dict_entc_renewable_target_msp = (
             {}
@@ -308,16 +308,16 @@ class TransformersEnergy:
         cats_inen_fuel_switching = set({})
         for modvar in modvars_inen_fuel_switching:
             cats_inen_fuel_switching = cats_inen_fuel_switching | set(
-                self.model_attributes.get_variable_categories(modvar)
+                self.model_attributes.get_variable_categories(modvar),
             )
         cats_inen_not_high_heat = sorted(
-            list(cats_inen_fuel_switching - set(cats_inen_high_heat))
+            list(cats_inen_fuel_switching - set(cats_inen_high_heat)),
         )
 
         # fraction of energy that can be moved to electric/hydrogen, representing high heat transfer
         default_frac_inen_high_temp_elec_hydg = 0.5 * 0.45
         frac_inen_high_temp_elec_hydg = dict_config.get(
-            self.key_config_frac_inen_high_temp_elec_hydg
+            self.key_config_frac_inen_high_temp_elec_hydg,
         )
         frac_inen_high_temp_elec_hydg = (
             default_frac_inen_high_temp_elec_hydg
@@ -328,7 +328,7 @@ class TransformersEnergy:
         # fraction of energy that can be moved to electric, representing low heat transfer
         default_frac_inen_low_temp_elec = 0.95 * 0.45
         frac_inen_low_temp_elec = dict_config.get(
-            self.key_config_frac_inen_low_temp_elec
+            self.key_config_frac_inen_low_temp_elec,
         )
         frac_inen_low_temp_elec = (
             default_frac_inen_low_temp_elec
@@ -406,7 +406,7 @@ class TransformersEnergy:
         # get VIR (get_vir_max_capacity) delta_frac
         default_vir_renewable_cap_delta_frac = 0.01
         vir_renewable_cap_delta_frac = dict_config.get(
-            self.key_config_vir_renewable_cap_delta_frac
+            self.key_config_vir_renewable_cap_delta_frac,
         )
         vir_renewable_cap_delta_frac = (
             default_vir_renewable_cap_delta_frac
@@ -414,13 +414,13 @@ class TransformersEnergy:
             else vir_renewable_cap_delta_frac
         )
         vir_renewable_cap_delta_frac = float(
-            sf.vec_bounds(vir_renewable_cap_delta_frac, (0.0, 1.0))
+            sf.vec_bounds(vir_renewable_cap_delta_frac, (0.0, 1.0)),
         )
 
         # get VIR (get_vir_max_capacity) max_frac
         default_vir_renewable_cap_max_frac = 0.05
         vir_renewable_cap_max_frac = dict_config.get(
-            self.key_config_vir_renewable_cap_max_frac
+            self.key_config_vir_renewable_cap_max_frac,
         )
         vir_renewable_cap_max_frac = (
             default_vir_renewable_cap_max_frac
@@ -428,7 +428,7 @@ class TransformersEnergy:
             else vir_renewable_cap_max_frac
         )
         vir_renewable_cap_max_frac = float(
-            sf.vec_bounds(vir_renewable_cap_max_frac, (0.0, 1.0))
+            sf.vec_bounds(vir_renewable_cap_max_frac, (0.0, 1.0)),
         )
 
         tup_out = (
@@ -460,7 +460,7 @@ class TransformersEnergy:
         error_q = error_q | (model_attributes is None)
         if error_q:
             raise RuntimeError(
-                "Error: invalid specification of model_attributes in transformations_energy"
+                "Error: invalid specification of model_attributes in transformations_energy",
             )
 
         # get strategy attribute, baseline strategy, and some fields
@@ -663,7 +663,7 @@ class TransformersEnergy:
         ) = self.get_ramp_characteristics()
 
         dict_entc_renewable_target_msp = self.get_entc_dict_renewable_target_msp(
-            cats_renewable
+            cats_renewable,
         )
 
         # get some INEN paraemeters ()
@@ -1499,7 +1499,7 @@ class TransformersEnergy:
         n_tp = len(self.time_periods.all_time_periods)
 
         vec_out = np.array(
-            [max(0, min((x - tp_0) / n_tp_ramp, 1)) for x in range(n_tp)]
+            [max(0, min((x - tp_0) / n_tp_ramp, 1)) for x in range(n_tp)],
         )
 
         return vec_out
@@ -1524,7 +1524,7 @@ class TransformersEnergy:
             [
                 (self.model_enerprod.drop_flag_tech_capacities if (x == 0) else 0)
                 for x in vec_ramp
-            ]
+            ],
         )
 
         return vec_out
@@ -1747,13 +1747,13 @@ class TransformersEnergy:
             else:
                 i0 = i if (i0 is None) else i0
                 vec_implementation_ramp_max_capacity[i] = max(
-                    max_frac - delta_frac * (i - i0), 0.0
+                    max_frac - delta_frac * (i - i0), 0.0,
                 )
 
         if isinstance(dict_values_to_inds, dict):
             for k in dict_values_to_inds.keys():
                 np.put(
-                    vec_implementation_ramp_max_capacity, dict_values_to_inds.get(k), k
+                    vec_implementation_ramp_max_capacity, dict_values_to_inds.get(k), k,
                 )
 
         return vec_implementation_ramp_max_capacity
@@ -1828,10 +1828,10 @@ class TransformersEnergy:
         # if greater than the target for the baseline, scale them proportionally; otherwise, leave them
         target_renewables_value_min = 0.15
         target_renewables_value_base_specified = sum(
-            self.dict_entc_renewable_target_msp.values()
+            self.dict_entc_renewable_target_msp.values(),
         )
         scalar_renewables_value_base = min(
-            target_renewables_value_min / target_renewables_value_base_specified, 1.0
+            target_renewables_value_min / target_renewables_value_base_specified, 1.0,
         )
 
         # build the dictionary

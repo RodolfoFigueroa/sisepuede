@@ -78,7 +78,7 @@ class MixedLNDUTransitionFromBounds:
         * self.model_afolu
         """
         attr_lndu = self.model_attributes.get_attribute_table(
-            self.model_attributes.subsec_name_lndu
+            self.model_attributes.subsec_name_lndu,
         )
         model_afolu = mafl.AFOLU(self.model_attributes)
 
@@ -160,7 +160,7 @@ class MixedLNDUTransitionFromBounds:
             list(
                 set(self.df_all_transitions[self.field_region])
                 & set(self.df_mean_transitions[self.field_region]),
-            )
+            ),
         )
 
         # initialize dicts
@@ -299,7 +299,7 @@ class MixedLNDUTransitionFromBounds:
             )
         ]
         self.dict_fields_mix_to_fields_out = dict(
-            [(x, f"{self.field_prepend_dfs}{x}") for x in self.fields_mix]
+            [(x, f"{self.field_prepend_dfs}{x}") for x in self.fields_mix],
         )
 
     def _initialize_tables(
@@ -401,7 +401,7 @@ class MixedLNDUTransitionFromBounds:
         # check transition type
         if transition_type not in ["annual", "mean"]:
             warnings.warn(
-                f"Warning in mix_transitions: transition_type = {transition_type} not found. Please specify 'annual' or 'mean'. Returning 'annual'... "
+                f"Warning in mix_transitions: transition_type = {transition_type} not found. Please specify 'annual' or 'mean'. Returning 'annual'... ",
             )
             transition_type = "annual"
 
@@ -419,7 +419,7 @@ class MixedLNDUTransitionFromBounds:
         df_0 = dict_by_region.get(self.bound_0)
         if df_0 is None:
             warnings.warn(
-                f"Error: {self.field_optimization_bound} = '{self.bound_0}' not found for region '{region}'. Returning None."
+                f"Error: {self.field_optimization_bound} = '{self.bound_0}' not found for region '{region}'. Returning None.",
             )
             return None
 
@@ -427,7 +427,7 @@ class MixedLNDUTransitionFromBounds:
         df_1 = dict_by_region.get(self.bound_1)
         if df_1 is None:
             warnings.warn(
-                f"Error: {self.field_optimization_bound} = '{self.bound_1}' not found for region '{region}'. Returning None."
+                f"Error: {self.field_optimization_bound} = '{self.bound_1}' not found for region '{region}'. Returning None.",
             )
             return None
 

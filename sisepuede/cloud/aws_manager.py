@@ -105,7 +105,7 @@ class ShellTemplate:
 
         if not isinstance(template, str):
             raise NotImplementedError(
-                f"Error initializing template in UserDataTempalte: no template found at '{fp_template}'"
+                f"Error initializing template in UserDataTempalte: no template found at '{fp_template}'",
             )
 
         self.template = template
@@ -347,7 +347,7 @@ class AWSManager:
         fp = "" if not isinstance(fp, str) else fp
         if (not os.path.exists(fp)) & (not raw_template_input):
             raise NotImplementedError(
-                "Unable to instantiate user data ShellTemplate: file '{fp_template_user_data}'"
+                "Unable to instantiate user data ShellTemplate: file '{fp_template_user_data}'",
             )
 
         template = ShellTemplate(
@@ -764,7 +764,7 @@ class AWSManager:
                 config = sc.YAMLConfiguration(config)
             except Exception as e:
                 raise RuntimeError(
-                    f"Error in AWSManager trying to initialize YAMLConfiguration: {e}"
+                    f"Error in AWSManager trying to initialize YAMLConfiguration: {e}",
                 )
 
         if isinstance(config, sc.YAMLConfiguration):
@@ -828,7 +828,7 @@ class AWSManager:
         dir_instance_out = self.config.get("aws_ec2.dir_output")
         dir_instance_out_db = self.get_path_instance_output_db(dir_instance_out)
         dir_instance_out_run_package = self.get_path_instance_output_run_package(
-            dir_instance_out
+            dir_instance_out,
         )
 
         ##  DOCKER PATHS
@@ -840,7 +840,7 @@ class AWSManager:
             self.get_sisepuede_relative_paths("out"),
         )
         raise RuntimeError(
-            "NOTICE! `dir_docker_sisepuede_python` deprecated as of 20240829 with reorganization. Review dependencies and update docker build accordingly."
+            "NOTICE! `dir_docker_sisepuede_python` deprecated as of 20240829 with reorganization. Review dependencies and update docker build accordingly.",
         )
         dir_docker_sisepuede_python = os.path.join(
             dir_docker_sisepuede_repo,
@@ -852,7 +852,7 @@ class AWSManager:
         fp_instance_instance_info = self.get_path_instance_metadata(dir_instance_out)
         fp_instance_shell_script = self.config.get("aws_ec2.instance_shell_path")
         fp_instance_sisepuede_log = self.get_path_instance_log(
-            dir_instance_out_run_package
+            dir_instance_out_run_package,
         )
 
         ##  SET PROPERTIES
@@ -936,7 +936,7 @@ class AWSManager:
         for key, table in dict_input_output_to_table_names.items():
             keys_table_index_ordered_cur = (
                 self.sisepuede_database.db.dict_iterative_database_tables.get(
-                    table
+                    table,
                 ).fields_index.copy()
             )
             keys_table_index_ordered_cur.extend([self.key_time_period])
@@ -948,7 +948,7 @@ class AWSManager:
             ]
 
             dict_keys_table_name_to_index_ordered.update(
-                {table: keys_table_index_ordered_cur}
+                {table: keys_table_index_ordered_cur},
             )
 
         ##  SET PROPERTIES
@@ -1171,7 +1171,7 @@ class AWSManager:
         dict_fill.update(
             {
                 self.matchstr_shell_sispeude_cl_flags: flags,
-            }
+            },
         )
 
         # fill the template
@@ -1239,13 +1239,13 @@ class AWSManager:
         ##  SHELL (PASSED TO USER DATA)
 
         str_docker_shell = self.build_user_data_str_docker_shell(
-            dict_dimensional_subset
+            dict_dimensional_subset,
         )
         (
             dict_fill_user_data.update(
                 {
                     self.matchstr_docker_generate_shell: str_docker_shell,
-                }
+                },
             )
             if str_docker_shell is not None
             else None
@@ -1259,7 +1259,7 @@ class AWSManager:
             dict_fill_user_data.update(
                 {
                     self.matchstr_homedir: str_cd_home,
-                }
+                },
             )
             if str_cd_home is not None
             else None
@@ -1273,7 +1273,7 @@ class AWSManager:
             dict_fill_user_data.update(
                 {
                     self.matchstr_dimensional_reads: str_dimensional_reads,
-                }
+                },
             )
             if str_dimensional_reads is not None
             else None
@@ -1285,7 +1285,7 @@ class AWSManager:
             dict_fill_user_data.update(
                 {
                     self.matchstr_docker_pull: str_docker_pull,
-                }
+                },
             )
             if str_docker_pull is not None
             else None
@@ -1297,7 +1297,7 @@ class AWSManager:
             dict_fill_user_data.update(
                 {
                     self.matchstr_docker_run: str_docker_run,
-                }
+                },
             )
             if str_docker_run is not None
             else None
@@ -1313,7 +1313,7 @@ class AWSManager:
             dict_fill_user_data.update(
                 {
                     self.matchstr_generate_instance_info: str_instance_info_echo,
-                }
+                },
             )
             if str_instance_info_echo is not None
             else None
@@ -1324,7 +1324,7 @@ class AWSManager:
         dict_fill_user_data.update(
             {
                 self.matchstr_mkdir_instance_out: str_output_mount,
-            }
+            },
         )
 
         # S3 copy command
@@ -1336,7 +1336,7 @@ class AWSManager:
             dict_fill_user_data.update(
                 {
                     self.matchstr_copy_to_s3: str_cp_to_s3,
-                }
+                },
             )
             if isinstance(str_cp_to_s3, str)
             else None
@@ -1347,14 +1347,14 @@ class AWSManager:
         dict_fill_user_data.update(
             {
                 self.matchstr_terminate_instance: str_terminate_instance,
-            }
+            },
         )
 
         ##  SPLIT TO ALLOW USE OF "screen" REMOTELY?
 
         if self.dict_template_key_screen in self.dict_templates.keys():
             screen_script = self.dict_templates.get(
-                self.dict_template_key_screen
+                self.dict_template_key_screen,
             ).fill_template(dict_fill_user_data)
 
             # build the screen wrap component and add
@@ -1366,7 +1366,7 @@ class AWSManager:
                 dict_fill_user_data.update(
                     {
                         self.matchstr_screen_shell_dummy: str_screen_wrap,
-                    }
+                    },
                 )
                 if str_screen_wrap is not None
                 else None
@@ -1423,7 +1423,7 @@ class AWSManager:
         key_logs = self.s3_key_logs  # config.get("aws_s3.key_logs")
         key_metadata = self.s3_key_metadata
         return_none |= any(
-            [(x is None) for x in [key_database, key_logs, key_metadata]]
+            [(x is None) for x in [key_database, key_logs, key_metadata]],
         )
 
         if return_none is None:
@@ -1849,7 +1849,7 @@ class AWSManager:
 
         """
         re_iam_instance_profile = re.compile(
-            f"arn:aws:iam::(.*):instance-profile{delim_name}(.*)"
+            f"arn:aws:iam::(.*):instance-profile{delim_name}(.*)",
         )
 
         out = (re_iam_instance_profile, delim_name)
@@ -2032,7 +2032,7 @@ class AWSManager:
     ) -> str:
         """Get the component of the analysis id that is prepended to runs"""
         id_prependage = self.file_struct.regex_template_analysis_id.pattern.replace(
-            "(.+$)", ""
+            "(.+$)", "",
         )
         id_str = self.file_struct.id
 
@@ -2285,7 +2285,7 @@ class AWSManager:
             return address_out
 
         address_out = os.path.join(
-            self.s3p_athena_queries, f"{address_out}.csv"
+            self.s3p_athena_queries, f"{address_out}.csv",
         )  # HEREHERE
 
         return address_out
@@ -2416,7 +2416,7 @@ class AWSManager:
                     {
                         "ResourceType": "instance",
                         "Tags": list_tag_dicts,
-                    }
+                    },
                 ],
                 UserData=user_data.encode("ascii"),
             )
@@ -2840,7 +2840,7 @@ class AWSManager:
         table_name_input = self.dict_input_output_to_table_names.get("input")
         table_name_output = self.dict_input_output_to_table_names.get("output")
         fields_ind = self.dict_keys_table_name_to_index_ordered.get(
-            table_name_input
+            table_name_input,
         ).copy()
         fields_ind = [
             x
@@ -2969,7 +2969,7 @@ class AWSManager:
     def build_experiment(
         self,
         dict_experimental_components: Union[
-            Dict[str, Union[Dict[str, List[int]], List[int]]], None
+            Dict[str, Union[Dict[str, List[int]], List[int]]], None,
         ] = None,
         regex_config_parts: Union[re.Pattern, None] = None,
         return_type: str = "list",
@@ -3029,7 +3029,7 @@ class AWSManager:
         set_primaries = sorted(list(set_primaries))
         set_primaries = (
             self.primary_key_database.get_indexing_dataframe_from_primary_key(
-                set_primaries
+                set_primaries,
             )
             if return_type == "indexing_data_frame"
             else set_primaries
@@ -3382,7 +3382,7 @@ class AWSManager:
         self,
         delim: str = ",",
         dict_experimental_components: Union[
-            Dict[str, Union[Dict[str, List[int]], List[int]]], None
+            Dict[str, Union[Dict[str, List[int]], List[int]]], None,
         ] = None,
         regex_config_parts: Union[re.Pattern, None] = None,
     ) -> Union[Dict[str, int], None]:
@@ -3564,7 +3564,7 @@ class AWSManager:
 
         for region in regions:
             region_name = self.regions.return_region_or_iso(
-                region, return_type="region"
+                region, return_type="region",
             )
             region_iso = self.regions.return_region_or_iso(region, return_type="iso")
 
@@ -3637,7 +3637,7 @@ class AWSManager:
             max_n_instances,
         )
         base_n_regions_per_instance, n_instances_w_extra_region = sf.div_with_modulo(
-            n_regions, n_instances
+            n_regions, n_instances,
         )
         base_n_regions_per_instance = max(base_n_regions_per_instance, 1)
 
@@ -3670,7 +3670,7 @@ class AWSManager:
         ##  ASSIGN INSTANCES
 
         base_n_instances_per_rg, n_rg_w_extra_instances = sf.div_with_modulo(
-            n_instances, n_region_groups
+            n_instances, n_region_groups,
         )
 
         # get keys to assign extra instances to (sorted from largest to leas)
@@ -3694,7 +3694,7 @@ class AWSManager:
 
             # now, split up primary keys
             base_n_keys_per_instance, n_instances_with_extra_keys = sf.div_with_modulo(
-                n_primary_keys, n_instances_cur_group
+                n_primary_keys, n_instances_cur_group,
             )
 
             # some iterators - note, ind_launch_index should be outside the assignment queue

@@ -110,7 +110,7 @@ def fetch_query_as_df(
         except Exception as e:
             # LOGHERE
             raise SQLReadError(
-                f"The engine returned error '{e}' in fetch_query_as_df().\n\nQuery:\n\t'{query}'."
+                f"The engine returned error '{e}' in fetch_query_as_df().\n\nQuery:\n\t'{query}'.",
             )
 
     return df_out
@@ -162,7 +162,7 @@ def format_listlike_elements_for_filter_query(
             [
                 f"{x} = {format_type_for_sql_query(y)}"
                 for x, y in zip(fields_cur, elem_cur, strict=False)
-            ]
+            ],
         )
         query_component = f"({query_component})"
         query.append(query_component)
@@ -180,7 +180,7 @@ def format_tuple_as_query_tuple(
     include_single_quotes = True to wrap elements in a single quote
     """
     query_tuple = ", ".join(
-        [(f"'{x}'" if include_single_quotes else f"{x}") for x in index_tuple]
+        [(f"'{x}'" if include_single_quotes else f"{x}") for x in index_tuple],
     )
     query_tuple = f"({query_tuple})"
 
@@ -350,13 +350,13 @@ def get_db_engine(
 
         except Exception as e:
             raise SQLEngineError(
-                f"Error establishing sqlite engine at {db_engine}: {e} "
+                f"Error establishing sqlite engine at {db_engine}: {e} ",
             )
 
     elif not isinstance(db_engine, sqlalchemy.engine.Engine):
         t = type(db_engine)
         raise TypeError(
-            f"Invalid db_engine type {t}: only types str, sqlalchemy.engine.Engine are valid."
+            f"Invalid db_engine type {t}: only types str, sqlalchemy.engine.Engine are valid.",
         )
 
     return db_engine
@@ -440,7 +440,7 @@ def order_df_as_table_schema(
         ]
         if len(field_ext) == 0:
             raise KeyError(
-                f"Error in order_df_as_table_schema: no field matching {field} found in input data frame."
+                f"Error in order_df_as_table_schema: no field matching {field} found in input data frame.",
             )
 
         fields_ext[i] = field_ext[0]
@@ -504,7 +504,7 @@ def sql_table_to_df(
         except Exception as e:
             # LOGHERE
             raise SQLReadError(
-                f"The service returned error '{e}' in sql_table_to_df().\n\nQuery:\n\t'{query}'."
+                f"The service returned error '{e}' in sql_table_to_df().\n\nQuery:\n\t'{query}'.",
             )
 
     return df_out

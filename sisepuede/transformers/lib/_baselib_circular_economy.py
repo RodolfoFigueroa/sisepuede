@@ -59,7 +59,7 @@ def transformation_trww_increase_gas_capture(
 
     # check category specification
     categories = model_attributes.get_variable_categories(
-        model_circecon.modvar_trww_rf_biogas_recovered
+        model_circecon.modvar_trww_rf_biogas_recovered,
     )
 
     # check dict magnitude
@@ -145,7 +145,7 @@ def transformation_trww_increase_septic_compliance(
 
     # check category specification
     categories = model_attributes.get_variable_categories(
-        model_circecon.modvar_trww_septic_sludge_compliance
+        model_circecon.modvar_trww_septic_sludge_compliance,
     )
 
     # check dict magnitude
@@ -296,7 +296,7 @@ def transformation_wali_improve_sanitation(
             dict_transformations.update(
                 {
                     modvar: mag / magnitude,
-                }
+                },
             )
             if mag is not None
             else None

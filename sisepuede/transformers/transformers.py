@@ -202,13 +202,13 @@ class Transformer:
         # check code
         if code not in attr_transfomer.key_values:
             raise KeyError(
-                f"Invalid Transformer code '{code}': code not found in attribute table."
+                f"Invalid Transformer code '{code}': code not found in attribute table.",
             )
 
         # initialize and check code/id num
         id_num = (
             attr_transfomer.field_maps.get(
-                f"{attr_transfomer.key}_to_{self.field_transformer_id}"
+                f"{attr_transfomer.key}_to_{self.field_transformer_id}",
             )
             if attr_transfomer is not None
             else None
@@ -218,7 +218,7 @@ class Transformer:
         # initialize and check name/id num
         name = (
             attr_transfomer.field_maps.get(
-                f"{attr_transfomer.key}_to_{self.field_transformer_name}"
+                f"{attr_transfomer.key}_to_{self.field_transformer_name}",
             )
             if attr_transfomer is not None
             else None
@@ -233,7 +233,7 @@ class Transformer:
         # initialize and check citations
         citations = (
             attr_transfomer.field_maps.get(
-                f"{attr_transfomer.key}_to_{self.field_citations}"
+                f"{attr_transfomer.key}_to_{self.field_citations}",
             )
             if attr_transfomer is not None
             else None
@@ -244,7 +244,7 @@ class Transformer:
         # initialize and check description
         description = (
             attr_transfomer.field_maps.get(
-                f"{attr_transfomer.key}_to_{self.field_description}"
+                f"{attr_transfomer.key}_to_{self.field_description}",
             )
             if attr_transfomer is not None
             else None
@@ -326,7 +326,7 @@ class Transformer:
         # check if function assignment failed; if not, assign
         if function is None:
             raise ValueError(
-                f"Invalid type {type(func)}: the object 'func' is not callable."
+                f"Invalid type {type(func)}: the object 'func' is not callable.",
             )
 
         self.function = function
@@ -442,7 +442,7 @@ class Transformers:
         field_region: Union[str, None] = None,
         logger: Union[logging.Logger, None] = None,
         regex_code_structure: re.Pattern = re.compile(
-            rf"{_MODULE_CODE_SIGNATURE}:(\D*):(.*$)"
+            rf"{_MODULE_CODE_SIGNATURE}:(\D*):(.*$)",
         ),
         regex_template_prepend: str = "sisepuede_run",
         **kwargs,
@@ -493,7 +493,7 @@ class Transformers:
         error_q = error_q | (self.model_attributes is None)
         if error_q:
             raise RuntimeError(
-                "Error: invalid specification of model_attributes in Transformers"
+                "Error: invalid specification of model_attributes in Transformers",
             )
 
         # get transformer attribute, technology attribute
@@ -570,13 +570,13 @@ class Transformers:
 
             if len(regions) == 0:
                 raise RuntimeError(
-                    "No valid regions found in input data frame `df_input`."
+                    "No valid regions found in input data frame `df_input`.",
                 )
 
             # build baseline inputs
             baseline_inputs = self._trfunc_baseline(
                 df_inputs[df_inputs[self.key_region].isin(regions)].reset_index(
-                    drop=True
+                    drop=True,
                 ),
                 strat=None,
             )
@@ -1556,7 +1556,7 @@ class Transformers:
             [
                 (self.model_enerprod.drop_flag_tech_capacities if (x == 0) else 0)
                 for x in vec_ramp
-            ]
+            ],
         )
 
         return vec_out
@@ -1621,7 +1621,7 @@ class Transformers:
                 dict_check_out = dict(
                     (
                         self.model_enercons.dict_trns_fuel_categories_to_fuel_variables.get(
-                            k
+                            k,
                         ).get("fuel_fraction"),
                         sf.scalar_bounds(v, (0, 1)),
                     )
@@ -1846,11 +1846,11 @@ class Transformers:
         cats_inen_fuel_switching = set({})
         for modvar in modvars_inen_fuel_switching:
             cats_inen_fuel_switching = cats_inen_fuel_switching | set(
-                self.model_attributes.get_variable_categories(modvar)
+                self.model_attributes.get_variable_categories(modvar),
             )
 
         cats_inen_not_high_heat = sorted(
-            list(cats_inen_fuel_switching - set(dict_cats_inen_high_heat.keys()))
+            list(cats_inen_fuel_switching - set(dict_cats_inen_high_heat.keys())),
         )
 
         """
@@ -1960,7 +1960,7 @@ class Transformers:
             f"{self.key_config_general}.{self.key_config_vir_renewable_cap_delta_frac}",
         )
         vir_renewable_cap_delta_frac = float(
-            sf.vec_bounds(vir_renewable_cap_delta_frac, (0.0, 1.0))
+            sf.vec_bounds(vir_renewable_cap_delta_frac, (0.0, 1.0)),
         )
 
         # get VIR (get_vir_max_capacity) max_frac
@@ -1969,7 +1969,7 @@ class Transformers:
             f"{self.key_config_general}.{self.key_config_vir_renewable_cap_max_frac}",
         )
         vir_renewable_cap_max_frac = float(
-            sf.vec_bounds(vir_renewable_cap_max_frac, (0.0, 1.0))
+            sf.vec_bounds(vir_renewable_cap_max_frac, (0.0, 1.0)),
         )
 
         tup_out = (
@@ -2101,7 +2101,7 @@ class Transformers:
 
         # build renwewable cap for MSP
         vec_implementation_ramp_renewable_cap = self.get_vir_max_capacity(
-            vec_implementation_ramp
+            vec_implementation_ramp,
         )
         vec_msp_resolution_cap = self.build_msp_cap_vector(vec_implementation_ramp)
 
@@ -2183,13 +2183,13 @@ class Transformers:
             else:
                 i0 = i if (i0 is None) else i0
                 vec_implementation_ramp_max_capacity[i] = max(
-                    max_frac - delta_frac * (i - i0), 0.0
+                    max_frac - delta_frac * (i - i0), 0.0,
                 )
 
         if isinstance(dict_values_to_inds, dict):
             for k in dict_values_to_inds.keys():
                 np.put(
-                    vec_implementation_ramp_max_capacity, dict_values_to_inds.get(k), k
+                    vec_implementation_ramp_max_capacity, dict_values_to_inds.get(k), k,
                 )
 
         return vec_implementation_ramp_max_capacity
@@ -2467,7 +2467,7 @@ class Transformers:
         # NEW ADDITION (2023-09-27): ALLOW FOR BASELINE INCREASE IN RENEWABLE ADOPTION
 
         target_renewables_value_min = sum(
-            dict_entc_renewable_target_msp_baseline.values()
+            dict_entc_renewable_target_msp_baseline.values(),
         )
 
         # apply transformation
@@ -5037,7 +5037,7 @@ class Transformers:
 
         elif sf.isnumber(frac_high_given_high):
             frac_high_given_high = self.bounded_real_magnitude(
-                frac_high_given_high, 0.5
+                frac_high_given_high, 0.5,
             )
             frac_high_given_high = dict(
                 (k, frac_high_given_high) for k in dict_frac_high_given_high_def.keys()
@@ -5616,7 +5616,7 @@ class Transformers:
         modvars_source = [
             (
                 self.model_enercons.dict_trns_fuel_categories_to_fuel_variables.get(
-                    x
+                    x,
                 ).get("fuel_fraction")
             )
             for x in fuels_source
@@ -5742,7 +5742,7 @@ class Transformers:
         modvars_source = [
             (
                 self.model_enercons.dict_trns_fuel_categories_to_fuel_variables.get(
-                    x
+                    x,
                 ).get("fuel_fraction")
             )
             for x in fuels_source
@@ -6402,7 +6402,7 @@ class Transformers:
         df_out = tbi.transformation_ippu_scale_emission_factor(
             df_input,
             {
-                "other_fc": magnitude
+                "other_fc": magnitude,
             },  # applies to all Other Fluorinated Compound emission factors
             vec_implementation_ramp,
             self.model_attributes,

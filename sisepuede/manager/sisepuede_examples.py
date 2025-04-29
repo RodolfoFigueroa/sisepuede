@@ -1,6 +1,6 @@
 import os
 import os.path
-from typing import *
+from typing import Any
 
 import pandas as pd
 
@@ -31,11 +31,9 @@ class SISEPUEDEExamples:
 
     def __call__(
         self,
-        *args,
-    ) -> None:
-        out = self.get_example(*args)
-
-        return out
+        example: str,
+    ) -> pd.DataFrame:
+        return self.get_example(example)
 
     ##################################
     #    INITIALIZATION FUNCTIONS    #
@@ -136,11 +134,9 @@ class SISEPUEDEExamples:
     def get_example(
         self,
         example: str,
-    ) -> Any:
+    ) -> pd.DataFrame:
         """Retrieve an example dataset from the SISEPUEDE Example system."""
-        out = getattr(self, example, None)
-
-        return out
+        return getattr(self, example, None)
 
 
 ###################################

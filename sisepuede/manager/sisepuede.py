@@ -319,7 +319,7 @@ class SISEPUEDE:
         # initialize the attribute design table -- checks on the table are run when experimental manager is initialized
         self.attribute_design = (
             self.model_attributes.get_dimensional_attribute_table(
-                key_model_attributes_design
+                key_model_attributes_design,
             )
             if not isinstance(attribute_design, AttributeTable)
             else attribute_design
@@ -430,7 +430,7 @@ class SISEPUEDE:
             self.demo_mode = self.data_mode == "demo"
             self.dir_templates = (
                 self.file_struct.dict_data_mode_to_template_directory.get(
-                    self.data_mode
+                    self.data_mode,
                 )
                 if (self.file_struct is not None)
                 else None
@@ -525,7 +525,7 @@ class SISEPUEDE:
         )
 
         time_period_u0 = self.get_config_parameter(
-            key_config_time_period_u0
+            key_config_time_period_u0,
         )  # HEREHERE - edit to pull from default too
 
         fp_xl_types = (
@@ -652,7 +652,7 @@ class SISEPUEDE:
 
             (
                 self.file_struct.model_attributes.dict_attributes.get(key_dim).update(
-                    {key_strat: attr_strategy}
+                    {key_strat: attr_strategy},
                 )
             )
 
@@ -1013,7 +1013,7 @@ class SISEPUEDE:
         strategy = dict_primary_keys.get(self.key_strategy)
 
         df_lhs_l, df_lhs_x = lhs_design_cur.retrieve_lhs_tables_by_design(
-            design, return_type=pd.DataFrame
+            design, return_type=pd.DataFrame,
         )
 
         # reduce lhs tables - LEs
@@ -1080,7 +1080,7 @@ class SISEPUEDE:
 
         elif isinstance(primary_keys, list):
             primary_keys = sorted(
-                [x for x in primary_keys if x in self.odpt_primary.range_key_primary]
+                [x for x in primary_keys if x in self.odpt_primary.range_key_primary],
             )
 
         elif primary_keys is None:
@@ -1376,7 +1376,7 @@ class SISEPUEDE:
         for region in self.regions:
             lhsd = self.experimental_manager.dict_lhs_design.get(region)
             df_lhs_l, df_lhs_x = lhsd.retrieve_lhs_tables_by_design(
-                None, return_type=pd.DataFrame
+                None, return_type=pd.DataFrame,
             )
             region_out = self.get_output_region(region)
 
@@ -1407,7 +1407,7 @@ class SISEPUEDE:
             df_l.columns = [str(x) for x in df_l.columns]
             fields_ord_l = [self.key_region, lhsd.field_lhs_key]
             fields_ord_l += sf.sort_integer_strings(
-                [x for x in df_l.columns if x not in fields_ord_l]
+                [x for x in df_l.columns if x not in fields_ord_l],
             )
             df_l = df_l[fields_ord_l]
 
@@ -1418,7 +1418,7 @@ class SISEPUEDE:
             df_x.columns = [str(x) for x in df_x.columns]
             fields_ord_x = [self.key_region, lhsd.field_lhs_key]
             fields_ord_x += sf.sort_integer_strings(
-                [x for x in df_x.columns if x not in fields_ord_x]
+                [x for x in df_x.columns if x not in fields_ord_x],
             )
             df_x = df_x[fields_ord_x]
 
@@ -1490,19 +1490,19 @@ class SISEPUEDE:
             ##  GET DIMENSIONS
 
             design = dict_primary_keys.get(
-                self.key_design
+                self.key_design,
             )  # int(df_primary_keys_cur_design[self.key_design].iloc[0])
             future = dict_primary_keys.get(
-                self.key_future
+                self.key_future,
             )  # int(df_primary_keys_cur_design[self.key_future].iloc[0])
             strategy = dict_primary_keys.get(
-                self.key_strategy
+                self.key_strategy,
             )  # int(df_primary_keys_cur_design[self.key_strategy].iloc[0])
 
             ##  GET LHS TABLES AND FILTER
 
             df_lhs_l, df_lhs_x = lhs_design_cur.retrieve_lhs_tables_by_design(
-                design, return_type=pd.DataFrame
+                design, return_type=pd.DataFrame,
             )
 
             # reduce lhs tables - LEs
@@ -1697,7 +1697,7 @@ class SISEPUEDE:
                     df_primary_keys[self.key_design] == design
                 ]
                 keep_futures = sorted(
-                    list(set(df_primary_keys_cur_design[self.key_future]))
+                    list(set(df_primary_keys_cur_design[self.key_future])),
                 )
 
                 # reduce lhs tables - LEs
@@ -1742,7 +1742,7 @@ class SISEPUEDE:
                     all_strategies = sorted(
                         list(
                             set(df_input[self.key_strategy]),
-                        )
+                        ),
                     )
 
                     for strategy in all_strategies:
@@ -1750,7 +1750,7 @@ class SISEPUEDE:
                         df_primary_keys_cur_design_fs = df_primary_keys_cur_design[
                             df_primary_keys_cur_design[self.key_future].isin([future])
                             & df_primary_keys_cur_design[self.key_strategy].isin(
-                                [strategy]
+                                [strategy],
                             )
                         ].reset_index(drop=True)
 

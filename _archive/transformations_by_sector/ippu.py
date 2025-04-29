@@ -181,12 +181,12 @@ class TransformersIPPU:
         error_q = error_q | (model_attributes is None)
         if error_q:
             raise RuntimeError(
-                "Error: invalid specification of model_attributes in TransformersIPPU"
+                "Error: invalid specification of model_attributes in TransformersIPPU",
             )
 
         # get strategy attribute, baseline strategy, and some fields
         attribute_strategy = model_attributes.get_dimensional_attribute_table(
-            model_attributes.dim_strategy_id
+            model_attributes.dim_strategy_id,
         )
         baseline_strategy = int(
             attribute_strategy.table[
@@ -508,7 +508,7 @@ class TransformersIPPU:
         n_tp = len(self.time_periods.all_time_periods)  # 25
 
         vec_out = np.array(
-            [max(0, min((x - tp_0) / n_years_ramp, 1)) for x in range(n_tp)]
+            [max(0, min((x - tp_0) / n_years_ramp, 1)) for x in range(n_tp)],
         )
 
         return vec_out
@@ -969,7 +969,7 @@ class TransformersIPPU:
         df_out = tbi.transformation_ippu_scale_emission_factor(
             df_input,
             {
-                "other_fc": 0.1
+                "other_fc": 0.1,
             },  # applies to all Other Fluorinated Compound emission factors
             vec_implementation_ramp,
             self.model_attributes,

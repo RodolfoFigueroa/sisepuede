@@ -209,7 +209,7 @@ class SISEPUEDEBatchDataRepository:
             df_ext = df_csv[fields_ind + [fld]]
 
             df_ext_hist = df_ext[df_ext[field_year].isin(years_historical)].reset_index(
-                drop=True
+                drop=True,
             )
 
             df_ext_proj = df_ext[
@@ -261,7 +261,7 @@ class SISEPUEDEBatchDataRepository:
 
         # create outputs
         fp_out_base = os.path.join(
-            self.dir_repository, subdir_sector, fld, self.subdir_input_to_sisepuede
+            self.dir_repository, subdir_sector, fld, self.subdir_input_to_sisepuede,
         )
         fp_out = os.path.join(fp_out_base, key, f"{fld}.csv")
 
@@ -388,7 +388,7 @@ class SISEPUEDEBatchDataRepository:
                     fp = dict_paths_cur.get(key)
                     dir_base = os.path.dirname(fp)
                     os.makedirs(dir_base, exist_ok=True) if not os.path.exists(
-                        dir_base
+                        dir_base,
                     ) else None
 
                     df_write.to_csv(
@@ -575,7 +575,7 @@ class SISEPUEDEBatchDataRepository:
                     fp = dict_paths_cur.get(key)
                     dir_base = os.path.dirname(fp)
                     os.makedirs(dir_base, exist_ok=True) if not os.path.exists(
-                        dir_base
+                        dir_base,
                     ) else None
 
                     df_write.to_csv(
@@ -615,12 +615,12 @@ class SISEPUEDEBatchDataRepository:
         dict_sector_to_subdir = self.dict_sector_to_subdir
         dict_subsec_abv_to_sector = (
             self.model_attributes.get_subsector_attribute_table().field_maps.get(
-                "abbreviation_subsector_to_sector"
+                "abbreviation_subsector_to_sector",
             )
         )
         dict_subsec_to_subsec_abv = (
             self.model_attributes.get_subsector_attribute_table().field_maps.get(
-                "subsector_to_abbreviation_subsector"
+                "subsector_to_abbreviation_subsector",
             )
         )
 
@@ -770,7 +770,7 @@ class SISEPUEDEBatchDataRepository:
                 if (fields_index is not None) and (df_var is not None):
                     # get dictionaries
                     fields_add = sorted(
-                        [x for x in df_var.columns if x not in fields_index]
+                        [x for x in df_var.columns if x not in fields_index],
                     )
                     fields_exist = dict_modvar_to_fields.get(modvar)
 

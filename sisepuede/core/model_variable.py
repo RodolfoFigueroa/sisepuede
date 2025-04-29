@@ -125,7 +125,7 @@ class ModelVariable:
         self,
         variable_init: Union[dict, pd.DataFrame, pd.Series],
         element_definition: Union[
-            at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]
+            at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable],
         ],
         attribute_as_property: bool = True,
         delim_categories: str = _DELIM_CATEGORIES,
@@ -192,7 +192,7 @@ class ModelVariable:
     def _initialize_categories(
         self,
         category_definition: Union[
-            at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]
+            at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable],
         ],
     ) -> None:
         """Initialize categories based on input attributes. Sets the following
@@ -478,7 +478,7 @@ class ModelVariable:
                     for k, v in schema.dict_attributes.items()
                 )
                 errors, num_errors, warns = sf.set_properties_from_dict(
-                    self, dict_attributes
+                    self, dict_attributes,
                 )
 
                 # pass errors
@@ -499,7 +499,7 @@ class ModelVariable:
 
         # build the expression-bounding regular expression
         regex_expression_bounds = re.compile(
-            f"(?<={schema.container_expressions})(.*?)(?={schema.container_expressions})"
+            f"(?<={schema.container_expressions})(.*?)(?={schema.container_expressions})",
         )
 
         # get the default value
@@ -758,7 +758,7 @@ class ModelVariable:
     def get_category_definition(
         self,
         category_definition: Union[
-            at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable]
+            at.AttributeTable, Dict[str, at.AttributeTable], List[at.AttributeTable],
         ],
     ) -> Union[Dict[str, at.AttributeTable], None]:
         """Read in category_definition and convert to dictionary for use in
@@ -978,7 +978,7 @@ class ModelVariable:
         if not s_req.issubset(s_avail):
             fields_missing = sf.format_print_list(s_req - s_avail)
             raise KeyError(
-                f"Error initializing ModelVariable: keys {fields_missing} not found in variable_init"
+                f"Error initializing ModelVariable: keys {fields_missing} not found in variable_init",
             )
 
         return variable_init
@@ -1726,7 +1726,7 @@ class VariableSchema:
         )
 
         attributes_all = sorted(
-            list(dict_attribute_keys_to_attribute_keys_clean.keys())
+            list(dict_attribute_keys_to_attribute_keys_clean.keys()),
         )
 
         # next, get mutable elements
@@ -1742,7 +1742,7 @@ class VariableSchema:
             ),
         )
         dict_mutable_elements_clean_to_original = sf.reverse_dict(
-            dict_mutable_elements_original_to_clean
+            dict_mutable_elements_original_to_clean,
         )
 
         # finally, get dictionary mapping root element to all its childred
@@ -2016,7 +2016,7 @@ class VariableSchema:
 
         cat = elem.split(flag_dim)
         ind = int(
-            cat[1]
+            cat[1],
         )  # should successfully parse since the regular expressions searche for intes
         cat = cat[0].strip(space_char)
 

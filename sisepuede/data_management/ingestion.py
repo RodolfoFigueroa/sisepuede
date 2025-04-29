@@ -347,7 +347,7 @@ class InputTemplate:
 
             except Exception:
                 vars_missing = sorted(
-                    list(set(df[df["value"].isna()][field_req_variable]))
+                    list(set(df[df["value"].isna()][field_req_variable])),
                 )
                 vars_missing = sf.format_print_list(vars_missing)
                 msg = f"Error in `InputTemplate.template_from_inputs()`: variables {vars_missing} not found."
@@ -442,7 +442,7 @@ class InputTemplate:
             [self.baseline_strategy] if self.baseline_strategy in keys_iterate_0 else []
         )
         keys_iterate += sorted(
-            [x for x in keys_iterate_0 if (x != self.baseline_strategy)]
+            [x for x in keys_iterate_0 if (x != self.baseline_strategy)],
         )
 
         for strat in keys_iterate:
@@ -510,7 +510,7 @@ class InputTemplate:
         """
         # default to model attributes designation
         self.baseline_strategy = self.model_attributes.get_baseline_scenario_id(
-            self.model_attributes.dim_strategy_id
+            self.model_attributes.dim_strategy_id,
         )
 
         if isinstance(attribute_strategy, AttributeTable):
@@ -767,7 +767,7 @@ class InputTemplate:
         * self.regex_sheet_name
         """
         self.regex_sheet_name = re.compile(
-            rf"{self.model_attributes.dim_strategy_id}-(\d*$)"
+            rf"{self.model_attributes.dim_strategy_id}-(\d*$)",
         )
 
     #########################
@@ -930,7 +930,7 @@ class InputTemplate:
 
             # verify and skip on fail. Note: error passing and descriptions are handled in verify_input_template_sheet
             tup = self.verify_input_template_sheet(
-                df_template_sheet, base_strategy_q=baseline_q
+                df_template_sheet, base_strategy_q=baseline_q,
             )
             if tup is None:
                 continue
@@ -947,7 +947,7 @@ class InputTemplate:
             )
             if all_time_period_fields != set(fields_tp):
                 raise KeyError(
-                    f"Error in sheet {k}: encountered inconsistent definition of time periods."
+                    f"Error in sheet {k}: encountered inconsistent definition of time periods.",
                 )
 
             # check max time period fields
@@ -958,7 +958,7 @@ class InputTemplate:
             )
             if len(all_time_period_fields_max) > 1:
                 raise KeyError(
-                    f"Error in sheet {k}: encountered inconsistent definition of fields specifying maximum and minimum scalars."
+                    f"Error in sheet {k}: encountered inconsistent definition of fields specifying maximum and minimum scalars.",
                 )
 
             # check binary fields HEREHERE
@@ -1027,7 +1027,7 @@ class InputTemplate:
             strat_base not in dict_strategies_to_sheet.keys()
         ):
             raise KeyError(
-                f"Error in build_inputs_by_strategy: key '{strat_base}' (baseline strategy) not found"
+                f"Error in build_inputs_by_strategy: key '{strat_base}' (baseline strategy) not found",
             )
 
         strategies_include = [strat_base] + [
@@ -1055,7 +1055,7 @@ class InputTemplate:
                     self.model_attributes.dim_strategy_id
                 ].replace({strat_base: strat})
                 df_sheet = pd.concat(
-                    [df_sheet, df_sheet_base[df_sheet.columns]], axis=0
+                    [df_sheet, df_sheet_base[df_sheet.columns]], axis=0,
                 ).reset_index(drop=True)
 
             if len(df_out) == 0:
@@ -1161,12 +1161,12 @@ class InputTemplate:
 
         if len(field_max) == 0:
             raise KeyError(
-                "No field associated with a maximum scalar value found in data frame."
+                "No field associated with a maximum scalar value found in data frame.",
             )
         if len(field_max) > 1:
             fpl = sf.format_print_list(field_max)
             raise KeyError(
-                f"Multiple maximum fields found in input DataFrame: {fpl} all satisfy the conditions. Choose one and retry."
+                f"Multiple maximum fields found in input DataFrame: {fpl} all satisfy the conditions. Choose one and retry.",
             )
         field_max = field_max[0]
         tp_max = int(field_max.groups()[0])
@@ -1180,12 +1180,12 @@ class InputTemplate:
         ]
         if len(field_min) == 0:
             raise KeyError(
-                "No field associated with a minimum scalar value found in data frame."
+                "No field associated with a minimum scalar value found in data frame.",
             )
         if len(field_min) > 1:
             fpl = sf.format_print_list(field_min)
             raise KeyError(
-                f"Multiple minimum fields found in input DataFrame: {fpl} all satisfy the conditions. Choose one and retry."
+                f"Multiple minimum fields found in input DataFrame: {fpl} all satisfy the conditions. Choose one and retry.",
             )
         field_min = field_min[0]
         tp_min = int(field_min.groups()[0])
@@ -1194,7 +1194,7 @@ class InputTemplate:
         # check that min/max specify final time period
         if tp_min != tp_max:
             raise ValueError(
-                f"Fields '{field_min}' and '{field_max}' imply asymmetric final time periods."
+                f"Fields '{field_min}' and '{field_max}' imply asymmetric final time periods.",
             )
 
         ##  GET TIME PERIODS
@@ -1227,7 +1227,7 @@ class InputTemplate:
 
         if tp_max not in defined_tp:
             raise ValueError(
-                f"Error trying to define template: the final time period {tp_max} defined in the input template does not exist in the {self.model_attributes.dim_time_period} attribute table at '{attr_tp.fp_table}'"
+                f"Error trying to define template: the final time period {tp_max} defined in the input template does not exist in the {self.model_attributes.dim_time_period} attribute table at '{attr_tp.fp_table}'",
             )
 
         if len(fields_invalid) > 0:
@@ -1682,18 +1682,18 @@ class BaseInputDatabase:
         ##  INITIALIZATION AND CHECKS
 
         attr_region = self.model_attributes.get_other_attribute_table(
-            self.model_attributes.dim_region
+            self.model_attributes.dim_region,
         )
 
         # check sector
         if sector not in self.model_attributes.all_sectors:
             valid_sectors = sf.format_print_list(self.model_attributes.all_sectors)
             raise ValueError(
-                f"Invalid sector '{sector}' specified: valid sectors are {valid_sectors}."
+                f"Invalid sector '{sector}' specified: valid sectors are {valid_sectors}.",
             )
 
         abv_sector = self.model_attributes.get_sector_attribute(
-            sector, "abbreviation_sector"
+            sector, "abbreviation_sector",
         )
 
         # initialize some parameters

@@ -134,7 +134,7 @@ class AttributeTable:
         if clean_table_fields:
             fields_orig = list(table.columns)
             dict_fields_clean_to_fields_orig = dict(
-                zip(sf.clean_field_names(fields_orig), fields_orig, strict=False)
+                zip(sf.clean_field_names(fields_orig), fields_orig, strict=False),
             )
             table = sf.clean_field_names(table)
             fields_to_dict = sf.clean_field_names(fields_to_dict)
@@ -143,7 +143,7 @@ class AttributeTable:
         # add a key if not specified and check all fields
         if key not in table.columns:
             warnings.warn(
-                f"Key {key} not found in table '{fp_table}''. Adding integer key."
+                f"Key {key} not found in table '{fp_table}''. Adding integer key.",
             )
             table[key] = range(len(table))
         sf.check_fields(table, [key] + fields_to_dict)
@@ -160,7 +160,7 @@ class AttributeTable:
         # clear RST formatting in the table if applicable
         if table[key].dtype in [object, str]:
             table[key] = np.array(
-                [sf.str_replace(str(x), {"`": "", r"\$": ""}) for x in list(table[key])]
+                [sf.str_replace(str(x), {"`": "", r"\$": ""}) for x in list(table[key])],
             ).astype(str)
 
         # set all keys

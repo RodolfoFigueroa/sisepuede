@@ -104,7 +104,7 @@ class IPPU:
             set_missing = list(set(check_fields) - set(df_ippu_trajectories.columns))
             set_missing = sf.format_print_list(set_missing)
             raise KeyError(
-                f"IPPU projection cannot proceed: The fields {set_missing} are missing."
+                f"IPPU projection cannot proceed: The fields {set_missing} are missing.",
             )
 
     def _initialize_fc_emission_factor_modvars(
@@ -194,7 +194,7 @@ class IPPU:
 
         # input/output
         required_vars, output_vars = self.model_attributes.get_input_output_fields(
-            subsectors
+            subsectors,
         )
         required_vars += required_doa
 
@@ -746,7 +746,7 @@ class IPPU:
             all_modvar_ef_gdp = dict_simple_efs[modvar][0]
             all_modvar_ef_prod = dict_simple_efs[modvar][1]
             array_emission = np.zeros(
-                (len(df_ippu_trajectories), attr_ippu.n_key_values)
+                (len(df_ippu_trajectories), attr_ippu.n_key_values),
             )
             gas = self.model_attributes.get_variable_characteristic(
                 modvar,
@@ -839,7 +839,7 @@ class IPPU:
         # add on carbon captured if spcified
         if include_carbon_capture & isinstance(array_emission_captured, np.ndarray):
             scalar_captured = self.model_attributes.get_scalar(
-                modvar_carbon_capture_total, "mass"
+                modvar_carbon_capture_total, "mass",
             )
             array_emission_captured /= scalar_captured
 
@@ -882,21 +882,21 @@ class IPPU:
                         [
                             vec_average_lifetime_hh[-1]
                             for x in range(len(vec_hh) - len(vec_average_lifetime_hh))
-                        ]
+                        ],
                     ),
-                ]
+                ],
             )
 
         n_projection_time_periods = len(vec_hh)
 
         # get estimates for new housing stock -- last year, use trend
         vec_new_housing_stock_changes = sf.vec_bounds(
-            vec_hh[1:] - vec_hh[0:-1], (0, np.inf)
+            vec_hh[1:] - vec_hh[0:-1], (0, np.inf),
         )
         new_stock_final_period = np.nan_to_num(
             np.round(
                 vec_new_housing_stock_changes[-1] ** 2
-                / vec_new_housing_stock_changes[-2]
+                / vec_new_housing_stock_changes[-2],
             ),
             nan=0.0,
             posinf=0.0,
@@ -911,7 +911,7 @@ class IPPU:
         # back-project to estimate replacement construction
         scalar_gr_hh = np.mean((vec_hh[1:] / vec_hh[0:-1])[0:3])
         vec_old_housing_stock_rev = np.round(
-            vec_hh[0] * scalar_gr_hh ** (-np.arange(1, 100 + 1))
+            vec_hh[0] * scalar_gr_hh ** (-np.arange(1, 100 + 1)),
         )
         vec_est_new_builds = np.zeros(n_projection_time_periods)
 
@@ -928,7 +928,7 @@ class IPPU:
             else:
                 old_stock_refreshed = np.round(
                     vec_hh[ind_lifetime_old_stock]
-                    / vec_average_lifetime_hh[ind_lifetime_cur_stock]
+                    / vec_average_lifetime_hh[ind_lifetime_cur_stock],
                 )
 
             vec_est_new_builds[i] = (
@@ -989,7 +989,7 @@ class IPPU:
             [
                 (x is None)
                 for x in [dict_dims, n_projection_time_periods, projection_time_periods]
-            ]
+            ],
         ):
             (
                 dict_dims,
@@ -1101,7 +1101,7 @@ class IPPU:
         )
 
         arr_ippu_materials_required_baseline = np.outer(
-            vec_ippu_housing_construction, arr_ippu_materials_required[0]
+            vec_ippu_housing_construction, arr_ippu_materials_required[0],
         )
         arr_ippu_materials_required = (
             arr_ippu_materials_required.transpose() * vec_ippu_housing_construction
@@ -1257,7 +1257,7 @@ class IPPU:
             [
                 (x is None)
                 for x in [dict_dims, n_projection_time_periods, projection_time_periods]
-            ]
+            ],
         ):
             (
                 dict_dims,
@@ -1311,7 +1311,7 @@ class IPPU:
         if array_ippu_recycled is not None:
             # if recycling totals are passed from the waste model, convert to ippu categories
             cats_waso_recycle = self.model_attributes.get_variable_categories(
-                modvar_waste_total_recycled
+                modvar_waste_total_recycled,
             )
             dict_repl = attr_waso.field_maps[f"{attr_waso.key}_to_{pycat_ippu}"]
             cats_ippu_recycle = [clean_schema(dict_repl[x]) for x in cats_waso_recycle]
@@ -1396,7 +1396,7 @@ class IPPU:
 
                 # array of changes to net imports has to be mapped back to the original recycling categories
                 array_ippu_change_net_imports = sf.vec_bounds(
-                    array_ippu_production, (-np.inf, 0)
+                    array_ippu_production, (-np.inf, 0),
                 )
                 array_ippu_change_net_imports = (
                     self.model_attributes.swap_array_categories(
@@ -1568,10 +1568,10 @@ class IPPU:
         )
 
         vec_rates_gdp = np.array(
-            df_se_internal_shared_variables["vec_rates_gdp"].dropna()
+            df_se_internal_shared_variables["vec_rates_gdp"].dropna(),
         )
         vec_rates_gdp_per_capita = np.array(
-            df_se_internal_shared_variables["vec_rates_gdp_per_capita"].dropna()
+            df_se_internal_shared_variables["vec_rates_gdp_per_capita"].dropna(),
         )
 
         ##  OUTPUT INITIALIZATION
@@ -1583,7 +1583,7 @@ class IPPU:
 
         ##  PERFORM THE RECYCLING ADJUSTMENT (if recycling data are provided from the waste model)
         array_ippu_production = self.get_production_with_recycling_adjustment(
-            df_ippu_trajectories, vec_rates_gdp
+            df_ippu_trajectories, vec_rates_gdp,
         )
         df_out += array_ippu_production[1]
         array_ippu_production = array_ippu_production[0]
@@ -1772,7 +1772,7 @@ class IPPU:
         array_ippu_emissions_produse_nonenergy_fuel *= (
             array_ippu_ef_co2_produse
             * self.model_attributes.get_scalar(
-                self.modvar_ippu_useinit_nonenergy_fuel, "mass"
+                self.modvar_ippu_useinit_nonenergy_fuel, "mass",
             )
         )
         array_ippu_emissions_produse_nonenergy_fuel *= array_ippu_production_scalar
@@ -2091,13 +2091,13 @@ class IPPU:
 
         # concatenate and add subsector emission totals
         df_out = sf.merge_output_df_list(
-            df_out, self.model_attributes, merge_type="concatenate"
+            df_out, self.model_attributes, merge_type="concatenate",
         )
         self.model_attributes.add_subsector_emissions_aggregates(
-            df_out, self.required_base_subsectors, False
+            df_out, self.required_base_subsectors, False,
         )
         self.model_attributes._add_specified_total_fields_to_emission_total(
-            df_out, vars_additional_sum
+            df_out, vars_additional_sum,
         )
 
         return df_out

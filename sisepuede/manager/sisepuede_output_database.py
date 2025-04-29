@@ -313,7 +313,7 @@ class SISEPUEDEOutputDatabase:
         logger: Union[logging.Logger, None] = None,
         dict_derivative_table_functions: Union[
             Dict[
-                str, Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]]
+                str, Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]],
             ],
             None,
         ] = None,
@@ -511,7 +511,7 @@ class SISEPUEDEOutputDatabase:
         self,
         dict_derivative_table_functions: Union[
             Dict[
-                str, Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]]
+                str, Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]],
             ],
             None,
         ],
@@ -717,7 +717,7 @@ class SISEPUEDEOutputDatabase:
         dict_all_tables: Union[Dict[str, Dict[str, Any]], None],
         dict_derivative_table_functions: Union[
             Dict[
-                str, Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]]
+                str, Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]],
             ],
             None,
         ],
@@ -814,7 +814,7 @@ class SISEPUEDEOutputDatabase:
                 )
                 dict_return_functions.update({key_try: func})
                 dict_return_idf_specs.update(
-                    {key_try: {str_fields_index_param: fields_index}}
+                    {key_try: {str_fields_index_param: fields_index}},
                 )
 
         return dict_return_functions, dict_return_idf_specs

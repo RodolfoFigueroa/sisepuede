@@ -10,7 +10,7 @@ import sisepuede.utilities._toolbox as sf
 
 # some global settings
 _PARAMS_DEFAULT_GAMMA = np.array(
-    [235.5, 0.426, -0.00484]
+    [235.5, 0.426, -0.00484],
 )  # see tang et al. table 1 for Boreal GPP
 _PARAMS_DEFAULT_SEM = np.array([0.1323, 1.0642, 6.3342, 3.455])
 _WIDTHS_DEFAULT = (20, 180)  # , 1000)
@@ -338,7 +338,7 @@ class NPPCurves:
             if skip:
                 if stop_on_error:
                     raise RuntimeError(
-                        f"Invalid target/width pair found at position {i} in sequestration_targets. Must be a two-ple."
+                        f"Invalid target/width pair found at position {i} in sequestration_targets. Must be a two-ple.",
                     )
                 continue
 

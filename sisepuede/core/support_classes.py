@@ -191,16 +191,16 @@ class Regions:
 
         # initialize ISO dictionaries
         dict_iso_to_region = attributes.field_maps.get(
-            f"{field_iso}_to_{attributes.key}"
+            f"{field_iso}_to_{attributes.key}",
         )
         dict_iso_numeric_to_region = attributes.field_maps.get(
-            f"{field_iso_numeric}_to_{attributes.key}"
+            f"{field_iso_numeric}_to_{attributes.key}",
         )
         dict_region_to_iso = attributes.field_maps.get(
-            f"{attributes.key}_to_{field_iso}"
+            f"{attributes.key}_to_{field_iso}",
         )
         dict_region_to_iso_numeric = attributes.field_maps.get(
-            f"{attributes.key}_to_{field_iso_numeric}"
+            f"{attributes.key}_to_{field_iso_numeric}",
         )
 
         # check numeric codes
@@ -232,7 +232,7 @@ class Regions:
             fields_out_set=attributes.key,
         )
         dict_region_to_wb_region = attributes.field_maps.get(
-            f"{attributes.key}_to_{field_wb_global_region}"
+            f"{attributes.key}_to_{field_wb_global_region}",
         )
         all_wb_regions = sorted(list(dict_wb_region_to_region.keys()))
 
@@ -243,7 +243,7 @@ class Regions:
             fields_out_set=attributes.key,
         )
         dict_region_to_un_region = attributes.field_maps.get(
-            f"{attributes.key}_to_{field_un_global_region}"
+            f"{attributes.key}_to_{field_un_global_region}",
         )
         all_un_regions = sorted(list(dict_region_to_un_region.keys()))
 
@@ -666,7 +666,7 @@ class Regions:
         # check type specifications - start with inputs
         if field_input is None:
             valid_inputs_print = sf.format_print_list(
-                list(dict_type_to_attribute_field.keys())
+                list(dict_type_to_attribute_field.keys()),
             )
             msg = f"Invalid input type '{input_code_type}' in convert_region_codes(). Valid inputs are {valid_inputs_print}."
             raise TypeError(msg)
@@ -674,7 +674,7 @@ class Regions:
         # check outputs
         if field_output is None:
             valid_outputs_print = sf.format_print_list(
-                list(dict_type_to_attribute_field.keys())
+                list(dict_type_to_attribute_field.keys()),
             )
             msg = f"Invalid output type '{output_code_type}' in convert_region_codes(). Valid outputs are {valid_outputs_print}."
             raise TypeError(msg)
@@ -1411,7 +1411,7 @@ class Regions:
         df_out = pd.DataFrame({self.key: regions})
         if sf.islistlike(regions_wb):
             df_out[self.field_wb_global_region] = df_out[self.key].replace(
-                self.dict_region_to_wb_region
+                self.dict_region_to_wb_region,
             )
 
             df_out = df_out[
@@ -1745,18 +1745,18 @@ class TimePeriods:
         * self.min_year
         """
         attributes = model_attributes.get_dimensional_attribute_table(
-            model_attributes.dim_time_period
+            model_attributes.dim_time_period,
         )
         dict_year_to_time_period = attributes.field_maps.get(
-            f"{field_year}_to_{attributes.key}"
+            f"{field_year}_to_{attributes.key}",
         )
         dict_time_period_to_year = attributes.field_maps.get(
-            f"{attributes.key}_to_{field_year}"
+            f"{attributes.key}_to_{field_year}",
         )
 
         all_time_periods = attributes.key_values
         all_years = sorted(
-            list(set([dict_time_period_to_year.get(x) for x in all_time_periods]))
+            list(set([dict_time_period_to_year.get(x) for x in all_time_periods])),
         )
         year_min, year_max = min(all_years), max(all_years)
 
@@ -2056,7 +2056,7 @@ class YAMLConfiguration:
                 dict_yaml = sf.read_yaml(str(fp), munchify_dict=False)
             except Exception as e:
                 raise RuntimeError(
-                    f"Error initializing YAML dictionary in yaml_config: {e}"
+                    f"Error initializing YAML dictionary in yaml_config: {e}",
                 )
 
         elif isinstance(fp, dict):

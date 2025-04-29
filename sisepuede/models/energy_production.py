@@ -166,7 +166,7 @@ class EnergyProduction:
             if var_type == "input":
                 check_fields, ignore_fields = (
                     self.model_attributes.get_input_output_fields(
-                        [self.subsec_name_econ, self.subsec_name_gnrl, subsector]
+                        [self.subsec_name_econ, self.subsec_name_gnrl, subsector],
                     )
                 )
             elif var_type == "output":
@@ -175,7 +175,7 @@ class EnergyProduction:
                 )
             else:
                 raise ValueError(
-                    f"Invalid var_type '{var_type}' in check_df_fields: valid types are 'input', 'output'"
+                    f"Invalid var_type '{var_type}' in check_df_fields: valid types are 'input', 'output'",
                 )
             msg_prepend = msg_prepend if (msg_prepend is not None) else subsector
         sf.check_fields(
@@ -268,7 +268,7 @@ class EnergyProduction:
         self.required_reference_tables = sorted(
             list(
                 self.dict_tables_required_to_required_fields.keys(),
-            )
+            ),
         )
 
     def _initialize_input_output_components(
@@ -307,7 +307,7 @@ class EnergyProduction:
 
         required_doa = [self.model_attributes.dim_time_period]
         required_vars, output_vars = self.model_attributes.get_input_output_fields(
-            subsectors
+            subsectors,
         )
 
         self.required_variables = required_vars + required_doa
@@ -484,7 +484,7 @@ class EnergyProduction:
             "ipopt": "Ipopt",
         }
         self.dict_julia_package_to_solver = sf.reverse_dict(
-            self.dict_solver_to_julia_package
+            self.dict_solver_to_julia_package,
         )
 
         # check solver specification in configuration
@@ -654,7 +654,7 @@ class EnergyProduction:
         self,
         nemomod_reference_files: Union[str, dict],
         dict_tables_required_to_required_fields: Union[
-            Dict[str, List[str]], None
+            Dict[str, List[str]], None,
         ] = None,
         filter_regions_to_config: bool = False,
     ) -> None:
@@ -687,7 +687,7 @@ class EnergyProduction:
             self.model_attributes.dim_region,
         )
         attr_technology = self.model_attributes.get_attribute_table(
-            self.subsec_name_entc
+            self.subsec_name_entc,
         )
         attr_time_slice = self.model_attributes.get_other_attribute_table("time_slice")
 
@@ -710,16 +710,16 @@ class EnergyProduction:
                     x.replace(".csv", "")
                     for x in os.listdir(dir_nemomod_ref)
                     if x.endswith(".csv")
-                ]
+                ],
             )
             set_tables_available = set_tables_required & set_tables_available
 
             if not set_tables_required.issubset(set_tables_available):
                 set_missing = sf.print_setdiff(
-                    set_tables_required, set_tables_available
+                    set_tables_required, set_tables_available,
                 )
                 raise RuntimeError(
-                    f"Initialization error in EnergyProduction: required reference tables {set_missing} not found in {dir_nemomod_ref}."
+                    f"Initialization error in EnergyProduction: required reference tables {set_missing} not found in {dir_nemomod_ref}.",
                 )
 
             # read in files
@@ -751,13 +751,13 @@ class EnergyProduction:
                 ]
                 if len(df_filt) == 0:
                     raise RuntimeError(
-                        f"Error in EnergyProduction._initialize_nemomod_reference_dict: no valid regions found in table {k}."
+                        f"Error in EnergyProduction._initialize_nemomod_reference_dict: no valid regions found in table {k}.",
                     )
 
                 if filter_regions_to_config:
                     regions_config = self.model_attributes.configuration.get("region")
                     sf.check_set_values(
-                        regions_config, df_filt[self.field_nemomod_region]
+                        regions_config, df_filt[self.field_nemomod_region],
                     )
                     df_filt = df_filt[
                         df_filt[self.field_nemomod_region].isin(regions_config)
@@ -765,14 +765,14 @@ class EnergyProduction:
 
                     # conditions needed for the regions
                     check_regions = len(set(df_filt[self.field_nemomod_region])) == len(
-                        set(regions_config)
+                        set(regions_config),
                     )
                     if not check_regions:
                         missing_vals = sf.print_setdiff(
-                            set(regions_config), set(df_filt[self.field_nemomod_region])
+                            set(regions_config), set(df_filt[self.field_nemomod_region]),
                         )
                         raise RuntimeError(
-                            f"Initialization error in EnergyProduction: field {self.field_nemomod_region} in table {k} is missing regions {missing_vals}."
+                            f"Initialization error in EnergyProduction: field {self.field_nemomod_region} in table {k} is missing regions {missing_vals}.",
                         )
 
                 dict_out.update({k: df_filt})
@@ -782,19 +782,19 @@ class EnergyProduction:
                 n = len(dict_out[k])
                 df_filt = dict_out[k][
                     dict_out[k][self.field_nemomod_time_slice].isin(
-                        attr_time_slice.key_values
+                        attr_time_slice.key_values,
                     )
                 ]
 
                 if len(set(df_filt[self.field_nemomod_time_slice])) != len(
-                    attr_time_slice.key_values
+                    attr_time_slice.key_values,
                 ):
                     missing_vals = sf.print_setdiff(
                         set(attr_time_slice.key_values),
                         set(df_filt[self.field_nemomod_time_slice]),
                     )
                     raise RuntimeError(
-                        f"Initialization error in EnergyProduction: field {self.field_nemomod_time_slice} in table {k} is missing time_slices {missing_vals} ."
+                        f"Initialization error in EnergyProduction: field {self.field_nemomod_time_slice} in table {k} is missing time_slices {missing_vals} .",
                     )
 
         # check fields in AvailabilityFactor
@@ -876,7 +876,7 @@ class EnergyProduction:
         self.include_supply_techs_for_all_fuels = include_supply_techs_for_all_fuels
         self.is_sisepuede_model_fuel_production = True
         self.units_energy_nemomod = self.model_attributes.configuration.get(
-            "energy_units_nemomod"
+            "energy_units_nemomod",
         )
 
     def _initialize_subsector_names(
@@ -1386,7 +1386,7 @@ class EnergyProduction:
                 df_input[field_index] = index_values
             else:
                 raise ValueError(
-                    "Error in add_index_field_from_key_values: invalid input shape in index_values. Set outer_prod = True to use outer product."
+                    "Error in add_index_field_from_key_values: invalid input shape in index_values. Set outer_prod = True to use outer product.",
                 )
 
         return df_input
@@ -1418,7 +1418,7 @@ class EnergyProduction:
 
         # get regions
         fuels = self.model_attributes.get_attribute_table(
-            self.subsec_name_enfu
+            self.subsec_name_enfu,
         ).key_values
         fuels = (
             [x for x in fuels if x in restriction_fuels]
@@ -1427,7 +1427,7 @@ class EnergyProduction:
         )
         # add to output using outer product
         df_input = self.add_index_field_from_key_values(
-            df_input, fuels, field_fuel, outer_prod=outer_prod
+            df_input, fuels, field_fuel, outer_prod=outer_prod,
         )
 
         return df_input
@@ -1524,7 +1524,7 @@ class EnergyProduction:
 
         # get regions
         techs = self.model_attributes.get_attribute_table(
-            self.subsec_name_entc
+            self.subsec_name_entc,
         ).key_values
         techs = (
             [x for x in techs if x in restriction_technologies]
@@ -1533,7 +1533,7 @@ class EnergyProduction:
         )
         # add to output using outer product
         df_input = self.add_index_field_from_key_values(
-            df_input, techs, field_technology, outer_prod=outer_prod
+            df_input, techs, field_technology, outer_prod=outer_prod,
         )
 
         return df_input
@@ -1647,7 +1647,7 @@ class EnergyProduction:
         if len([x for x in fields_to_add if (x != self.field_nemomod_id)]) > 0:
             (
                 df_input.rename(
-                    columns={self.field_nemomod_id: field_id_rnm}, inplace=True
+                    columns={self.field_nemomod_id: field_id_rnm}, inplace=True,
                 )
                 if (self.field_nemomod_id in df_input.columns)
                 else None
@@ -1792,7 +1792,7 @@ class EnergyProduction:
 
         # get the fuel source index to use to allocate emissions
         attr_enfu = self.model_attributes.get_attribute_table(
-            self.model_attributes.subsec_name_enfu
+            self.model_attributes.subsec_name_enfu,
         )
         ind_enfu_energy_source = attr_enfu.get_key_value_index(cat_enfu_energy_source)
 
@@ -1826,7 +1826,7 @@ class EnergyProduction:
             list(
                 set(dict_enfu_subsectors_to_energy_variables.keys())
                 & set(dict_entc_subsectors_to_emission_variables.keys()),
-            )
+            ),
         )
 
         for subsec in subsecs_iter:
@@ -1867,7 +1867,7 @@ class EnergyProduction:
                 if vec_demand_subsec_cur is not None:
                     vec_enfu_total_demand += vec_demand_subsec_cur
                     dict_subsector_to_energy_demand_proportions.update(
-                        {subsec: vec_demand_subsec_cur}
+                        {subsec: vec_demand_subsec_cur},
                     )
 
         # convert to proportions - get total production
@@ -1876,7 +1876,7 @@ class EnergyProduction:
 
         # emissions are allocated according to domestic production; exports - domestic demand (assume that imports are used homogenously and distributed proportional to subsector demands)
         vec_enfu_frac_from_exports = np.nan_to_num(
-            vec_enfu_exports / vec_enfu_total_production, nan=0.0, posinf=0.0
+            vec_enfu_exports / vec_enfu_total_production, nan=0.0, posinf=0.0,
         )
         vec_enfu_frac_from_others = 1 - vec_enfu_frac_from_exports
 
@@ -1983,7 +1983,7 @@ class EnergyProduction:
             else attribute_technology
         )
         dict_tech_info = self.get_tech_info_dict(
-            attribute_technology=attribute_technology
+            attribute_technology=attribute_technology,
         )
         cost_type = (
             cost_type if (cost_type in ["capital", "fixed", "variable"]) else "variable"
@@ -2074,7 +2074,7 @@ class EnergyProduction:
     ) -> AttributeTable:
         """Shortcut to get the emission attribute table"""
         out = self.model_attributes.get_other_attribute_table(
-            "emission_gas"
+            "emission_gas",
         ).attribute_table
 
         return out
@@ -2156,7 +2156,7 @@ class EnergyProduction:
             )
         )
         vec_enfu_energy_density_gravimetric = vec_enfu_energy_density_gravimetric[
-            :, self.ind_enfu_bgas
+            :, self.ind_enfu_bgas,
         ]
 
         # get minimum fuel fraction to electricity
@@ -2171,7 +2171,7 @@ class EnergyProduction:
             )
         )
         vec_enfu_minimum_fuel_frac_to_elec = vec_enfu_minimum_fuel_frac_to_elec[
-            :, self.ind_enfu_bgas
+            :, self.ind_enfu_bgas,
         ]
 
         # iterate to add total biogas collected
@@ -2202,7 +2202,7 @@ class EnergyProduction:
                     )
                 )
                 vec_enfu_energy_density_cur *= self.get_nemomod_energy_scalar(
-                    self.modvar_enfu_energy_density_gravimetric
+                    self.modvar_enfu_energy_density_gravimetric,
                 )
                 vec_enfu_total_energy_biogas += (
                     vec_enfu_energy_density_cur * vec_mass_biogas
@@ -2242,7 +2242,7 @@ class EnergyProduction:
         # get the attribute
         attr_entc = self.model_attributes.get_attribute_table(subsec)
         pycat_tech = self.model_attributes.get_subsector_attribute(
-            subsec, "pycategory_primary_element"
+            subsec, "pycategory_primary_element",
         )
         field_ccs_tech = f"{field_prepend_ccs}_{pycat_tech}"
 
@@ -2406,7 +2406,7 @@ class EnergyProduction:
         )
 
         fuels_keep = sorted(
-            [x for x in dict_techs_to_fuel.values() if (x != self.cat_enfu_elec)]
+            [x for x in dict_techs_to_fuel.values() if (x != self.cat_enfu_elec)],
         )
         techs_dummy = [self.get_dummy_fuel_tech_name(x) for x in fuels_keep]
 
@@ -2447,7 +2447,7 @@ class EnergyProduction:
 
         # get enfu categories from import fraction, then integrate those associated with output activity ratios
         cats_price_high = self.model_attributes.get_variable_categories(
-            modvar_fuel_import_fraction
+            modvar_fuel_import_fraction,
         )
 
         if not imports_only:
@@ -2538,7 +2538,7 @@ class EnergyProduction:
         cats_entc_dummy_drop = [self.get_dummy_fuel_name(return_type="tech")]
         df_fuel_production = df_production_by_technology[
             ~df_production_by_technology[self.field_nemomod_technology].isin(
-                cats_entc_dummy_imports + cats_entc_dummy_drop
+                cats_entc_dummy_imports + cats_entc_dummy_drop,
             )
         ]
 
@@ -2643,7 +2643,7 @@ class EnergyProduction:
         )
 
         arr_enfu_demand_non_entc = sf.vec_bounds(
-            arr_enfu_full_demand - arr_enfu_exports, (0, np.inf)
+            arr_enfu_full_demand - arr_enfu_exports, (0, np.inf),
         )
         scalar_for_var = self.get_nemomod_energy_scalar(modvar_enfu_demand)
 
@@ -2689,14 +2689,14 @@ class EnergyProduction:
         """
         attribute_fuel = (
             self.model_attributes.get_attribute_table(
-                self.model_attributes.subsec_name_enfu
+                self.model_attributes.subsec_name_enfu,
             )
             if (attribute_fuel is None)
             else attribute_fuel
         )
 
         dict_upstream_fuel = attribute_fuel.field_maps.get(
-            f"{attribute_fuel.key}_to_{self.model_attributes.field_enfu_upstream_to_fuel_category}"
+            f"{attribute_fuel.key}_to_{self.model_attributes.field_enfu_upstream_to_fuel_category}",
         )
         dict_fuel_cats = self.dict_entc_fuel_categories_to_fuel_variables
 
@@ -2717,9 +2717,9 @@ class EnergyProduction:
                     dict_iar_oar_var = dict_fuel_cats.get(try_upstream_cat_enfu)
                     modvar_oar_try = dict_iar_oar_var.get(self.key_oar)
                     cats_shared = set(
-                        self.model_attributes.get_variable_categories(modvar_iar)
+                        self.model_attributes.get_variable_categories(modvar_iar),
                     ) & set(
-                        self.model_attributes.get_variable_categories(modvar_oar_try)
+                        self.model_attributes.get_variable_categories(modvar_oar_try),
                     )
 
                     dict_return.update({try_upstream_cat_enfu: cat_enfu}) if (
@@ -2867,7 +2867,7 @@ class EnergyProduction:
         for modvar in list_entc_modvars_fp_ear:
             # get gas and scalar to correct units
             emission = self.model_attributes.get_variable_characteristic(
-                modvar, self.model_attributes.varchar_str_emission_gas
+                modvar, self.model_attributes.varchar_str_emission_gas,
             )
             scalar_correct = self.model_attributes.get_scalar(modvar, "mass")
             scalar_correct /= self.get_nemomod_energy_scalar(modvar)
@@ -3007,13 +3007,13 @@ class EnergyProduction:
         dict_enfu_ef_to_gas = {}
         for modvar in dict_enfu_arrs_efs_scaled_to_nemomod.keys():
             emission = self.model_attributes.get_variable_characteristic(
-                modvar, self.model_attributes.varchar_str_emission_gas
+                modvar, self.model_attributes.varchar_str_emission_gas,
             )
             dict_enfu_ef_to_gas.update({modvar: emission})
 
         # find upstream fuel determinations and initialize output dataframe
         dict_upstream_fuel = attribute_fuel.field_maps.get(
-            f"{attribute_fuel.key}_to_{self.model_attributes.field_enfu_upstream_to_fuel_category}"
+            f"{attribute_fuel.key}_to_{self.model_attributes.field_enfu_upstream_to_fuel_category}",
         )
         df_out = []
 
@@ -3054,7 +3054,7 @@ class EnergyProduction:
 
                 for modvar_ef in dict_enfu_arrs_efs_scaled_to_nemomod.keys():
                     vec_enfu_fuel_ef = dict_enfu_arrs_efs_scaled_to_nemomod.get(
-                        modvar_ef
+                        modvar_ef,
                     )
                     vec_enfu_fuel_ef = vec_enfu_fuel_ef[:, ind_enfu]
                     emission = dict_enfu_ef_to_gas.get(modvar_ef)
@@ -3301,7 +3301,7 @@ class EnergyProduction:
             reduce_from_all_cats_to_specified_cats=True,
         )
         df_entc_msp_formatted[self.model_attributes.dim_time_period] = list(
-            df_elec_trajectories[self.model_attributes.dim_time_period]
+            df_elec_trajectories[self.model_attributes.dim_time_period],
         )
 
         # get formatted data frame and drop all-0 groupings
@@ -3474,7 +3474,7 @@ class EnergyProduction:
             self.model_enercons.project_enfu_production_and_demands(
                 df_elec_trajectories,
                 target_energy_units=self.model_attributes.configuration.get(
-                    "energy_units_nemomod"
+                    "energy_units_nemomod",
                 ),
             )
             if tuple_enfu_production_and_demands is None
@@ -3509,7 +3509,7 @@ class EnergyProduction:
 
         for fuel in fuels_adj:
             modvar = self.dict_entc_fuel_categories_to_fuel_variables.get(fuel).get(
-                self.key_mpi_frac_msp
+                self.key_mpi_frac_msp,
             )
             cats_modvar = self.model_attributes.get_variable_categories(modvar)
             cats_no_growth = [
@@ -3519,7 +3519,7 @@ class EnergyProduction:
 
             # initialize fraction accounted for by MSP Max applicable categories
             vec_frac_msp_accounted_for_by_growth_limit = np.zeros(
-                len(df_elec_trajectories)
+                len(df_elec_trajectories),
             )
 
             # get column indices of categories that won't grow + those that respond & check sum of MSPs that are subject to non-growth
@@ -3544,7 +3544,7 @@ class EnergyProduction:
             # get projected demand for the fuel
             ind_enfu_fuel = attribute_fuel.get_key_value_index(fuel)
             vec_prod_est_cur_fuel = tuple_enfu_production_and_demands[4][
-                :, ind_enfu_fuel
+                :, ind_enfu_fuel,
             ]
 
             # ordered by cats_no_growth
@@ -3560,7 +3560,7 @@ class EnergyProduction:
                 # next, get estimated fraction associated with preserving this estimated production, but use *current* MSP as uppber bound
                 fracs_new = est_prod_floor / vec_prod_est_cur_fuel[(row + 1) :]
                 fracs_new *= 1 + sf.vec_bounds(
-                    arr_entc_maxprod_msp_increase[(row + 1) :, j], (0, np.inf)
+                    arr_entc_maxprod_msp_increase[(row + 1) :, j], (0, np.inf),
                 )
                 bounds = [(0.0, x) for x in arr_entc_msp[(row + 1) :, j]]
                 fracs_new = sf.vec_bounds(fracs_new, bounds)
@@ -3580,14 +3580,14 @@ class EnergyProduction:
             # next, check if response MSPs need to be re-scaled to preserve aggregate production shares
             if adjust_free_msps_in_response:
                 vec_entc_msp_no_growth_post_adj = arr_entc_msp[:, inds_no_growth].sum(
-                    axis=1
+                    axis=1,
                 )
                 vec_entc_msp_all_post_adj = arr_entc_msp[:, inds_all].sum(axis=1)
 
                 vec_scale_response = vec_entc_msp_all - vec_entc_msp_no_growth_post_adj
                 vec_scale_response /= vec_entc_msp_all - vec_entc_msp_no_growth
                 vec_scale_response = np.nan_to_num(
-                    vec_scale_response, nan=1.0, posinf=1.0
+                    vec_scale_response, nan=1.0, posinf=1.0,
                 )
 
                 for j in inds_response:
@@ -3647,7 +3647,7 @@ class EnergyProduction:
 
         if field_region in df_elec_trajectories.columns:
             df_gnrl_ccf_hydropower[field_region] = list(
-                df_elec_trajectories[field_region]
+                df_elec_trajectories[field_region],
             )
 
         # add technology for hydro
@@ -3781,7 +3781,7 @@ class EnergyProduction:
         )
 
         scalar = self.model_attributes.get_energy_equivalent(
-            units_source, self.units_energy_nemomod
+            units_source, self.units_energy_nemomod,
         )
 
         return scalar if (scalar is not None) else 1
@@ -3898,7 +3898,7 @@ class EnergyProduction:
 
         # get dummy techs
         dict_fuels_to_dummy_techs = self.get_dummy_fuel_techs(
-            attribute_fuel=attribute_fuel
+            attribute_fuel=attribute_fuel,
         )
         dict_dummy_techs_to_fuels = sf.reverse_dict(dict_fuels_to_dummy_techs)
         all_techs_dummy = sorted(list(dict_dummy_techs_to_fuels.keys()))
@@ -3947,7 +3947,7 @@ class EnergyProduction:
 
         # get scalars to apply to prices - start with energy scalar (scale energy factor to configuration units--divide since energy is the denominator)
         scalar_energy = self.get_nemomod_energy_scalar(
-            self.modvar_enfu_energy_density_gravimetric
+            self.modvar_enfu_energy_density_gravimetric,
         )
 
         # scaling to get masses (denominators)
@@ -3958,7 +3958,7 @@ class EnergyProduction:
         )
         # scale prices
         scalar_monetary = self.model_attributes.get_scalar(
-            self.modvar_enfu_price_gravimetric, "monetary"
+            self.modvar_enfu_price_gravimetric, "monetary",
         )
         scalar_price = scalar_mass * scalar_monetary
 
@@ -4015,7 +4015,7 @@ class EnergyProduction:
         # merge, calcuate real price, then update tech names
         df_out = pd.merge(df_price, df_density)
         df_out[self.field_nemomod_value] = np.array(df_out["price"]) * np.array(
-            df_out["density"]
+            df_out["density"],
         )
         df_out[self.field_nemomod_technology] = df_out[
             self.field_nemomod_technology
@@ -4049,7 +4049,7 @@ class EnergyProduction:
 
         # get scalars to apply to prices - start with energy scalar (scale energy factor to configuration units--divide since energy is the denominator)
         scalar_energy = self.get_nemomod_energy_scalar(
-            self.modvar_enfu_energy_density_volumetric
+            self.modvar_enfu_energy_density_volumetric,
         )
         # scaling to get masses (denominators)
         scalar_volume = self.model_attributes.get_variable_unit_conversion_factor(
@@ -4059,7 +4059,7 @@ class EnergyProduction:
         )
         # scale prices
         scalar_monetary = self.model_attributes.get_scalar(
-            self.modvar_enfu_price_volumetric, "monetary"
+            self.modvar_enfu_price_volumetric, "monetary",
         )
         scalar_price = scalar_volume * scalar_monetary
 
@@ -4114,7 +4114,7 @@ class EnergyProduction:
         # merge, calcuate real price, then update tech names
         df_out = pd.merge(df_price, df_density)
         df_out[self.field_nemomod_value] = np.array(df_out["price"]) * np.array(
-            df_out["density"]
+            df_out["density"],
         )
         df_out[self.field_nemomod_technology] = df_out[
             self.field_nemomod_technology
@@ -4187,7 +4187,7 @@ class EnergyProduction:
                 )
             )
             vec_enfu_energy_density_gravimetric = vec_enfu_energy_density_gravimetric[
-                :, self.ind_enfu_wste
+                :, self.ind_enfu_wste,
             ]
 
             # also get minimum fuel fraction to electricity
@@ -4202,7 +4202,7 @@ class EnergyProduction:
                 )
             )
             vec_enfu_minimum_fuel_frac_to_elec = vec_enfu_minimum_fuel_frac_to_elec[
-                :, self.ind_enfu_wste
+                :, self.ind_enfu_wste,
             ]
 
             # convert units -- first, in terms of mass incinerated, then in terms of energy density
@@ -4214,7 +4214,7 @@ class EnergyProduction:
                 )
             )
             vec_enfu_energy_density_gravimetric *= self.get_nemomod_energy_scalar(
-                self.modvar_enfu_energy_density_gravimetric
+                self.modvar_enfu_energy_density_gravimetric,
             )
             vec_enfu_total_energy_waste = (
                 vec_enfu_energy_density_gravimetric * vec_waso_mass_incinerated
@@ -4265,13 +4265,13 @@ class EnergyProduction:
 
                 # get incineration emissions total and scale units
                 emission = self.model_attributes.get_variable_characteristic(
-                    modvar, self.model_attributes.varchar_str_emission_gas
+                    modvar, self.model_attributes.varchar_str_emission_gas,
                 )
                 modvar_waso_emissions_emissions, vec_waso_emissions_incineration = (
                     vec_waso_emissions_incineration
                 )
                 vec_waso_emissions_incineration *= self.model_attributes.get_scalar(
-                    modvar, "mass"
+                    modvar, "mass",
                 )
 
                 # get control scalar on reductions
@@ -4293,7 +4293,7 @@ class EnergyProduction:
                         emission: vec_entc_ear_scalar
                         * vec_waso_emissions_incineration
                         / vec_enfu_total_energy_waste,
-                    }
+                    },
                 )
 
         tup_out = (
@@ -4356,7 +4356,7 @@ class EnergyProduction:
             modvar
             if (modvar in self.model_attributes.all_subsectors)
             else self.model_attributes.get_variable_subsector(
-                modvar, throw_error_q=False
+                modvar, throw_error_q=False,
             )
         )
         if subsector is None:
@@ -4381,7 +4381,7 @@ class EnergyProduction:
             else np.array(
                 df_elec_trajectories[
                     [x for x in attr.key_values if x in df_elec_trajectories.columns]
-                ]
+                ],
             )
         )
 
@@ -4433,7 +4433,7 @@ class EnergyProduction:
 
         if isinstance(df_append, pd.DataFrame):
             df_out = pd.concat([df_out, df_append[df_out.columns]], axis=0).reset_index(
-                drop=True
+                drop=True,
             )
 
         df_out = self.add_multifields_from_key_values(
@@ -4555,7 +4555,7 @@ class EnergyProduction:
                 )
                 # some replacements
                 df_max_replace = pd.concat(
-                    [df_compare[fields_shared], df_new_vals[[field_maxm]]], axis=1
+                    [df_compare[fields_shared], df_new_vals[[field_maxm]]], axis=1,
                 ).rename(
                     columns={
                         field_id_max: field_id,
@@ -4563,7 +4563,7 @@ class EnergyProduction:
                     },
                 )
                 df_min_replace = pd.concat(
-                    [df_compare[fields_shared], df_new_vals[[field_minm]]], axis=1
+                    [df_compare[fields_shared], df_new_vals[[field_minm]]], axis=1,
                 ).rename(
                     columns={
                         field_id_min: field_id,
@@ -4571,14 +4571,14 @@ class EnergyProduction:
                     },
                 )
                 df_max_out = sf.replace_numerical_column_from_merge(
-                    df_max, df_max_replace, field_max
+                    df_max, df_max_replace, field_max,
                 )
                 df_min_out = sf.replace_numerical_column_from_merge(
-                    df_min, df_min_replace, field_min
+                    df_min, df_min_replace, field_min,
                 )
             else:
                 raise ValueError(
-                    "Error in verify_min_max_constraint_inputs: minimum trajectory meets or exceeds maximum trajectory in at least one row."
+                    "Error in verify_min_max_constraint_inputs: minimum trajectory meets or exceeds maximum trajectory in at least one row.",
                 )
 
             return df_max_out, df_min_out
@@ -4681,11 +4681,11 @@ class EnergyProduction:
             {
                 self.field_nemomod_value: [self.get_dummy_fuel_name()],
                 self.field_nemomod_description: [self.get_dummy_fuel_description()],
-            }
+            },
         )
         fields_ext = list(dict_rename.values())
         df_out = pd.concat(
-            [df_out[fields_ext], df_append[fields_ext]], axis=0
+            [df_out[fields_ext], df_append[fields_ext]], axis=0,
         ).reset_index(drop=True)
 
         # order for output
@@ -4718,7 +4718,7 @@ class EnergyProduction:
         # get the region attribute - reduce only to applicable regions
         attribute_mode = (
             self.model_attributes.get_other_attribute_table(
-                self.model_attributes.dim_mode
+                self.model_attributes.dim_mode,
             )
             if (attribute_mode is None)
             else attribute_mode
@@ -4802,7 +4802,7 @@ class EnergyProduction:
         )
 
         regions = self.model_attributes.get_region_list_filtered(
-            regions, attribute_region=attribute_region
+            regions, attribute_region=attribute_region,
         )
 
         # set values out
@@ -4916,11 +4916,11 @@ class EnergyProduction:
 
         # add dummies
         dict_fuels_to_dummy_techs = self.get_dummy_fuel_techs(
-            attribute_fuel=attribute_fuel
+            attribute_fuel=attribute_fuel,
         )
 
         df_out_dummies = pd.DataFrame(
-            {self.field_nemomod_fuel: list(dict_fuels_to_dummy_techs.keys())}
+            {self.field_nemomod_fuel: list(dict_fuels_to_dummy_techs.keys())},
         )
         df_out_dummies[self.field_nemomod_value] = df_out_dummies[
             self.field_nemomod_fuel
@@ -4944,12 +4944,12 @@ class EnergyProduction:
         df_append = pd.DataFrame(
             {
                 self.field_nemomod_value: [
-                    self.get_dummy_fuel_name(return_type="tech")
+                    self.get_dummy_fuel_name(return_type="tech"),
                 ],
                 self.field_nemomod_description: [
-                    self.get_dummy_fuel_description(return_type="tech")
+                    self.get_dummy_fuel_description(return_type="tech"),
                 ],
-            }
+            },
         )
 
         fields_ord = [
@@ -4998,7 +4998,7 @@ class EnergyProduction:
 
         # clean the year if necessary
         years_clean = self.transform_field_year_nemomod(
-            years, time_period_as_year=time_period_as_year
+            years, time_period_as_year=time_period_as_year,
         )
 
         df_out = pd.DataFrame(
@@ -5007,7 +5007,7 @@ class EnergyProduction:
                 self.field_nemomod_description: [
                     f"SISEPUEDE {desc_name} {y}" for y in years
                 ],
-            }
+            },
         )
 
         dict_return = {self.model_attributes.table_nemomod_year: df_out}
@@ -5090,10 +5090,10 @@ class EnergyProduction:
             # then, get total exogenous emissions
             fields = list(
                 set(dict_gas_to_emission_fields[emission])
-                & set(df_elec_trajectories.columns)
+                & set(df_elec_trajectories.columns),
             )
             vec_exogenous_emissions = np.sum(
-                np.array(df_elec_trajectories[fields]), axis=1
+                np.array(df_elec_trajectories[fields]), axis=1,
             )
 
             # retrieve the limit, store the origina (for dropping), and convert units
@@ -5108,14 +5108,14 @@ class EnergyProduction:
 
             # force limit to  to prevent infeasibilities
             vec_emission_limit_out = sf.vec_bounds(
-                vec_emission_limit - vec_exogenous_emissions, (0, np.inf)
+                vec_emission_limit - vec_exogenous_emissions, (0, np.inf),
             )
 
             df_lim = pd.DataFrame(
                 {
                     "drop_flag": vec_drop_flag,
                     self.field_nemomod_value: vec_emission_limit_out,
-                }
+                },
             )
             df_lim[self.field_nemomod_emission] = emission
 
@@ -5135,7 +5135,7 @@ class EnergyProduction:
         # concatenate and order hierarchically
         df_out = pd.concat(df_out, axis=0)
         df_out = df_out[~df_out["drop_flag"].isin([drop_flag])].drop(
-            ["drop_flag"], axis=1
+            ["drop_flag"], axis=1,
         )
         df_out = self.add_multifields_from_key_values(
             df_out,
@@ -5151,7 +5151,7 @@ class EnergyProduction:
         )
 
         dict_return = {
-            self.model_attributes.table_nemomod_annual_emission_limit: df_out
+            self.model_attributes.table_nemomod_annual_emission_limit: df_out,
         }
 
         return dict_return
@@ -5238,7 +5238,7 @@ class EnergyProduction:
         df_out = pd.melt(
             df_reference_availability_factor[
                 df_reference_availability_factor[self.field_nemomod_region].isin(
-                    regions_keep
+                    regions_keep,
                 )
             ],
             [self.field_nemomod_region, self.field_nemomod_time_slice],
@@ -5271,7 +5271,7 @@ class EnergyProduction:
 
         df_out[field_gnrl_ccf_hydropower].fillna(1.0, inplace=True)
         df_out[self.field_nemomod_value] = np.array(
-            df_out[self.field_nemomod_value]
+            df_out[self.field_nemomod_value],
         ) * np.array(df_out[field_gnrl_ccf_hydropower])
 
         df_out = df_out.drop([field_gnrl_ccf_hydropower], axis=1).sort_index()
@@ -5311,7 +5311,7 @@ class EnergyProduction:
         )
 
         units_energy_power_equivalent = self.model_attributes.get_energy_power_swap(
-            units_power
+            units_power,
         )
         cau = self.model_attributes.get_energy_equivalent(
             units_energy_power_equivalent,
@@ -5334,7 +5334,7 @@ class EnergyProduction:
             df_out = cau
 
         dict_return = {
-            self.model_attributes.table_nemomod_capacity_to_activity_unit: df_out
+            self.model_attributes.table_nemomod_capacity_to_activity_unit: df_out,
         }
 
         return dict_return
@@ -5376,7 +5376,7 @@ class EnergyProduction:
         # initialize some attribute components
         attr_enfu = (
             self.model_attributes.get_attribute_table(
-                self.model_attributes.subsec_name_enfu
+                self.model_attributes.subsec_name_enfu,
             )
             if not isinstance(attribute_fuel, AttributeTable)
             else attribute_fuel
@@ -5391,22 +5391,22 @@ class EnergyProduction:
 
         # get some scalars (monetary and power)
         scalar_cost_capital = self.model_attributes.get_scalar(
-            self.modvar_entc_nemomod_capital_cost, "monetary"
+            self.modvar_entc_nemomod_capital_cost, "monetary",
         )
         scalar_cost_capital /= self.model_attributes.get_scalar(
-            self.modvar_entc_nemomod_capital_cost, "power"
+            self.modvar_entc_nemomod_capital_cost, "power",
         )
         scalar_cost_fixed = self.model_attributes.get_scalar(
-            self.modvar_entc_nemomod_fixed_cost, "monetary"
+            self.modvar_entc_nemomod_fixed_cost, "monetary",
         )
         scalar_cost_fixed /= self.model_attributes.get_scalar(
-            self.modvar_entc_nemomod_fixed_cost, "power"
+            self.modvar_entc_nemomod_fixed_cost, "power",
         )
         scalar_cost_variable = self.model_attributes.get_scalar(
-            self.modvar_entc_nemomod_variable_cost, "monetary"
+            self.modvar_entc_nemomod_variable_cost, "monetary",
         )
         scalar_cost_variable /= self.get_nemomod_energy_scalar(
-            self.modvar_entc_nemomod_variable_cost
+            self.modvar_entc_nemomod_variable_cost,
         )
 
         # CapitalCost
@@ -5492,7 +5492,7 @@ class EnergyProduction:
             df_elec_trajectories[self.model_attributes.dim_time_period]
         )
         cats_df_variable_costs = self.model_attributes.get_variable_categories(
-            self.modvar_entc_nemomod_variable_cost
+            self.modvar_entc_nemomod_variable_cost,
         )
 
         # loop over techs and find any associated fuels; if so, pull from arr_enfu_costs
@@ -5554,7 +5554,7 @@ class EnergyProduction:
 
         # next, replace costs for dummy techs with costs that are at least 10x higher than max of other costs where applicable
         cats_entc_dummy_with_high_cost = self.get_enfu_cats_with_high_dummy_tech_costs(
-            return_type="dummy_fuel_techs"
+            return_type="dummy_fuel_techs",
         )
         cats_entc_dummy = list(self.get_dummy_fuel_techs().values())
         cats_no_cost = set(cats_entc_dummy) - set(cats_entc_dummy_with_high_cost)
@@ -5571,13 +5571,13 @@ class EnergyProduction:
                 [
                     (x not in cats_no_cost)
                     for x in list(df_tmp[self.field_nemomod_technology])
-                ]
+                ],
             ).astype(int)
             vals_new = (
                 np.array(
                     df_tmp[self.field_nemomod_value].replace(
-                        {flag_dummy_price: price_high}
-                    )
+                        {flag_dummy_price: price_high},
+                    ),
                 )
                 * vec_high_cost_bool
             )
@@ -5610,10 +5610,10 @@ class EnergyProduction:
         dict_return = {}
         # get some scalars (monetary and power)
         scalar_cost_capital_storage = self.model_attributes.get_scalar(
-            self.modvar_enst_nemomod_capital_cost_storage, "monetary"
+            self.modvar_enst_nemomod_capital_cost_storage, "monetary",
         )
         scalar_cost_capital_storage /= self.get_nemomod_energy_scalar(
-            self.modvar_enst_nemomod_capital_cost_storage
+            self.modvar_enst_nemomod_capital_cost_storage,
         )
 
         # CapitalCostStorage
@@ -5683,7 +5683,7 @@ class EnergyProduction:
             attribute_nemomod_table.table[[attribute_nemomod_table.key]]
             .copy()
             .rename(
-                columns={attribute_nemomod_table.key: self.field_nemomod_table_name}
+                columns={attribute_nemomod_table.key: self.field_nemomod_table_name},
             )
         )
         df_out[self.field_nemomod_value] = df_out[
@@ -5770,14 +5770,14 @@ class EnergyProduction:
 
         attr_enfu = (
             self.model_attributes.get_attribute_table(
-                self.model_attributes.subsec_name_enfu
+                self.model_attributes.subsec_name_enfu,
             )
             if not isinstance(attribute_fuel, AttributeTable)
             else attribute_fuel
         )
         attr_entc = (
             self.model_attributes.get_attribute_table(
-                self.model_attributes.subsec_name_entc
+                self.model_attributes.subsec_name_entc,
             )
             if not isinstance(attribute_technology, AttributeTable)
             else attribute_technology
@@ -5879,7 +5879,7 @@ class EnergyProduction:
             ##  FORMAT AS DATA FRAME
 
             emission = self.model_attributes.get_variable_characteristic(
-                modvar, self.model_attributes.varchar_str_emission_gas
+                modvar, self.model_attributes.varchar_str_emission_gas,
             )
             df_entc_tmp = pd.DataFrame(arr_entc_tmp, columns=attr_entc.key_values)
             df_entc_tmp = df_entc_tmp[cats_entc_ordered]
@@ -5930,7 +5930,7 @@ class EnergyProduction:
                 ~df_out[self.field_nemomod_technology].isin([cat_entc_pp_waste])
             ]
             df_out = pd.concat([df_out, df_enfu_efs_waste], axis=0).reset_index(
-                drop=True
+                drop=True,
             )
 
         df_out = self.add_multifields_from_key_values(
@@ -5994,7 +5994,7 @@ class EnergyProduction:
         )
 
         dict_return = {
-            self.model_attributes.table_nemomod_emissions_activity_ratio: df_out
+            self.model_attributes.table_nemomod_emissions_activity_ratio: df_out,
         }
 
         return dict_return
@@ -6139,13 +6139,13 @@ class EnergyProduction:
 
         # make some modifications to generation
         df_iar = dict_return.get(
-            self.model_attributes.table_nemomod_input_activity_ratio
+            self.model_attributes.table_nemomod_input_activity_ratio,
         )
         df_iar[self.field_nemomod_fuel] = df_iar[self.field_nemomod_technology].replace(
-            dict_techs_to_fuel
+            dict_techs_to_fuel,
         )
         df_iar[self.field_nemomod_mode] = df_iar[self.field_nemomod_technology].replace(
-            dict_tech_to_mode
+            dict_tech_to_mode,
         )
 
         # convert efficiency to input_activity_ratio_ratio
@@ -6271,7 +6271,7 @@ class EnergyProduction:
         # merge, multiply, and drop the scalar
         field_transmission_merge = "TRANSMISSION_TMP"
         df_transmission_loss.rename(
-            columns={self.field_nemomod_value: field_transmission_merge}, inplace=True
+            columns={self.field_nemomod_value: field_transmission_merge}, inplace=True,
         )
 
         df_out = pd.merge(
@@ -6281,7 +6281,7 @@ class EnergyProduction:
         ).fillna(1.0)
 
         df_out[self.field_nemomod_value] = np.array(
-            df_out[self.field_nemomod_value]
+            df_out[self.field_nemomod_value],
         ) / np.array(df_out[field_transmission_merge])
         df_out.drop([field_transmission_merge], axis=1, inplace=True)
 
@@ -6304,7 +6304,7 @@ class EnergyProduction:
         )
 
         dict_return.update(
-            {self.model_attributes.table_nemomod_input_activity_ratio: df_append}
+            {self.model_attributes.table_nemomod_input_activity_ratio: df_append},
         )
 
         return dict_return
@@ -6375,14 +6375,14 @@ class EnergyProduction:
             df_elec_trajectories is None
         ):
             raise ValueError(
-                "Error in format_nemomod_table_min_share_production: tuple_enfu_production_and_demands and df_elec_trajectories cannot both be None."
+                "Error in format_nemomod_table_min_share_production: tuple_enfu_production_and_demands and df_elec_trajectories cannot both be None.",
             )
 
         tuple_enfu_production_and_demands = (
             self.model_enercons.project_enfu_production_and_demands(
                 df_elec_trajectories,
                 target_energy_units=self.model_attributes.configuration.get(
-                    "energy_units_nemomod"
+                    "energy_units_nemomod",
                 ),
             )
             if tuple_enfu_production_and_demands is None
@@ -6445,7 +6445,7 @@ class EnergyProduction:
         ).get(self.model_attributes.table_nemomod_min_share_production)
 
         df_out[self.field_nemomod_technology] = df_out[self.field_nemomod_fuel].replace(
-            self.get_dummy_fuel_techs()
+            self.get_dummy_fuel_techs(),
         )
 
         # setup for NemoMod
@@ -6558,7 +6558,7 @@ class EnergyProduction:
                 self.field_nemomod_value: [
                     dict_strg_to_min_charge.get(x) for x in all_storage
                 ],
-            }
+            },
         )
 
         df_out = self.add_multifields_from_key_values(
@@ -6696,7 +6696,7 @@ class EnergyProduction:
             attribute_technology=attribute_technology,
         )
         all_techs = sorted(list(dict_techs_to_operational_life.keys())) + sorted(
-            list(dict_fuels_to_dummy_techs.values())
+            list(dict_fuels_to_dummy_techs.values()),
         )
         all_ols = [
             dict_techs_to_operational_life.get(x, operational_life_dummies)
@@ -6708,18 +6708,18 @@ class EnergyProduction:
             {
                 self.field_nemomod_technology: all_techs,
                 self.field_nemomod_value: all_ols,
-            }
+            },
         )
         # split off and perform some cleaning
         df_operational_life_storage = df_operational_life[
             df_operational_life[self.field_nemomod_technology].isin(
-                dict_storage_techs_to_storage.keys()
+                dict_storage_techs_to_storage.keys(),
             )
         ].copy()
 
         df_operational_life_storage[self.field_nemomod_technology] = (
             df_operational_life_storage[self.field_nemomod_technology].replace(
-                dict_storage_techs_to_storage
+                dict_storage_techs_to_storage,
             )
         )
 
@@ -6730,7 +6730,7 @@ class EnergyProduction:
 
         df_operational_life = df_operational_life[
             ~df_operational_life[self.field_nemomod_technology].isin(
-                dict_storage_techs_to_storage.keys()
+                dict_storage_techs_to_storage.keys(),
             )
         ].copy()
 
@@ -6874,11 +6874,11 @@ class EnergyProduction:
             {
                 self.field_nemomod_fuel: [self.get_dummy_fuel_name()],
                 self.field_nemomod_technology: [
-                    self.get_dummy_fuel_name(return_type="tech")
+                    self.get_dummy_fuel_name(return_type="tech"),
                 ],
                 self.field_nemomod_value: [1.0],
                 self.field_nemomod_mode: [self.cat_enmo_gnrt],
-            }
+            },
         )
         # format with dimensions
         df_append = self.add_multifields_from_key_values(
@@ -6917,7 +6917,7 @@ class EnergyProduction:
 
         # ensure changes are made to dict
         dict_return = {
-            self.model_attributes.table_nemomod_output_activity_ratio: df_out
+            self.model_attributes.table_nemomod_output_activity_ratio: df_out,
         }
 
         return dict_return
@@ -7008,7 +7008,7 @@ class EnergyProduction:
             reduce_from_all_cats_to_specified_cats=True,
         )
         df_return[self.model_attributes.dim_time_period] = list(
-            df_elec_trajectories[self.model_attributes.dim_time_period]
+            df_elec_trajectories[self.model_attributes.dim_time_period],
         )
 
         # check technologies that are optional from optional input
@@ -7098,7 +7098,7 @@ class EnergyProduction:
         )
 
         dict_return = {
-            self.model_attributes.table_nemomod_re_tag_technology: df_entc_re_tag
+            self.model_attributes.table_nemomod_re_tag_technology: df_entc_re_tag,
         }
 
         return dict_return
@@ -7140,7 +7140,7 @@ class EnergyProduction:
             ),
         )
         dict_return[self.model_attributes.table_nemomod_reserve_margin].drop(
-            [self.field_nemomod_technology], axis=1, inplace=True
+            [self.field_nemomod_technology], axis=1, inplace=True,
         )
 
         return dict_return
@@ -7164,7 +7164,7 @@ class EnergyProduction:
             {
                 self.field_nemomod_fuel: [self.cat_enfu_elec],
                 self.field_nemomod_value: [1],
-            }
+            },
         )
 
         # add dimensions
@@ -7181,7 +7181,7 @@ class EnergyProduction:
         )
 
         dict_return = {
-            self.model_attributes.table_nemomod_reserve_margin_tag_fuel: df_out
+            self.model_attributes.table_nemomod_reserve_margin_tag_fuel: df_out,
         }
 
         return dict_return
@@ -7247,7 +7247,7 @@ class EnergyProduction:
         dict_return = {}
         # get some scalars
         scalar_residual_capacity = self.model_attributes.get_scalar(
-            self.modvar_entc_nemomod_residual_capacity, "power"
+            self.modvar_entc_nemomod_residual_capacity, "power",
         )
         # ResidualCapacity
         dict_return.update(
@@ -7291,7 +7291,7 @@ class EnergyProduction:
         dict_return = {}
         # get some scalars
         scalar_cost_capital_storage = self.get_nemomod_energy_scalar(
-            self.modvar_enst_nemomod_residual_capacity
+            self.modvar_enst_nemomod_residual_capacity,
         )
         # ResidualCapacity
         dict_return.update(
@@ -7373,7 +7373,7 @@ class EnergyProduction:
             self.model_enercons.project_enfu_production_and_demands(
                 df_elec_trajectories,
                 target_energy_units=self.model_attributes.configuration.get(
-                    "energy_units_nemomod"
+                    "energy_units_nemomod",
                 ),
             )
             if (tuple_enfu_production_and_demands is None)
@@ -7414,11 +7414,11 @@ class EnergyProduction:
         table_name = self.model_attributes.table_nemomod_total_technology_annual_activity_lower_limit
         df_tech_lower_limit = (
             self.get_total_technology_activity_lower_limit_no_msp_adjustment(
-                df_elec_trajectories
+                df_elec_trajectories,
             ).get(table_name)
         )
         vector_reference_time_period = list(
-            df_elec_trajectories[self.model_attributes.dim_time_period]
+            df_elec_trajectories[self.model_attributes.dim_time_period],
         )
 
         vec_entc_prod_lower_limit = np.array(
@@ -7498,7 +7498,7 @@ class EnergyProduction:
             self.model_enercons.project_enfu_production_and_demands(
                 df_elec_trajectories,
                 target_energy_units=self.model_attributes.configuration.get(
-                    "energy_units_nemomod"
+                    "energy_units_nemomod",
                 ),
             )
             if (tuple_enfu_production_and_demands is None)
@@ -7540,7 +7540,7 @@ class EnergyProduction:
             ).keys(),
         )
         df_enfu_production = pd.DataFrame(
-            arr_enfu_production, columns=attribute_fuel.key_values
+            arr_enfu_production, columns=attribute_fuel.key_values,
         )
         fields_all_zero = [
             x
@@ -7585,7 +7585,7 @@ class EnergyProduction:
         )
 
         return {
-            self.model_attributes.table_nemomod_specified_annual_demand: df_enfu_production
+            self.model_attributes.table_nemomod_specified_annual_demand: df_enfu_production,
         }
 
     def format_nemomod_table_specified_demand_profile(
@@ -7655,7 +7655,7 @@ class EnergyProduction:
         )
 
         regions = self.model_attributes.get_region_list_filtered(
-            regions, attribute_region=attribute_region
+            regions, attribute_region=attribute_region,
         )
         regions_keep = set(attribute_region.key_values) & set(regions)
         regions_keep = (
@@ -7666,7 +7666,7 @@ class EnergyProduction:
 
         if len(regions_keep) == 0:
             raise ValueError(
-                "No valid regions found for format_nemomod_table_specified_demand_profile() in df_reference_demand_profile"
+                "No valid regions found for format_nemomod_table_specified_demand_profile() in df_reference_demand_profile",
             )
 
         ##  BUILD COMPONENTS FROM REFERENCE
@@ -7712,7 +7712,7 @@ class EnergyProduction:
             columns={
                 attribute_time_slice.key: self.field_nemomod_time_slice,
                 "weight": self.field_nemomod_value,
-            }
+            },
         )
         df_append = sf.explode_merge(df_fuels_to_specify, df_time_slices)
 
@@ -7726,7 +7726,7 @@ class EnergyProduction:
             ~(
                 df_append[self.field_nemomod_fuel].isin(df_out[self.field_nemomod_fuel])
                 & df_append[self.field_nemomod_region].isin(
-                    df_out[self.field_nemomod_region]
+                    df_out[self.field_nemomod_region],
                 )
             )
         ]
@@ -7750,7 +7750,7 @@ class EnergyProduction:
             regions=regions,
         )
         dict_return = {
-            self.model_attributes.table_nemomod_specified_demand_profile: df_out
+            self.model_attributes.table_nemomod_specified_demand_profile: df_out,
         }
 
         return dict_return
@@ -7828,10 +7828,10 @@ class EnergyProduction:
 
         # add bounds and drop the temporary field
         df_tmp[field_tmp] = df_tmp[self.field_nemomod_storage].replace(
-            dict_strg_to_min_charge
+            dict_strg_to_min_charge,
         )
         bounds = list(
-            zip(list(df_tmp[field_tmp]), list(np.ones(len(df_tmp))), strict=False)
+            zip(list(df_tmp[field_tmp]), list(np.ones(len(df_tmp))), strict=False),
         )
 
         df_tmp[self.field_nemomod_value] = sf.vec_bounds(
@@ -7842,7 +7842,7 @@ class EnergyProduction:
 
         # update
         dict_return.update(
-            {self.model_attributes.table_nemomod_storage_level_start: df_tmp}
+            {self.model_attributes.table_nemomod_storage_level_start: df_tmp},
         )
 
         return dict_return
@@ -8002,7 +8002,7 @@ class EnergyProduction:
         )
         df_ltsgroup[self.field_nemomod_id] = range(1, len(df_ltsgroup) + 1)
         df_ltsgroup.rename(
-            columns={"time_slice": self.field_nemomod_time_slice}, inplace=True
+            columns={"time_slice": self.field_nemomod_time_slice}, inplace=True,
         )
         fields_ext = [
             self.field_nemomod_id,
@@ -8086,7 +8086,7 @@ class EnergyProduction:
             # get attribute for time slice group
             table_name = dict_field_to_attribute.get(fld)
             attr_cur = self.model_attributes.get_other_attribute_table(
-                table_name
+                table_name,
             ).table.copy()
 
             attr_cur.rename(
@@ -8162,16 +8162,16 @@ class EnergyProduction:
 
         # get some scalars
         scalar_total_annual_max_capacity = self.model_attributes.get_scalar(
-            self.modvar_entc_nemomod_total_annual_max_capacity, "power"
+            self.modvar_entc_nemomod_total_annual_max_capacity, "power",
         )
         scalar_total_annual_max_capacity_investment = self.model_attributes.get_scalar(
-            self.modvar_entc_nemomod_total_annual_max_capacity_investment, "power"
+            self.modvar_entc_nemomod_total_annual_max_capacity_investment, "power",
         )
         scalar_total_annual_min_capacity = self.model_attributes.get_scalar(
-            self.modvar_entc_nemomod_total_annual_min_capacity, "power"
+            self.modvar_entc_nemomod_total_annual_min_capacity, "power",
         )
         scalar_total_annual_min_capacity_investment = self.model_attributes.get_scalar(
-            self.modvar_entc_nemomod_total_annual_min_capacity_investment, "power"
+            self.modvar_entc_nemomod_total_annual_min_capacity_investment, "power",
         )
 
         # TotalAnnualMaxCapacity
@@ -8251,10 +8251,10 @@ class EnergyProduction:
         # check tables - capacity
         dfs_verify = self.verify_min_max_constraint_inputs(
             dict_return.get(
-                self.model_attributes.table_nemomod_total_annual_max_capacity
+                self.model_attributes.table_nemomod_total_annual_max_capacity,
             ),
             dict_return.get(
-                self.model_attributes.table_nemomod_total_annual_min_capacity
+                self.model_attributes.table_nemomod_total_annual_min_capacity,
             ),
             self.field_nemomod_value,
             self.field_nemomod_value,
@@ -8275,10 +8275,10 @@ class EnergyProduction:
         # check tables - capacity investment
         dfs_verify = self.verify_min_max_constraint_inputs(
             dict_return.get(
-                self.model_attributes.table_nemomod_total_annual_max_capacity_investment
+                self.model_attributes.table_nemomod_total_annual_max_capacity_investment,
             ),
             dict_return.get(
-                self.model_attributes.table_nemomod_total_annual_min_capacity_investment
+                self.model_attributes.table_nemomod_total_annual_min_capacity_investment,
             ),
             self.field_nemomod_value,
             self.field_nemomod_value,
@@ -8327,7 +8327,7 @@ class EnergyProduction:
         dict_return = {}
         # get some scalars
         scalar_total_annual_max_capacity_storage = self.model_attributes.get_scalar(
-            self.modvar_enst_nemomod_total_annual_max_capacity_storage, "power"
+            self.modvar_enst_nemomod_total_annual_max_capacity_storage, "power",
         )
         scalar_total_annual_max_capacity_investment_storage = (
             self.model_attributes.get_scalar(
@@ -8336,7 +8336,7 @@ class EnergyProduction:
             )
         )
         scalar_total_annual_min_capacity_storage = self.model_attributes.get_scalar(
-            self.modvar_enst_nemomod_total_annual_min_capacity_storage, "power"
+            self.modvar_enst_nemomod_total_annual_min_capacity_storage, "power",
         )
         scalar_total_annual_min_capacity_investment_storage = (
             self.model_attributes.get_scalar(
@@ -8419,10 +8419,10 @@ class EnergyProduction:
         # check tables - capacity
         dfs_verify = self.verify_min_max_constraint_inputs(
             dict_return.get(
-                self.model_attributes.table_nemomod_total_annual_max_capacity_storage
+                self.model_attributes.table_nemomod_total_annual_max_capacity_storage,
             ),
             dict_return.get(
-                self.model_attributes.table_nemomod_total_annual_min_capacity_storage
+                self.model_attributes.table_nemomod_total_annual_min_capacity_storage,
             ),
             self.field_nemomod_value,
             self.field_nemomod_value,
@@ -8443,10 +8443,10 @@ class EnergyProduction:
         # check tables - capacity investment
         dfs_verify = self.verify_min_max_constraint_inputs(
             dict_return.get(
-                self.model_attributes.table_nemomod_total_annual_max_capacity_investment_storage
+                self.model_attributes.table_nemomod_total_annual_max_capacity_investment_storage,
             ),
             dict_return.get(
-                self.model_attributes.table_nemomod_total_annual_min_capacity_investment_storage
+                self.model_attributes.table_nemomod_total_annual_min_capacity_investment_storage,
             ),
             self.field_nemomod_value,
             self.field_nemomod_value,
@@ -8721,18 +8721,18 @@ class EnergyProduction:
         cat_entc_pp_biogas = self.get_entc_cat_for_integration("bgas")
         cat_entc_pp_waste = self.get_entc_cat_for_integration("wste")
         ind_entc_pp_biogas = attribute_technology.get_key_value_index(
-            cat_entc_pp_biogas
+            cat_entc_pp_biogas,
         )
         ind_entc_pp_waste = attribute_technology.get_key_value_index(cat_entc_pp_waste)
 
         # get some scalars to use if returning a capacity constraint dataframe
         if return_type == "CapacityCheck":
             units_energy_config = self.model_attributes.configuration.get(
-                "energy_units"
+                "energy_units",
             )
             units_power_config = self.model_attributes.configuration.get("power_units")
             units_energy_power_equivalent = self.model_attributes.get_energy_power_swap(
-                units_power_config
+                units_power_config,
             )
             scalar_energy_to_power_cur = self.model_attributes.get_energy_equivalent(
                 units_energy_config,
@@ -8758,7 +8758,7 @@ class EnergyProduction:
             )
         )
         vec_enfu_min_energy_to_elec_biogas *= arr_entc_efficiencies[
-            :, ind_entc_pp_biogas
+            :, ind_entc_pp_biogas,
         ]
         # get waste supply available
         (
@@ -8779,9 +8779,9 @@ class EnergyProduction:
                 self.field_nemomod_technology: cat_entc_pp_biogas,
                 self.field_nemomod_value: vec_enfu_min_energy_to_elec_biogas,
                 self.field_nemomod_year: list(
-                    df_elec_trajectories[self.model_attributes.dim_time_period]
+                    df_elec_trajectories[self.model_attributes.dim_time_period],
                 ),
-            }
+            },
         )
         # waste component
         df_waste = pd.DataFrame(
@@ -8789,9 +8789,9 @@ class EnergyProduction:
                 self.field_nemomod_technology: cat_entc_pp_waste,
                 self.field_nemomod_value: vec_enfu_min_energy_to_elec_waste,
                 self.field_nemomod_year: list(
-                    df_elec_trajectories[self.model_attributes.dim_time_period]
+                    df_elec_trajectories[self.model_attributes.dim_time_period],
                 ),
-            }
+            },
         )
         # concatenate into output data frame
         df_out = pd.concat([df_biogas, df_waste], axis=0)
@@ -8886,21 +8886,21 @@ class EnergyProduction:
         cat_entc_pp_biogas = self.get_entc_cat_for_integration("bgas")
         cat_entc_pp_waste = self.get_entc_cat_for_integration("wste")
         ind_entc_pp_biogas = attribute_technology.get_key_value_index(
-            cat_entc_pp_biogas
+            cat_entc_pp_biogas,
         )
         ind_entc_pp_waste = attribute_technology.get_key_value_index(cat_entc_pp_waste)
 
         # get some scalars to use if returning a capacity constraint dataframe
         if return_type == "CapacityCheck":
             units_energy_config = self.model_attributes.configuration.get(
-                "energy_units"
+                "energy_units",
             )
             units_power_config = self.model_attributes.configuration.get("power_units")
             units_energy_power_equivalent = self.model_attributes.get_energy_power_swap(
-                units_power_config
+                units_power_config,
             )
             scalar_energy_to_power_cur = self.model_attributes.get_energy_equivalent(
-                units_energy_config, units_energy_power_equivalent
+                units_energy_config, units_energy_power_equivalent,
             )
 
         ##  GET SUPPLY TO USE (MIN) AND TECH EFFICIENCIES
@@ -8922,7 +8922,7 @@ class EnergyProduction:
             )
         )
         vec_enfu_min_energy_to_elec_biogas *= arr_entc_efficiencies[
-            :, ind_entc_pp_biogas
+            :, ind_entc_pp_biogas,
         ]
 
         # get waste supply available
@@ -8945,9 +8945,9 @@ class EnergyProduction:
                 self.field_nemomod_technology: cat_entc_pp_biogas,
                 self.field_nemomod_value: vec_enfu_min_energy_to_elec_biogas,
                 self.field_nemomod_year: list(
-                    df_elec_trajectories[self.model_attributes.dim_time_period]
+                    df_elec_trajectories[self.model_attributes.dim_time_period],
                 ),
-            }
+            },
         )
 
         # waste component
@@ -8956,9 +8956,9 @@ class EnergyProduction:
                 self.field_nemomod_technology: cat_entc_pp_waste,
                 self.field_nemomod_value: vec_enfu_min_energy_to_elec_waste,
                 self.field_nemomod_year: list(
-                    df_elec_trajectories[self.model_attributes.dim_time_period]
+                    df_elec_trajectories[self.model_attributes.dim_time_period],
                 ),
-            }
+            },
         )
 
         # concatenate into output data frame
@@ -9204,7 +9204,7 @@ class EnergyProduction:
             df_prepend = dict_ttal.get(table_name)
             df_entc_activity_limits_append = df_entc_activity_limits_append[
                 ~df_entc_activity_limits_append[self.field_nemomod_technology].isin(
-                    list(df_prepend[self.field_nemomod_technology])
+                    list(df_prepend[self.field_nemomod_technology]),
                 )
             ].reset_index(drop=True)
 
@@ -9277,7 +9277,7 @@ class EnergyProduction:
 
         df_out = df_in.copy()
         df_out[self.field_nemomod_year] = np.array(
-            df_out[self.field_nemomod_year]
+            df_out[self.field_nemomod_year],
         ).astype(int)
 
         # does the time period
@@ -9296,7 +9296,7 @@ class EnergyProduction:
             )
 
             dict_map = attribute_time_period.field_maps.get(
-                f"{field_year}_to_{attribute_time_period.key}"
+                f"{field_year}_to_{attribute_time_period.key}",
             )
 
         df_out = (
@@ -9350,7 +9350,7 @@ class EnergyProduction:
         )
 
         subsec = self.model_attributes.get_variable_subsector(
-            self.modvar_entc_nemomod_discounted_capital_investment
+            self.modvar_entc_nemomod_discounted_capital_investment,
         )
 
         df_out = self.retrieve_and_pivot_nemomod_table(
@@ -9537,7 +9537,7 @@ class EnergyProduction:
         for modvar in modvars_emit:
             # get the gas, global warming potential (to scale output by), and the query
             gas = self.model_attributes.get_variable_characteristic(
-                modvar, self.model_attributes.varchar_str_emission_gas
+                modvar, self.model_attributes.varchar_str_emission_gas,
             )
             gwp = self.model_attributes.get_gwp(gas)
             query_append = f"where {self.field_nemomod_emission} = '{gas}'"
@@ -9629,7 +9629,7 @@ class EnergyProduction:
             else table_name_demands
         )
         scalar_div = self.get_nemomod_energy_scalar(
-            self.modvar_enfu_energy_demand_by_fuel_entc
+            self.modvar_enfu_energy_demand_by_fuel_entc,
         )
         dict_tech_info = self.get_tech_info_dict()
 
@@ -9659,11 +9659,11 @@ class EnergyProduction:
 
         # 2. format specified annual demands of downstream fuel, which will be deducted from upstream fuel
         df_demands = sqlutil.sql_table_to_df(engine, table_name_demands).drop(
-            self.field_nemomod_solvedtm, axis=1
+            self.field_nemomod_solvedtm, axis=1,
         )
         field_val_demands = f"{self.field_nemomod_value}_DEMANDS"
         df_demands.rename(
-            columns={self.field_nemomod_value: field_val_demands}, inplace=True
+            columns={self.field_nemomod_value: field_val_demands}, inplace=True,
         )
         df_demands = df_demands[
             df_demands[self.field_nemomod_fuel].isin(dict_upstream.keys())
@@ -9672,7 +9672,7 @@ class EnergyProduction:
         # 3. account for imports--overwrite import supply techs with fuel
         dict_fuels_to_dummy_techs = dict_tech_info.get("dict_fuels_to_dummy_techs")
         cats_enfu_import = self.get_enfu_cats_with_high_dummy_tech_costs(
-            imports_only=True
+            imports_only=True,
         )
         dict_cats_entc_import = dict(
             (dict_fuels_to_dummy_techs.get(x), dict_upstream.get(x, x))
@@ -9683,7 +9683,7 @@ class EnergyProduction:
                 dict_fuels_to_dummy_techs.get(x)
                 for x in dict_upstream.keys()
                 if dict_fuels_to_dummy_techs.get(x) in dict_cats_entc_import
-            ]
+            ],
         )
 
         # 4. break out imports and replace techs for
@@ -9698,7 +9698,7 @@ class EnergyProduction:
             self.field_nemomod_technology
         ].replace(dict_tech_info.get("dict_dummy_techs_to_fuels"))
         df_use.loc[inds, self.field_nemomod_fuel] = df_use.loc[
-            inds, self.field_nemomod_technology
+            inds, self.field_nemomod_technology,
         ].replace(dict_cats_entc_import)
         df_use = df_use[df_use[self.field_nemomod_fuel] != self.get_dummy_fuel_name()]
 
@@ -9733,7 +9733,7 @@ class EnergyProduction:
 
         # sectoral demands for fuel
         scalar_div = self.get_nemomod_energy_scalar(
-            self.modvar_enfu_energy_demand_by_fuel_entc
+            self.modvar_enfu_energy_demand_by_fuel_entc,
         )
         df_out_enfu_demand_entc = self.retrieve_and_pivot_nemomod_table(
             df_use,
@@ -9791,7 +9791,7 @@ class EnergyProduction:
                 )
 
             df_out_enfu_demand_entc = dict_dfs.get(
-                self.modvar_enfu_energy_demand_by_fuel_entc
+                self.modvar_enfu_energy_demand_by_fuel_entc,
             )
             # df_out_enfu_imports = dict_dfs.get(self.modvar_enfu_imports_fuel)
 
@@ -9958,7 +9958,7 @@ class EnergyProduction:
             self.model_enercons.project_enfu_production_and_demands(
                 df_elec_trajectories,
                 target_energy_units=self.model_attributes.configuration.get(
-                    "energy_units_nemomod"
+                    "energy_units_nemomod",
                 ),
             )
             if (tuple_enfu_production_and_demands is None)
@@ -9976,7 +9976,7 @@ class EnergyProduction:
         # get production by technology table from Nemomod
         df_demand_annual = sqlutil.sql_table_to_df(engine, table_name_demand_annual)
         df_production_by_technology = sqlutil.sql_table_to_df(
-            engine, table_name_production_by_technology
+            engine, table_name_production_by_technology,
         )
 
         ##  GET FUEL DEMANDS WITHIN ENTC AND IMPORTS, FUEL PRODUCTION, AND FUEL DEMANDS
@@ -10011,7 +10011,7 @@ class EnergyProduction:
             return_type="array_base",
         )
         arr_enfu_imports *= self.get_nemomod_energy_scalar(
-            self.modvar_enfu_imports_fuel
+            self.modvar_enfu_imports_fuel,
         )
 
         # 3. add fuel production
@@ -10033,7 +10033,7 @@ class EnergyProduction:
             return_type="array_base",
         )
         arr_enfu_production *= self.get_nemomod_energy_scalar(
-            self.modvar_enfu_production_fuel
+            self.modvar_enfu_production_fuel,
         )
 
         # 5. get demands from other subsectors (pull from here) - option is self.get_enfu_non_entc_fuel_demands_from_annual_demand
@@ -10044,7 +10044,7 @@ class EnergyProduction:
             return_type="array_base",
         )
         scalar_enfu_energy_demand_entc_to_nemo_units = self.get_nemomod_energy_scalar(
-            self.modvar_enfu_energy_demand_by_fuel_entc
+            self.modvar_enfu_energy_demand_by_fuel_entc,
         )
 
         # demands WITHOUT losses to transmission
@@ -10091,7 +10091,7 @@ class EnergyProduction:
             arr_enfu_production + arr_enfu_imports
         ) * arr_transmission_loss_frac
         scalar_div = self.get_nemomod_energy_scalar(
-            self.modvar_enfu_transmission_loss_electricity
+            self.modvar_enfu_transmission_loss_electricity,
         )
         df_enfu_transmission_losses = self.model_attributes.array_to_df(
             arr_enfu_transmission_losses / scalar_div,
@@ -10109,7 +10109,7 @@ class EnergyProduction:
         )
         arr_enfu_exports_adj = sf.vec_bounds(arr_enfu_exports_adj, (0, np.inf))
         scalar_div = self.get_nemomod_energy_scalar(
-            self.modvar_enfu_exports_fuel_adjusted
+            self.modvar_enfu_exports_fuel_adjusted,
         )
         df_enfu_exports_adj = self.model_attributes.array_to_df(
             arr_enfu_exports_adj / scalar_div,
@@ -10244,14 +10244,14 @@ class EnergyProduction:
         # get data frame
         if isinstance(engine, sqlalchemy.engine.Engine):
             df_table_nemomod = sqlutil.sql_table_to_df(
-                engine, table_name, query_append=query_append
+                engine, table_name, query_append=query_append,
             )
         elif isinstance(engine, pd.DataFrame):
             df_table_nemomod = engine
         else:
             tp = type(engine)
             raise ValueError(
-                f"Error in retrieve_and_pivot_nemomod_table: invalid engine type '{tp}'"
+                f"Error in retrieve_and_pivot_nemomod_table: invalid engine type '{tp}'",
             )
 
         # apply field replacements if needed
@@ -10411,13 +10411,13 @@ class EnergyProduction:
 
         # check specification of regions and check energy production and demand inputs
         regions = self.model_attributes.get_region_list_filtered(
-            regions, attribute_region=attribute_region
+            regions, attribute_region=attribute_region,
         )
         tuple_enfu_production_and_demands = (
             self.model_enercons.project_enfu_production_and_demands(
                 df_elec_trajectories,
                 target_energy_units=self.model_attributes.configuration.get(
-                    "energy_units_nemomod"
+                    "energy_units_nemomod",
                 ),
             )
             if tuple_enfu_production_and_demands is None
@@ -10738,7 +10738,7 @@ class EnergyProduction:
 
         """
         vec_time_period = list(
-            df_elec_trajectories[self.model_attributes.dim_time_period]
+            df_elec_trajectories[self.model_attributes.dim_time_period],
         )
 
         df_out = [
@@ -10909,7 +10909,7 @@ class EnergyProduction:
         str_prepend_sqlite = "sqlite:///"
         if (engine is None) and (fp_database is None):
             raise RuntimeError(
-                "Error in EnergyProduction.project(): either 'engine' or 'fp_database' must be specified."
+                "Error in EnergyProduction.project(): either 'engine' or 'fp_database' must be specified.",
             )
         if fp_database is None:
             fp_database = str(engine.url).replace(str_prepend_sqlite, "")
@@ -10933,7 +10933,7 @@ class EnergyProduction:
             self.model_enercons.project_enfu_production_and_demands(
                 df_elec_trajectories,
                 target_energy_units=self.model_attributes.configuration.get(
-                    "energy_units_nemomod"
+                    "energy_units_nemomod",
                 ),
             )
         )
@@ -10942,10 +10942,10 @@ class EnergyProduction:
         dict_to_sql = self.generate_input_tables_for_sql(
             df_elec_trajectories,
             dict_ref_tables.get(
-                self.model_attributes.table_nemomod_availability_factor
+                self.model_attributes.table_nemomod_availability_factor,
             ),
             dict_ref_tables.get(
-                self.model_attributes.table_nemomod_specified_demand_profile
+                self.model_attributes.table_nemomod_specified_demand_profile,
             ),
             regions=regions,
             tuple_enfu_production_and_demands=tuple_enfu_production_and_demands,
@@ -10974,10 +10974,10 @@ class EnergyProduction:
             ]
         )
         vector_calc_time_periods = self.transform_field_year_nemomod(
-            vector_calc_time_periods
+            vector_calc_time_periods,
         )
         vector_calc_time_periods = self.julia_main.Vector[self.julia_main.Int64](
-            vector_calc_time_periods
+            vector_calc_time_periods,
         )
 
         """
@@ -11117,15 +11117,15 @@ class EnergyProduction:
             (
                 len(df_elec_trajectories),
                 self.model_attributes.get_attribute_table(
-                    self.subsec_name_enfu
+                    self.subsec_name_enfu,
                 ).n_key_values,
-            )
+            ),
         )
         arr_enfu_total_unused_fuel_exported[:, self.ind_enfu_bgas] = sf.vec_bounds(
-            vec_enfu_total_energy_supply_biogas - vec_used_bgas, (0, np.inf)
+            vec_enfu_total_energy_supply_biogas - vec_used_bgas, (0, np.inf),
         )
         arr_enfu_total_unused_fuel_exported[:, self.ind_enfu_wste] = sf.vec_bounds(
-            vec_enfu_total_energy_supply_waste - vec_used_wste, (0, np.inf)
+            vec_enfu_total_energy_supply_waste - vec_used_wste, (0, np.inf),
         )
 
         df_out += [
@@ -11138,10 +11138,10 @@ class EnergyProduction:
 
         # concatenate and add subsector emission totals
         df_out = sf.merge_output_df_list(
-            df_out, self.model_attributes, merge_type="concatenate"
+            df_out, self.model_attributes, merge_type="concatenate",
         )
         self.model_attributes.add_subsector_emissions_aggregates(
-            df_out, [self.subsec_name_entc], False
+            df_out, [self.subsec_name_entc], False,
         )
 
         return df_out

@@ -192,10 +192,10 @@ class region_solar:
         # get set of years and time_slice_group_1 elements
         field_year = "year"
         dict_tp_to_year = attr_time_period.field_maps.get(
-            f"{attr_time_period.key}_to_{field_year}"
+            f"{attr_time_period.key}_to_{field_year}",
         )
         dict_tsg1_to_months = attr_ts_group_1.field_maps.get(
-            f"{attr_ts_group_1.key}_to_months"
+            f"{attr_ts_group_1.key}_to_months",
         )
         dict_tsg1_to_months = dict(
             (k, [int(x) for x in v.split("|")]) for k, v in dict_tsg1_to_months.items()

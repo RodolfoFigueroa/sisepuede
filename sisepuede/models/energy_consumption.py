@@ -147,7 +147,7 @@ class EnergyConsumption:
 
             else:
                 raise ValueError(
-                    f"Invalid var_type '{var_type}' in check_df_fields: valid types are 'input', 'output'"
+                    f"Invalid var_type '{var_type}' in check_df_fields: valid types are 'input', 'output'",
                 )
 
             msg_prepend = msg_prepend if (msg_prepend is not None) else subsector
@@ -181,7 +181,7 @@ class EnergyConsumption:
     ):
         required_doa = [self.model_attributes.dim_time_period]
         required_vars, output_vars = self.model_attributes.get_input_output_fields(
-            self.required_subsectors
+            self.required_subsectors,
         )
 
         return required_vars + self.get_required_dimensions(), output_vars
@@ -220,7 +220,7 @@ class EnergyConsumption:
         elif isinstance(subsectors_project, str):
             list_out = subsectors_project.split(delim)
         elif isinstance(subsectors_project, list) or isinstance(
-            subsectors_project, np.ndarray
+            subsectors_project, np.ndarray,
         ):
             list_out = list(subsectors_project)
         # check values
@@ -272,7 +272,7 @@ class EnergyConsumption:
 
         required_doa = [self.model_attributes.dim_time_period]
         required_vars, output_vars = self.model_attributes.get_input_output_fields(
-            subsectors
+            subsectors,
         )
 
         self.required_variables = required_vars + required_doa
@@ -465,7 +465,7 @@ class EnergyConsumption:
             self.model_attributes.get_var_dicts_by_shared_category(
                 self.subsec_name_ccsq,
                 self.model_attributes.get_subsector_attribute(
-                    self.subsec_name_enfu, "pycategory_primary_element"
+                    self.subsec_name_enfu, "pycategory_primary_element",
                 ),
                 [
                     "energy_efficiency_variable_by_fuel",
@@ -865,7 +865,7 @@ class EnergyConsumption:
             self.model_attributes.get_var_dicts_by_shared_category(
                 self.subsec_name_scoe,
                 self.model_attributes.get_subsector_attribute(
-                    self.subsec_name_enfu, "pycategory_primary_element"
+                    self.subsec_name_enfu, "pycategory_primary_element",
                 ),
                 [
                     "energy_efficiency_variable_by_fuel",
@@ -1172,7 +1172,7 @@ class EnergyConsumption:
         # get energy intensity
         index_inen_agrc = attr_inen.get_key_value_index(self.cat_inen_agricultural)
         vec_inen_energy_intensity_agrc_lvst = arr_inen_init_energy_consumption_agrc[
-            :, index_inen_agrc
+            :, index_inen_agrc,
         ].copy()
         vec_inen_energy_intensity_agrc_lvst = np.nan_to_num(
             vec_inen_energy_intensity_agrc_lvst / vec_inen_prod_agrc_lvst,
@@ -1370,7 +1370,7 @@ class EnergyConsumption:
 
         # convert to price per unit of energy, then convert to energy units
         arr_price_per_energy = np.nan_to_num(
-            arr_price / arr_density, nan=0.0, posinf=0.0
+            arr_price / arr_density, nan=0.0, posinf=0.0,
         )
         arr_price_per_energy /= scalar_energy
 
@@ -1514,10 +1514,10 @@ class EnergyConsumption:
         )
 
         scalar_energy = 1 / self.model_attributes.get_scalar(
-            modvar_energy_density, "energy"
+            modvar_energy_density, "energy",
         )  # 1/(mj -> pj) = mj/pj = 1000000000
         scalar_mass = self.model_attributes.get_scalar(
-            modvar_cur, "mass"
+            modvar_cur, "mass",
         )  # tonne -> MT = 0.000001
 
         # mass (modvar_cur) per energy (arr_enfu_energy_density_volumetric)
@@ -1527,7 +1527,7 @@ class EnergyConsumption:
         arr_ef_per_config_energy *= scalar_energy  # tonne/mj * (mj/pj) =? tonne/pj
         arr_ef_per_config_energy *= scalar_mass  # tonne/pj * (mt/tonne) = mt/pj
         arr_ef_per_config_energy = np.nan_to_num(
-            arr_ef_per_config_energy, nan=0.0, posinf=0.0
+            arr_ef_per_config_energy, nan=0.0, posinf=0.0,
         )
 
         return arr_ef_per_config_energy
@@ -1693,7 +1693,7 @@ class EnergyConsumption:
                     self.model_attributes.array_to_df(
                         arr_fgtv_demands
                         / self.model_attributes.get_scalar(
-                            self.modvar_enfu_energy_demand_by_fuel_total, "energy"
+                            self.modvar_enfu_energy_demand_by_fuel_total, "energy",
                         ),
                         self.modvar_enfu_energy_demand_by_fuel_total,
                         reduce_from_all_cats_to_specified_cats=True,
@@ -1709,7 +1709,7 @@ class EnergyConsumption:
                     self.model_attributes.array_to_df(
                         arr_fgtv_exports
                         / self.model_attributes.get_scalar(
-                            self.modvar_enfu_exports_fuel_adjusted, "energy"
+                            self.modvar_enfu_exports_fuel_adjusted, "energy",
                         ),
                         self.modvar_enfu_exports_fuel_adjusted,
                         reduce_from_all_cats_to_specified_cats=True,
@@ -1725,7 +1725,7 @@ class EnergyConsumption:
                     self.model_attributes.array_to_df(
                         arr_fgtv_imports
                         / self.model_attributes.get_scalar(
-                            self.modvar_enfu_imports_fuel, "energy"
+                            self.modvar_enfu_imports_fuel, "energy",
                         ),
                         self.modvar_enfu_imports_fuel,
                         reduce_from_all_cats_to_specified_cats=True,
@@ -1741,7 +1741,7 @@ class EnergyConsumption:
                     self.model_attributes.array_to_df(
                         arr_fgtv_production
                         / self.model_attributes.get_scalar(
-                            self.modvar_enfu_production_fuel, "energy"
+                            self.modvar_enfu_production_fuel, "energy",
                         ),
                         self.modvar_enfu_production_fuel,
                         reduce_from_all_cats_to_specified_cats=True,
@@ -1895,13 +1895,13 @@ class EnergyConsumption:
             return_type="array_base",
         )
         arr_consumption *= self.model_attributes.get_scalar(
-            modvar_consumption, "energy"
+            modvar_consumption, "energy",
         )
 
         # get the dictionary/run checks
         if dict_fuel_frac_to_eff is None:
             subsec_mv_consumption = self.model_attributes.get_variable_subsector(
-                modvar_consumption
+                modvar_consumption,
             )
 
             if subsec_mv_consumption is not None:
@@ -1957,7 +1957,7 @@ class EnergyConsumption:
             )
 
             arr_frac_norm += np.nan_to_num(
-                arr_frac / arr_efficiency, nan=0.0, posinf=0.0
+                arr_frac / arr_efficiency, nan=0.0, posinf=0.0,
             )
 
         # project demand forward
@@ -1970,7 +1970,7 @@ class EnergyConsumption:
                 "standard",
             )
             arr_demand = sf.do_array_mult(
-                arr_demand[0] * arr_growth_demand, arr_activity
+                arr_demand[0] * arr_growth_demand, arr_activity,
             )
 
         else:
@@ -2003,10 +2003,10 @@ class EnergyConsumption:
 
             # use consumption by fuel type and efficiency to get output demand for each fuel (in output energy units specified in config)
             arr_consumption_fuel = np.nan_to_num(
-                arr_demand * arr_frac / arr_efficiency, nan=0.0, posinf=0.0
+                arr_demand * arr_frac / arr_efficiency, nan=0.0, posinf=0.0,
             )
             dict_consumption_by_fuel_out.update(
-                {modvar_fuel_frac: arr_consumption_fuel}
+                {modvar_fuel_frac: arr_consumption_fuel},
             )
 
         return arr_demand, dict_consumption_by_fuel_out
@@ -2110,13 +2110,13 @@ class EnergyConsumption:
             vec_efficiency = arr_enfu_efficiency[:, index_enfu_fuel]
             arr_frac = dict_fuel_fracs.get(modvar_fuel_frac)
             arr_frac_norm += np.nan_to_num(
-                arr_frac.transpose() / vec_efficiency, nan=0.0, posinf=0.0
+                arr_frac.transpose() / vec_efficiency, nan=0.0, posinf=0.0,
             )
 
         # transpose again and project demand forward
         arr_frac_norm = arr_frac_norm.transpose()
         arr_demand = np.nan_to_num(
-            vec_consumption_intensity_initial / arr_frac_norm[0], nan=0.0, posinf=0.0
+            vec_consumption_intensity_initial / arr_frac_norm[0], nan=0.0, posinf=0.0,
         )
         arr_demand = sf.do_array_mult(arr_driver, arr_demand)
         arr_demand *= arr_inen_demscalar
@@ -2138,7 +2138,7 @@ class EnergyConsumption:
                 posinf=0.0,
             ).transpose()
             dict_consumption_by_fuel_out.update(
-                {modvar_fuel_frac: arr_consumption_fuel}
+                {modvar_fuel_frac: arr_consumption_fuel},
             )
 
         return arr_demand, dict_consumption_by_fuel_out
@@ -2350,7 +2350,7 @@ class EnergyConsumption:
             [
                 (x is None)
                 for x in [dict_dims, n_projection_time_periods, projection_time_periods]
-            ]
+            ],
         ):
             (
                 dict_dims,
@@ -2422,7 +2422,7 @@ class EnergyConsumption:
             )
         )
         arr_ccsq_energy_intensity_sequestration *= self.model_attributes.get_scalar(
-            self.modvar_ccsq_demand_per_co2, "energy"
+            self.modvar_ccsq_demand_per_co2, "energy",
         )
 
         # get fraction of energy that is heat energy (from fuels) + fraction that is electric
@@ -2513,7 +2513,7 @@ class EnergyConsumption:
 
         # initialize electrical demand to pass and output emission arrays
         arr_ccsq_demand_by_fuel = np.zeros(
-            (n_projection_time_periods, len(attr_enfu.key_values))
+            (n_projection_time_periods, len(attr_enfu.key_values)),
         )
         arr_ccsq_demand_non_electric = 0.0
         arr_ccsq_demand_non_electric_total = 0.0
@@ -2523,16 +2523,16 @@ class EnergyConsumption:
 
         # get the scalar to convert to correct output units
         scalar_ccsq_to_enfu_var_units = 1 / self.model_attributes.get_scalar(
-            self.modvar_enfu_energy_demand_by_fuel_ccsq, "energy"
+            self.modvar_enfu_energy_demand_by_fuel_ccsq, "energy",
         )
 
         # loop over fuels to calculate demand totals
         for var_ener_frac in list(
-            self.modvar_dict_ccsq_fuel_fractions_to_efficiency_factors.keys()
+            self.modvar_dict_ccsq_fuel_fractions_to_efficiency_factors.keys(),
         ):
             # retrive the fuel category and index
             cat_fuel = clean_schema(
-                self.model_attributes.get_variable_attribute(var_ener_frac, pycat_enfu)
+                self.model_attributes.get_variable_attribute(var_ener_frac, pycat_enfu),
             )
             index_cat_fuel = attr_enfu.get_key_value_index(cat_fuel)
 
@@ -2573,7 +2573,7 @@ class EnergyConsumption:
         arr_ccsq_emissions_co2 = arr_ccsq_emissions_co2.transpose()
         arr_ccsq_emissions_n2o = arr_ccsq_emissions_n2o.transpose()
         arr_ccsq_demand_non_electric_total = np.sum(
-            arr_ccsq_demand_non_electric, axis=1
+            arr_ccsq_demand_non_electric, axis=1,
         )
         arr_ccsq_demand_electricity_total = np.sum(arr_ccsq_demand_electricity, axis=1)
 
@@ -2643,7 +2643,7 @@ class EnergyConsumption:
             merge_type="concatenate",
         )
         self.model_attributes.add_subsector_emissions_aggregates(
-            df_out, [self.subsec_name_ccsq], False
+            df_out, [self.subsec_name_ccsq], False,
         )
 
         return df_out
@@ -2692,7 +2692,7 @@ class EnergyConsumption:
             [
                 (x is None)
                 for x in [dict_dims, n_projection_time_periods, projection_time_periods]
-            ]
+            ],
         ):
             (
                 dict_dims,
@@ -2801,7 +2801,7 @@ class EnergyConsumption:
         )
 
         arr_enfu_zeros = np.zeros(
-            (len(df_neenergy_trajectories), attr_enfu.n_key_values)
+            (len(df_neenergy_trajectories), attr_enfu.n_key_values),
         )
 
         ##  LOOP OVER OUTPUT EMISSIONS TO GENERATE EMISSIONS
@@ -2866,7 +2866,7 @@ class EnergyConsumption:
 
             arr_fgtv_ef_fv = arr_fgtv_ef_fv_flare + arr_fgtv_ef_fv_vent
             arr_fgtv_ef_fv += sf.do_array_mult(
-                arr_ef_production_fugitive, 1 - vec_fgtv_reduction_leaks
+                arr_ef_production_fugitive, 1 - vec_fgtv_reduction_leaks,
             )
 
             # distribution, production, and transmission emissions
@@ -2944,7 +2944,7 @@ class EnergyConsumption:
             merge_type="concatenate",
         )
         self.model_attributes.add_subsector_emissions_aggregates(
-            df_out, [self.subsec_name_fgtv], False
+            df_out, [self.subsec_name_fgtv], False,
         )
 
         return df_out
@@ -2990,7 +2990,7 @@ class EnergyConsumption:
             [
                 type(x)
                 for x in [dict_dims, n_projection_time_periods, projection_time_periods]
-            ]
+            ],
         ):
             (
                 dict_dims,
@@ -2998,7 +2998,7 @@ class EnergyConsumption:
                 n_projection_time_periods,
                 projection_time_periods,
             ) = self.model_attributes.check_projection_input_df(
-                df_neenergy_trajectories, True, True, True
+                df_neenergy_trajectories, True, True, True,
             )
 
         ##  CATEGORY AND ATTRIBUTE INITIALIZATION
@@ -3182,7 +3182,7 @@ class EnergyConsumption:
 
         # initialize electrical demand to pass and output emission arrays
         arr_inen_demand_by_fuel = np.zeros(
-            (n_projection_time_periods, len(attr_enfu.key_values))
+            (n_projection_time_periods, len(attr_enfu.key_values)),
         )
         arr_inen_demand_electricity = 0.0
         arr_inen_demand_electricity_total = 0.0
@@ -3204,7 +3204,7 @@ class EnergyConsumption:
         for var_ener_frac in self.modvars_inen_list_fuel_fraction:
             # retrive the fuel category and index
             cat_fuel = clean_schema(
-                self.model_attributes.get_variable_attribute(var_ener_frac, pycat_enfu)
+                self.model_attributes.get_variable_attribute(var_ener_frac, pycat_enfu),
             )
             index_cat_fuel = attr_enfu.get_key_value_index(cat_fuel)
 
@@ -3227,7 +3227,7 @@ class EnergyConsumption:
 
             # update the demand for fuel in the output array
             arr_inen_demand_by_fuel[:, index_cat_fuel] = np.sum(
-                arr_inen_endem_cur_fuel, axis=1
+                arr_inen_endem_cur_fuel, axis=1,
             )
 
             # add electricity demand and total energy demand
@@ -3251,7 +3251,7 @@ class EnergyConsumption:
 
         # get scalar to transform units of self.modvar_inen_en_prod_intensity_factor -> configuration units
         scalar_energy = self.model_attributes.get_scalar(
-            self.modvar_inen_en_prod_intensity_factor, "energy"
+            self.modvar_inen_en_prod_intensity_factor, "energy",
         )
 
         ##  ADD IN POINT OF CAPTURE
@@ -3283,7 +3283,7 @@ class EnergyConsumption:
         )
         arr_inen_emissions_co2 -= array_inen_emissions_co2_captured
         scalar_captured = self.model_attributes.get_scalar(
-            self.modvar_inen_gas_captured_co2, "mass"
+            self.modvar_inen_gas_captured_co2, "mass",
         )
         array_inen_emissions_co2_captured /= scalar_captured
 
@@ -3374,7 +3374,7 @@ class EnergyConsumption:
             merge_type="concatenate",
         )
         self.model_attributes.add_subsector_emissions_aggregates(
-            df_out, [self.subsec_name_inen], False
+            df_out, [self.subsec_name_inen], False,
         )
 
         return df_out
@@ -3424,7 +3424,7 @@ class EnergyConsumption:
             [
                 type(x)
                 for x in [dict_dims, n_projection_time_periods, projection_time_periods]
-            ]
+            ],
         ):
             (
                 dict_dims,
@@ -3432,7 +3432,7 @@ class EnergyConsumption:
                 n_projection_time_periods,
                 projection_time_periods,
             ) = self.model_attributes.check_projection_input_df(
-                df_neenergy_trajectories, True, True, True
+                df_neenergy_trajectories, True, True, True,
             )
 
         ##  CATEGORY AND ATTRIBUTE INITIALIZATION
@@ -3620,7 +3620,7 @@ class EnergyConsumption:
         dict_demands_by_fuel_heat = {}
         for k in list(
             set(dict_scoe_demands_by_fuel_heat_hh.keys())
-            & set(dict_scoe_demands_by_fuel_heat_mmmgdp.keys())
+            & set(dict_scoe_demands_by_fuel_heat_mmmgdp.keys()),
         ):
             arr_tmp_demands_total = (
                 dict_scoe_demands_by_fuel_heat_hh[k]
@@ -3660,14 +3660,14 @@ class EnergyConsumption:
             return_type="array_units_corrected",
         )
         arr_scoe_ef_by_fuel_n2o /= self.model_attributes.get_scalar(
-            self.modvar_enfu_ef_combustion_stationary_n2o, "energy"
+            self.modvar_enfu_ef_combustion_stationary_n2o, "energy",
         )
 
         ##  CALCULATE EMISSIONS AND ELECTRICITY DEMAND
 
         # initialize electrical demand to pass and output emission arrays
         arr_scoe_demand_by_fuel = np.zeros(
-            (n_projection_time_periods, len(attr_enfu.key_values))
+            (n_projection_time_periods, len(attr_enfu.key_values)),
         )
         arr_scoe_demand_electricity = (
             arr_scoe_demand_hh_elec + arr_scoe_demand_mmmgdp_elec
@@ -3681,16 +3681,16 @@ class EnergyConsumption:
 
         # initialize the scalar to convert energy units to ENFU output
         scalar_scoe_to_enfu_var_units = 1 / self.model_attributes.get_scalar(
-            self.modvar_enfu_energy_demand_by_fuel_scoe, "energy"
+            self.modvar_enfu_energy_demand_by_fuel_scoe, "energy",
         )
 
         # loop over fuels to calculate demand totals
         for var_ener_frac in list(
-            self.modvar_dict_scoe_fuel_fractions_to_efficiency_factors.keys()
+            self.modvar_dict_scoe_fuel_fractions_to_efficiency_factors.keys(),
         ):
             # retrive the fuel category and index
             cat_fuel = clean_schema(
-                self.model_attributes.get_variable_attribute(var_ener_frac, pycat_enfu)
+                self.model_attributes.get_variable_attribute(var_ener_frac, pycat_enfu),
             )
             index_cat_fuel = attr_enfu.get_key_value_index(cat_fuel)
 
@@ -3731,7 +3731,7 @@ class EnergyConsumption:
         # get some totals
         arr_scoe_demand_electricity_total = np.sum(arr_scoe_demand_electricity, axis=1)
         arr_scoe_demand_non_electric_total = np.sum(
-            arr_scoe_demand_non_electric, axis=1
+            arr_scoe_demand_non_electric, axis=1,
         )
 
         ##  GET COSTS
@@ -3805,7 +3805,7 @@ class EnergyConsumption:
             merge_type="concatenate",
         )
         self.model_attributes.add_subsector_emissions_aggregates(
-            df_out, [self.subsec_name_scoe], False
+            df_out, [self.subsec_name_scoe], False,
         )
 
         return df_out
@@ -3858,7 +3858,7 @@ class EnergyConsumption:
             [
                 type(x)
                 for x in [dict_dims, n_projection_time_periods, projection_time_periods]
-            ]
+            ],
         ):
             (
                 dict_dims,
@@ -3866,7 +3866,7 @@ class EnergyConsumption:
                 n_projection_time_periods,
                 projection_time_periods,
             ) = self.model_attributes.check_projection_input_df(
-                df_neenergy_trajectories, True, True, True
+                df_neenergy_trajectories, True, True, True,
             )
 
         # check fields - transportation demand; if not present, add to the dataframe
@@ -3994,7 +3994,7 @@ class EnergyConsumption:
         for category in dict_trde_cats_to_trns_vars.keys():
             # get key index, model variable,
             index_key = self.model_attributes.get_attribute_table(
-                self.subsec_name_trde
+                self.subsec_name_trde,
             ).get_key_value_index(category)
 
             modvar = self.model_attributes.get_variable_from_category(
@@ -4056,7 +4056,7 @@ class EnergyConsumption:
 
         # add the vehicle and passenger distance to output using the units modvar_trde_demand_pkm
         scalar_trns_total_mass_distance_demand = 1 / self.model_attributes.get_scalar(
-            self.modvar_trns_mass_distance_traveled, "length"
+            self.modvar_trns_mass_distance_traveled, "length",
         )
         scalar_trns_total_mass_distance_demand *= (
             self.model_attributes.get_variable_unit_conversion_factor(
@@ -4090,7 +4090,7 @@ class EnergyConsumption:
 
         # convert length in to terms of self.modvar_trde_demand_pkm
         array_trns_total_vehicle_demand /= self.model_attributes.get_scalar(
-            self.modvar_trde_demand_pkm, "length"
+            self.modvar_trde_demand_pkm, "length",
         )
 
         ##  LOOP OVER FUELS
@@ -4122,7 +4122,7 @@ class EnergyConsumption:
         # initialize electrical demand to pass and output emission arrays
         arr_trns_demand_by_category = 0.0
         arr_trns_demand_by_fuel = np.zeros(
-            (n_projection_time_periods, len(attr_enfu.key_values))
+            (n_projection_time_periods, len(attr_enfu.key_values)),
         )
         arr_trns_demand_electricity = 0.0
         arr_trns_demand_electricity_total = 0.0
@@ -4145,7 +4145,7 @@ class EnergyConsumption:
 
         # loop over fuels to calculate emissions and demand associated with each fuel
         fuels_loop = sorted(
-            list(self.dict_trns_fuel_categories_to_fuel_variables.keys())
+            list(self.dict_trns_fuel_categories_to_fuel_variables.keys()),
         )  # HEREHERE
         for cat_fuel in fuels_loop:
             # get the index of the current category
@@ -4153,14 +4153,14 @@ class EnergyConsumption:
 
             # set some model variables
             dict_tfc_to_fv_cur = self.dict_trns_fuel_categories_to_fuel_variables.get(
-                cat_fuel
+                cat_fuel,
             )
             modvar_trns_ef_ch4_cur = dict_tfc_to_fv_cur.get("ef_ch4")
             modvar_trns_ef_n2o_cur = dict_tfc_to_fv_cur.get("ef_n2o")
             modvar_trns_fuel_efficiency_cur = dict_tfc_to_fv_cur.get("fuel_efficiency")
             modvar_trns_fuel_fraction_cur = dict_tfc_to_fv_cur.get("fuel_fraction")
             modvar_trns_modal_energy_demand_by_fuel = dict_tfc_to_fv_cur.get(
-                "modal_energy_consumption"
+                "modal_energy_consumption",
             )
 
             # set some scalars for use in the calculations
@@ -4176,12 +4176,12 @@ class EnergyConsumption:
             ind_enfu_cur = attr_enfu.get_key_value_index(cat_fuel)
             vec_trns_ef_by_fuel_co2_cur = arr_trns_ef_by_fuel_co2[:, ind_enfu_cur]
             vec_trns_volumetric_enerdensity_by_fuel = arr_trns_energy_density_fuel[
-                :, ind_enfu_cur
+                :, ind_enfu_cur,
             ]
 
             # get arrays
             arr_trns_fuel_fraction_cur = dict_arrs_trns_frac_fuel.get(
-                modvar_trns_fuel_fraction_cur
+                modvar_trns_fuel_fraction_cur,
             )
 
             arr_trns_ef_ch4_cur = (
@@ -4228,7 +4228,7 @@ class EnergyConsumption:
                 else None
             )
             scalar_trns_vkm_to_config = self.model_attributes.get_scalar(
-                self.modvar_trde_demand_pkm, "length"
+                self.modvar_trde_demand_pkm, "length",
             )
 
             df_out += [
@@ -4382,7 +4382,7 @@ class EnergyConsumption:
                 arr_trns_demand_by_fuel[:, index_cat_fuel] = (
                     vec_trns_energydem_elec_total
                     / self.model_attributes.get_scalar(
-                        self.modvar_enfu_energy_demand_by_fuel_trns, "energy"
+                        self.modvar_enfu_energy_demand_by_fuel_trns, "energy",
                     )
                 )
 
@@ -4466,7 +4466,7 @@ class EnergyConsumption:
             merge_type="concatenate",
         )
         self.model_attributes.add_subsector_emissions_aggregates(
-            df_out, [self.subsec_name_trns], False
+            df_out, [self.subsec_name_trns], False,
         )
 
         return df_out
@@ -4708,10 +4708,10 @@ class EnergyConsumption:
             n_projection_time_periods,
             projection_time_periods,
         ) = self.model_attributes.check_projection_input_df(
-            df_neenergy_trajectories, True, True, True
+            df_neenergy_trajectories, True, True, True,
         )
         subsectors_project = self.get_projection_subsectors(
-            subsectors_project=subsectors_project
+            subsectors_project=subsectors_project,
         )
 
         ##  ECON/GNRL VECTOR AND ARRAY INITIALIZATION
@@ -4748,10 +4748,10 @@ class EnergyConsumption:
         )
 
         vec_rates_gdp = np.array(
-            df_se_internal_shared_variables["vec_rates_gdp"].dropna()
+            df_se_internal_shared_variables["vec_rates_gdp"].dropna(),
         )
         vec_rates_gdp_per_capita = np.array(
-            df_se_internal_shared_variables["vec_rates_gdp_per_capita"].dropna()
+            df_se_internal_shared_variables["vec_rates_gdp_per_capita"].dropna(),
         )
 
         ##  OUTPUT INITIALIZATION
