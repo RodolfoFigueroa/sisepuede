@@ -66,3 +66,6 @@ vignettes/*.pdf
 # ignore checkpoints
 *-checkpoint.py
 *-checkpoint.ipynb
+
+# Extra
+uv.lock
