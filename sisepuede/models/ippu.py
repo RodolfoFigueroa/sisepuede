@@ -839,7 +839,8 @@ class IPPU:
         # add on carbon captured if spcified
         if include_carbon_capture & isinstance(array_emission_captured, np.ndarray):
             scalar_captured = self.model_attributes.get_scalar(
-                modvar_carbon_capture_total, "mass",
+                modvar_carbon_capture_total,
+                "mass",
             )
             array_emission_captured /= scalar_captured
 
@@ -891,7 +892,8 @@ class IPPU:
 
         # get estimates for new housing stock -- last year, use trend
         vec_new_housing_stock_changes = sf.vec_bounds(
-            vec_hh[1:] - vec_hh[0:-1], (0, np.inf),
+            vec_hh[1:] - vec_hh[0:-1],
+            (0, np.inf),
         )
         new_stock_final_period = np.nan_to_num(
             np.round(
@@ -1101,7 +1103,8 @@ class IPPU:
         )
 
         arr_ippu_materials_required_baseline = np.outer(
-            vec_ippu_housing_construction, arr_ippu_materials_required[0],
+            vec_ippu_housing_construction,
+            arr_ippu_materials_required[0],
         )
         arr_ippu_materials_required = (
             arr_ippu_materials_required.transpose() * vec_ippu_housing_construction
@@ -1396,7 +1399,8 @@ class IPPU:
 
                 # array of changes to net imports has to be mapped back to the original recycling categories
                 array_ippu_change_net_imports = sf.vec_bounds(
-                    array_ippu_production, (-np.inf, 0),
+                    array_ippu_production,
+                    (-np.inf, 0),
                 )
                 array_ippu_change_net_imports = (
                     self.model_attributes.swap_array_categories(
@@ -1583,7 +1587,8 @@ class IPPU:
 
         ##  PERFORM THE RECYCLING ADJUSTMENT (if recycling data are provided from the waste model)
         array_ippu_production = self.get_production_with_recycling_adjustment(
-            df_ippu_trajectories, vec_rates_gdp,
+            df_ippu_trajectories,
+            vec_rates_gdp,
         )
         df_out += array_ippu_production[1]
         array_ippu_production = array_ippu_production[0]
@@ -1772,7 +1777,8 @@ class IPPU:
         array_ippu_emissions_produse_nonenergy_fuel *= (
             array_ippu_ef_co2_produse
             * self.model_attributes.get_scalar(
-                self.modvar_ippu_useinit_nonenergy_fuel, "mass",
+                self.modvar_ippu_useinit_nonenergy_fuel,
+                "mass",
             )
         )
         array_ippu_emissions_produse_nonenergy_fuel *= array_ippu_production_scalar
@@ -2091,13 +2097,18 @@ class IPPU:
 
         # concatenate and add subsector emission totals
         df_out = sf.merge_output_df_list(
-            df_out, self.model_attributes, merge_type="concatenate",
+            df_out,
+            self.model_attributes,
+            merge_type="concatenate",
         )
         self.model_attributes.add_subsector_emissions_aggregates(
-            df_out, self.required_base_subsectors, False,
+            df_out,
+            self.required_base_subsectors,
+            False,
         )
         self.model_attributes._add_specified_total_fields_to_emission_total(
-            df_out, vars_additional_sum,
+            df_out,
+            vars_additional_sum,
         )
 
         return df_out

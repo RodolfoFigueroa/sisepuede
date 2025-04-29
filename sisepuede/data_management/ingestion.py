@@ -930,7 +930,8 @@ class InputTemplate:
 
             # verify and skip on fail. Note: error passing and descriptions are handled in verify_input_template_sheet
             tup = self.verify_input_template_sheet(
-                df_template_sheet, base_strategy_q=baseline_q,
+                df_template_sheet,
+                base_strategy_q=baseline_q,
             )
             if tup is None:
                 continue
@@ -1055,7 +1056,8 @@ class InputTemplate:
                     self.model_attributes.dim_strategy_id
                 ].replace({strat_base: strat})
                 df_sheet = pd.concat(
-                    [df_sheet, df_sheet_base[df_sheet.columns]], axis=0,
+                    [df_sheet, df_sheet_base[df_sheet.columns]],
+                    axis=0,
                 ).reset_index(drop=True)
 
             if len(df_out) == 0:
@@ -1693,7 +1695,8 @@ class BaseInputDatabase:
             )
 
         abv_sector = self.model_attributes.get_sector_attribute(
-            sector, "abbreviation_sector",
+            sector,
+            "abbreviation_sector",
         )
 
         # initialize some parameters

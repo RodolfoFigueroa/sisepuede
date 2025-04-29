@@ -126,7 +126,8 @@ def transformation_ippu_scale_emission_factor(
                         "magnitude": float(sf.vec_bounds(v, (0.0, np.inf))),
                         "magnitude_type": "baseline_scalar",
                         "time_period_baseline": tbg.get_time_period(
-                            model_attributes, "max",
+                            model_attributes,
+                            "max",
                         ),
                         "vec_ramp": vec_ramp,
                     },

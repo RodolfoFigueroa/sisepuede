@@ -330,10 +330,12 @@ class Configuration:
         dict_conf.update(
             {
                 "historical_back_proj_n_periods": max(
-                    dict_conf.get("historical_back_proj_n_periods"), 1,
+                    dict_conf.get("historical_back_proj_n_periods"),
+                    1,
                 ),
                 "nemomod_solver_time_limit_seconds": max(
-                    dict_conf.get("nemomod_solver_time_limit_seconds"), 60,
+                    dict_conf.get("nemomod_solver_time_limit_seconds"),
+                    60,
                 ),  # set minimum solver limit to 60 seconds
                 "num_lhc_samples": max(dict_conf.get("num_lhc_samples", 0), 0),
                 "save_inputs": bool(

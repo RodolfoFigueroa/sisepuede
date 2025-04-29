@@ -1262,7 +1262,8 @@ class CircularEconomy:
         )
 
         array_wali_bod_percap = np.outer(
-            vec_wali_bod_correction, vec_wali_bod_percap_init,
+            vec_wali_bod_correction,
+            vec_wali_bod_percap_init,
         )
         array_wali_cod_pergdp = self.model_attributes.extract_model_variable(
             df_ce_trajectories,
@@ -1566,7 +1567,8 @@ class CircularEconomy:
         )
         array_trww_emissions_ch4_treatment += -array_trww_ch4_recovered
         array_trww_ch4_recovered *= 1 / self.model_attributes.get_scalar(
-            self.modvar_trww_recovered_biogas, "mass",
+            self.modvar_trww_recovered_biogas,
+            "mass",
         )
 
         # get sludge mass and mass of tow in effluent (convert to tonnes)
@@ -1616,7 +1618,9 @@ class CircularEconomy:
 
         #  calcualte the protein content (kg) and total nitrogen in domestic wastewater using V5, C6, Equation 6.10 from IPCC GNGHGI (2019R) - factors are default
         vec_wali_protein = self.project_protein_consumption(
-            df_ce_trajectories, vec_pop, vec_rates_gdp_per_capita,
+            df_ce_trajectories,
+            vec_pop,
+            vec_rates_gdp_per_capita,
         )
 
         # use the BOD commercial/industrial correction factor as f_indcom from 6.10
@@ -1734,7 +1738,8 @@ class CircularEconomy:
 
         # nitrogen emissions in kg (first component) converted to emissions mass--assumes both industry and domestic have same units, kg
         factor_trww_mass_protein_to_emission_mass = self.model_attributes.get_scalar(
-            self.modvar_wali_protein_per_capita, "mass",
+            self.modvar_wali_protein_per_capita,
+            "mass",
         )
         array_trww_emissions_n2o_treatment = (
             array_trww_total_nitrogen
@@ -1745,7 +1750,8 @@ class CircularEconomy:
         array_trww_emissions_n2o_effluent = (
             array_trww_total_n_effluent.transpose()
             * array_trww_ef_n2o_ww[
-                :, attr_trww.get_key_value_index("untreated_no_sewerage"),
+                :,
+                attr_trww.get_key_value_index("untreated_no_sewerage"),
             ]
             * self.factor_n2on_to_n2o
             * factor_trww_mass_protein_to_emission_mass
@@ -1786,7 +1792,8 @@ class CircularEconomy:
 
         # set output vectors
         vec_trww_total_n_effluent = np.sum(
-            array_trww_total_n_effluent * scalar_trww_bod_mass_to_n_effluent, axis=1,
+            array_trww_total_n_effluent * scalar_trww_bod_mass_to_n_effluent,
+            axis=1,
         )
         vec_trww_total_n_treated = np.sum(
             (array_trww_total_nitrogen - array_trww_total_n_effluent)
@@ -1794,7 +1801,8 @@ class CircularEconomy:
             axis=1,
         )
         vec_trww_total_p_effluent = np.sum(
-            array_trww_total_p_effluent * scalar_trww_bod_mass_to_p_effluent, axis=1,
+            array_trww_total_p_effluent * scalar_trww_bod_mass_to_p_effluent,
+            axis=1,
         )
         vec_trww_total_p_treated = np.sum(
             (array_trww_total_phosphorous - array_trww_total_p_effluent)
@@ -1906,7 +1914,10 @@ class CircularEconomy:
                 n_projection_time_periods,
                 projection_time_periods,
             ) = self.model_attributes.check_projection_input_df(
-                df_ce_trajectories, True, True, True,
+                df_ce_trajectories,
+                True,
+                True,
+                True,
             )
 
         ##  ECON/GNRL VECTOR AND ARRAY INITIALIZATION
@@ -2002,7 +2013,8 @@ class CircularEconomy:
 
         # estimate total waste in each category
         array_waso_msw_total_by_category = np.outer(
-            factor_waso_init_pc_waste * vec_pop, vec_waso_init_msw_composition,
+            factor_waso_init_pc_waste * vec_pop,
+            vec_waso_init_msw_composition,
         )
         array_waso_msw_total_by_category *= (
             array_waso_growth_msw_by_cat * array_waso_scale_msw
@@ -2038,7 +2050,8 @@ class CircularEconomy:
         )[0]
 
         array_waso_isw_total_by_category = np.outer(
-            vec_waso_init_pgdp_waste * vec_gdp, vec_waso_isw_composition,
+            vec_waso_init_pgdp_waste * vec_gdp,
+            vec_waso_isw_composition,
         )
 
         # initialize total waste array, which will be reduced through recylcing and composting before being divided up between incineration, landfilling, and open dumping
@@ -2046,10 +2059,12 @@ class CircularEconomy:
             array_waso_isw_total_by_category + array_waso_msw_total_by_category
         )
         array_waso_frac_isw_total_by_cat = np.nan_to_num(
-            array_waso_isw_total_by_category / array_waso_total_by_category, nan=0.0,
+            array_waso_isw_total_by_category / array_waso_total_by_category,
+            nan=0.0,
         )
         array_waso_frac_msw_total_by_cat = np.nan_to_num(
-            array_waso_msw_total_by_category / array_waso_total_by_category, nan=0.0,
+            array_waso_msw_total_by_category / array_waso_total_by_category,
+            nan=0.0,
         )
 
         # add to output data frame
@@ -2143,7 +2158,8 @@ class CircularEconomy:
         # apply emission mass factor emissions to get output emissions - start with biogas, which has recovery
         array_waso_emissions_ch4_biogas = (
             self.model_attributes.reduce_all_cats_array_to_partial_cat_array(
-                array_waso_waste_biogas, self.modvar_waso_ef_ch4_biogas,
+                array_waso_waste_biogas,
+                self.modvar_waso_ef_ch4_biogas,
             )
         )
         array_waso_emissions_ch4_biogas *= (
@@ -2170,7 +2186,8 @@ class CircularEconomy:
         # compost emissions
         array_waso_emissions_ch4_compost = (
             self.model_attributes.reduce_all_cats_array_to_partial_cat_array(
-                array_waso_waste_compost, self.modvar_waso_ef_ch4_compost,
+                array_waso_waste_compost,
+                self.modvar_waso_ef_ch4_compost,
             )
         )
         array_waso_emissions_ch4_compost *= (
@@ -2179,7 +2196,8 @@ class CircularEconomy:
         ).transpose()
         array_waso_emissions_n2o_compost = (
             self.model_attributes.reduce_all_cats_array_to_partial_cat_array(
-                array_waso_waste_compost, self.modvar_waso_ef_n2o_compost,
+                array_waso_waste_compost,
+                self.modvar_waso_ef_n2o_compost,
             )
         )
         array_waso_emissions_n2o_compost *= (
@@ -2321,10 +2339,12 @@ class CircularEconomy:
             * vec_waso_frac_msw_incinerated_for_energy
         ).transpose()
         vec_waso_waste_incineration_isw_for_energy = np.sum(
-            array_waso_waste_incineration_isw_for_energy_by_cat, axis=1,
+            array_waso_waste_incineration_isw_for_energy_by_cat,
+            axis=1,
         )
         vec_waso_waste_incineration_msw_for_energy = np.sum(
-            array_waso_waste_incineration_msw_for_energy_by_cat, axis=1,
+            array_waso_waste_incineration_msw_for_energy_by_cat,
+            axis=1,
         )
 
         # update running waste total for incineration by removing waste for energy
@@ -2333,10 +2353,12 @@ class CircularEconomy:
             + array_waso_waste_incineration_msw_for_energy_by_cat
         )
         vec_waso_isw_total = np.sum(
-            array_waso_waste_incineration * array_waso_frac_isw_total_by_cat, axis=1,
+            array_waso_waste_incineration * array_waso_frac_isw_total_by_cat,
+            axis=1,
         )
         vec_waso_msw_total = np.sum(
-            array_waso_waste_incineration * array_waso_frac_msw_total_by_cat, axis=1,
+            array_waso_waste_incineration * array_waso_frac_msw_total_by_cat,
+            axis=1,
         )
 
         # after adjusting for waste sent to the energy model, calculate emissions from incineration - start with co2 and n2o, which depend on type of waste
@@ -2365,7 +2387,8 @@ class CircularEconomy:
             array_waso_waste_incineration * factor_waso_mass_to_emission_mass
         )
         array_waso_emissions_n2o_incineration = np.sum(
-            array_waso_emissions_n2o_incineration, axis=1,
+            array_waso_emissions_n2o_incineration,
+            axis=1,
         )
 
         # add ch4, which is largely process dependent
@@ -2453,7 +2476,8 @@ class CircularEconomy:
             return_type="array_base",
         )
         vec_waso_mcf_landfill = sf.prepend_first_element(
-            vec_waso_mcf_landfill, n_periods_bp,
+            vec_waso_mcf_landfill,
+            n_periods_bp,
         )
 
         # methane correction factor for open dumping
@@ -2463,7 +2487,8 @@ class CircularEconomy:
             return_type="array_base",
         )
         vec_waso_mcf_open_dump = sf.prepend_first_element(
-            vec_waso_mcf_open_dump, n_periods_bp,
+            vec_waso_mcf_open_dump,
+            n_periods_bp,
         )
 
         # oxidization factor for landfills
@@ -2473,7 +2498,8 @@ class CircularEconomy:
             return_type="array_base",
         )
         vec_waso_oxf_landfill = sf.prepend_first_element(
-            vec_waso_oxf_landfill, n_periods_bp,
+            vec_waso_oxf_landfill,
+            n_periods_bp,
         )
 
         # average fraction of landfill gas capturd
@@ -2486,7 +2512,8 @@ class CircularEconomy:
             )
         )
         vec_waso_avg_frac_landfill_gas_capture = sf.prepend_first_element(
-            vec_waso_avg_frac_landfill_gas_capture, n_periods_bp,
+            vec_waso_avg_frac_landfill_gas_capture,
+            n_periods_bp,
         )
 
         # get waste characteristics, including k and ddocm
@@ -2516,10 +2543,12 @@ class CircularEconomy:
         array_waso_emissions_ch4_landfill *= factor_waso_mass_to_emission_mass
         vec_waso_landfill_gas_recovered *= self.model_attributes.get_mass_equivalent(
             self.model_attributes.get_variable_characteristic(
-                self.modvar_waso_init_msw_generated_pc, "$UNIT-MASS$",
+                self.modvar_waso_init_msw_generated_pc,
+                "$UNIT-MASS$",
             ),
             self.model_attributes.get_variable_characteristic(
-                self.modvar_waso_recovered_biogas_landfills, "$UNIT-MASS$",
+                self.modvar_waso_recovered_biogas_landfills,
+                "$UNIT-MASS$",
             ),
         )
 
@@ -2667,7 +2696,10 @@ class CircularEconomy:
             n_projection_time_periods,
             projection_time_periods,
         ) = self.model_attributes.check_projection_input_df(
-            df_ce_trajectories, True, True, True,
+            df_ce_trajectories,
+            True,
+            True,
+            True,
         )
 
         # initialize by running liquid waste/wastewater treatment, then build input data frame for solid waste, which includes sludge totals that are reported from liquid waste

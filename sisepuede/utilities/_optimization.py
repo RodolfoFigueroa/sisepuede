@@ -470,7 +470,8 @@ class QAdjuster:
         if not isinstance(costs_qij, np.ndarray):
             costs_transition = cost_basic_deault * np.ones(matrix_0.shape)
             np.fill_diagonal(
-                costs_transition, cost_basic_deault * cost_factor_qii_default,
+                costs_transition,
+                cost_basic_deault * cost_factor_qii_default,
             )
 
             # fill values?

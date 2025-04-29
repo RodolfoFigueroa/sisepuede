@@ -703,7 +703,8 @@ class SISEPUEDEExperimentalManager:
         """
         # some basic checks on inputs; if fed None, will return None
         return_none = not isinstance(
-            fp_exogenous_xl_type_for_variable_specifcations, str,
+            fp_exogenous_xl_type_for_variable_specifcations,
+            str,
         )
         return_none |= (
             not os.path.exists(fp_exogenous_xl_type_for_variable_specifcations)

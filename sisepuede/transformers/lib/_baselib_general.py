@@ -532,7 +532,8 @@ def transformation_general(
                     vec_transfer = magnitude_transfer * vec_distribution_transfer
 
                     vec_source_new = sf.vec_bounds(
-                        vec_source_initial - vec_transfer, bounds,
+                        vec_source_initial - vec_transfer,
+                        bounds,
                     )
                     vec_transfer = (
                         (vec_source_initial - vec_source_new)
@@ -555,7 +556,8 @@ def transformation_general(
                     )
 
                     arr_base = np.concatenate(
-                        [arr_base_source, arr_base_target], axis=1,
+                        [arr_base_source, arr_base_target],
+                        axis=1,
                     )
                     arr_final = np.concatenate([arr_new_source, arr_new_target], axis=1)
                     fields_adjust = fields_adjust_source + fields_adjust_target
@@ -809,7 +811,9 @@ def transformation_general_shift_fractions_from_modvars(
                 vec_initial_vals.sum() if magnitude_relative_to_baseline else 0.0
             )
             vec_initial_distribution = np.nan_to_num(
-                vec_initial_vals / vec_initial_vals.sum(), nan=1.0, posinf=1.0,
+                vec_initial_vals / vec_initial_vals.sum(),
+                nan=1.0,
+                posinf=1.0,
             )
 
             # get the current total value of fractions

@@ -261,7 +261,10 @@ class SISEPUEDEBatchDataRepository:
 
         # create outputs
         fp_out_base = os.path.join(
-            self.dir_repository, subdir_sector, fld, self.subdir_input_to_sisepuede,
+            self.dir_repository,
+            subdir_sector,
+            fld,
+            self.subdir_input_to_sisepuede,
         )
         fp_out = os.path.join(fp_out_base, key, f"{fld}.csv")
 

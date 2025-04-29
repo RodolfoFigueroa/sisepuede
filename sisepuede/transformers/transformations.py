@@ -243,10 +243,12 @@ class Transformation:
 
         key_identifiers = kwargs.get("key_identifiers", _DICT_KEYS.get("identifiers"))
         key_transformation_code = kwargs.get(
-            "key_transformation_code", _DICT_KEYS.get("code"),
+            "key_transformation_code",
+            _DICT_KEYS.get("code"),
         )
         key_transformation_name = kwargs.get(
-            "key_transformation_name", _DICT_KEYS.get("name"),
+            "key_transformation_name",
+            _DICT_KEYS.get("name"),
         )
 
         key_yc_trasformation_code = f"{key_identifiers}.{key_transformation_code}"
@@ -256,7 +258,8 @@ class Transformation:
 
         self.key_citations = kwargs.get("key_citations", _DICT_KEYS.get("citations"))
         self.key_description = kwargs.get(
-            "key_description", _DICT_KEYS.get("description"),
+            "key_description",
+            _DICT_KEYS.get("description"),
         )
         self.key_identifiers = key_identifiers
         self.key_parameters = kwargs.get("key_parameters", _DICT_KEYS.get("parameters"))
@@ -264,7 +267,8 @@ class Transformation:
         self.key_transformation_id = _DICT_KEYS.get("id")
         self.key_transformation_name = key_transformation_name
         self.key_transformer = kwargs.get(
-            "key_transformer", _DICT_KEYS.get("transformer"),
+            "key_transformer",
+            _DICT_KEYS.get("transformer"),
         )
         self.key_yc_trasformation_code = key_yc_trasformation_code
         self.key_yc_trasformation_name = key_yc_trasformation_name

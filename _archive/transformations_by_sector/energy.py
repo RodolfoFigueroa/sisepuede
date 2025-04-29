@@ -1747,13 +1747,16 @@ class TransformersEnergy:
             else:
                 i0 = i if (i0 is None) else i0
                 vec_implementation_ramp_max_capacity[i] = max(
-                    max_frac - delta_frac * (i - i0), 0.0,
+                    max_frac - delta_frac * (i - i0),
+                    0.0,
                 )
 
         if isinstance(dict_values_to_inds, dict):
             for k in dict_values_to_inds.keys():
                 np.put(
-                    vec_implementation_ramp_max_capacity, dict_values_to_inds.get(k), k,
+                    vec_implementation_ramp_max_capacity,
+                    dict_values_to_inds.get(k),
+                    k,
                 )
 
         return vec_implementation_ramp_max_capacity
@@ -1831,7 +1834,8 @@ class TransformersEnergy:
             self.dict_entc_renewable_target_msp.values(),
         )
         scalar_renewables_value_base = min(
-            target_renewables_value_min / target_renewables_value_base_specified, 1.0,
+            target_renewables_value_min / target_renewables_value_base_specified,
+            1.0,
         )
 
         # build the dictionary

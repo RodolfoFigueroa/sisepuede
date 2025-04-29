@@ -224,36 +224,58 @@ class Configuration:
         ##  CHECK VALID CONFIGURATION VALUES AND UPDATE IF APPROPRIATE
 
         valid_area = self.get_valid_values_from_attribute_column(
-            attr_area, "area_equivalent_", str, "unit_area_to_area",
+            attr_area,
+            "area_equivalent_",
+            str,
+            "unit_area_to_area",
         )
         valid_bool = [True, False]
         valid_energy = self.get_valid_values_from_attribute_column(
-            attr_energy, "energy_equivalent_", str, "unit_energy_to_energy",
+            attr_energy,
+            "energy_equivalent_",
+            str,
+            "unit_energy_to_energy",
         )
         valid_gwp = self.get_valid_values_from_attribute_column(
-            attr_gas, "global_warming_potential_", int,
+            attr_gas,
+            "global_warming_potential_",
+            int,
         )
         valid_historical_hwp_method = ["back_project", "historical"]
         valid_historical_solid_waste_method = ["back_project", "historical"]
         valid_lurmod = ["decrease_only", "increase_only", "decrease_and_increase"]
         valid_length = self.get_valid_values_from_attribute_column(
-            attr_length, "length_equivalent_", str, "unit_length_to_length",
+            attr_length,
+            "length_equivalent_",
+            str,
+            "unit_length_to_length",
         )
         valid_mass = self.get_valid_values_from_attribute_column(
-            attr_mass, "mass_equivalent_", str, "unit_mass_to_mass",
+            attr_mass,
+            "mass_equivalent_",
+            str,
+            "unit_mass_to_mass",
         )
         valid_monetary = self.get_valid_values_from_attribute_column(
-            attr_monetary, "monetary_equivalent_", str, "unit_monetary_to_monetary",
+            attr_monetary,
+            "monetary_equivalent_",
+            str,
+            "unit_monetary_to_monetary",
         )
         valid_output_method = ["csv", "sqlite"]
         valid_power = self.get_valid_values_from_attribute_column(
-            attr_power, "power_equivalent_", str, "unit_power_to_power",
+            attr_power,
+            "power_equivalent_",
+            str,
+            "unit_power_to_power",
         )
         valid_region = attr_region.key_values
         valid_solvers = ["cbc", "clp", "cplex", "gams_cplex", "glpk", "gurobi", "highs"]
         valid_time_period = attr_time_period.key_values
         valid_volume = self.get_valid_values_from_attribute_column(
-            attr_volume, "volume_equivalent_", str,
+            attr_volume,
+            "volume_equivalent_",
+            str,
         )
 
         # map parameters to valid values
@@ -295,10 +317,12 @@ class Configuration:
         dict_conf.update(
             {
                 "historical_back_proj_n_periods": max(
-                    dict_conf.get("historical_back_proj_n_periods"), 1,
+                    dict_conf.get("historical_back_proj_n_periods"),
+                    1,
                 ),
                 "nemomod_solver_time_limit_seconds": max(
-                    dict_conf.get("nemomod_solver_time_limit_seconds"), 60,
+                    dict_conf.get("nemomod_solver_time_limit_seconds"),
+                    60,
                 ),  # set minimum solver limit to 60 seconds
                 "num_lhc_samples": max(dict_conf.get("num_lhc_samples", 0), 0),
                 "save_inputs": bool(
@@ -579,7 +603,8 @@ class ModelAttributes:
             fp = os.path.join(dir_att, att)
             if self.substr_dimensions in att:
                 nm = att.replace(self.substr_dimensions, "").replace(
-                    self.attribute_file_extension, "",
+                    self.attribute_file_extension,
+                    "",
                 )
                 k = f"dim_{nm}"
                 att_table = AttributeTable(fp, nm)
@@ -612,7 +637,8 @@ class ModelAttributes:
                 self.substr_varreqs_partialcats in att
             ):
                 nm = att.replace(self.substr_varreqs, "").replace(
-                    self.attribute_file_extension, "",
+                    self.attribute_file_extension,
+                    "",
                 )
                 att_table = AttributeTable(fp, "variable")
                 dict_varreqs.update({nm: att_table})
@@ -622,7 +648,8 @@ class ModelAttributes:
                 == f"{self.substr_analytical_parameters}{self.attribute_file_extension}"
             ):
                 attribute_analytical_parameters = AttributeTable(
-                    fp, "analytical_parameter",
+                    fp,
+                    "analytical_parameter",
                 )
 
             elif (
@@ -630,7 +657,8 @@ class ModelAttributes:
                 == f"{self.substr_experimental_parameters}{self.attribute_file_extension}"
             ):
                 attribute_experimental_parameters = AttributeTable(
-                    fp, "experimental_parameter",
+                    fp,
+                    "experimental_parameter",
                 )
 
             else:
@@ -1088,7 +1116,8 @@ class ModelAttributes:
 
                 # get emission and add to dictionary
                 emission = self.get_variable_characteristic(
-                    modvar, self.varchar_str_emission_gas,
+                    modvar,
+                    self.varchar_str_emission_gas,
                 )
 
                 key = emission if (emission is not None) else key_other_totals
@@ -1224,10 +1253,12 @@ class ModelAttributes:
             # get model variables
             dict_var_type, vars_by_subsector = self.get_subsector_variables(subsector)
             dict_var_type_tmp, vars_by_subsector_input = self.get_subsector_variables(
-                subsector, var_type="input",
+                subsector,
+                var_type="input",
             )
             dict_var_type_tmp, vars_by_subsector_output = self.get_subsector_variables(
-                subsector, var_type="output",
+                subsector,
+                var_type="output",
             )
             dict_vars_by_subsector.update({subsector: vars_by_subsector})
             dict_vars_to_subsector.update(
@@ -1458,7 +1489,8 @@ class ModelAttributes:
             else self.dict_varreqs
         )
         key_primary = self.get_subsector_attribute(
-            subsector_primary, dict_valid_types_to_attribute_keys[type_primary],
+            subsector_primary,
+            dict_valid_types_to_attribute_keys[type_primary],
         )
         if not key_primary:
             raise ValueError(
@@ -1471,10 +1503,12 @@ class ModelAttributes:
             self.dict_attributes if (type_target == "categories") else self.dict_varreqs
         )
         key_target = self.get_subsector_attribute(
-            subsector_target, dict_valid_types_to_attribute_keys[type_target],
+            subsector_target,
+            dict_valid_types_to_attribute_keys[type_target],
         )
         key_target_pycat = self.get_subsector_attribute(
-            subsector_target, "pycategory_primary",
+            subsector_target,
+            "pycategory_primary",
         )
         if not key_primary:
             raise ValueError(
@@ -1568,10 +1602,15 @@ class ModelAttributes:
         attr = self.get_attribute_table(self.subsec_name_agrc)
         fields_req = ["apply_vegetarian_exchange_scalar", "rice_category"]
         self._check_binary_fields(
-            attr, self.subsec_name_agrc, ["apply_vegetarian_exchange_scalar"],
+            attr,
+            self.subsec_name_agrc,
+            ["apply_vegetarian_exchange_scalar"],
         )
         self._check_binary_fields(
-            attr, self.subsec_name_agrc, ["rice_category"], force_sum_to_one=True,
+            attr,
+            self.subsec_name_agrc,
+            ["rice_category"],
+            force_sum_to_one=True,
         )
 
         # next, check the crosswalk for correct specification of soil management categories
@@ -1655,7 +1694,10 @@ class ModelAttributes:
 
         # check numeric field
         self._check_numeric_fields(
-            attr, subsec, ["minimum_charge_fraction"], check_bounds=(0, 1),
+            attr,
+            subsec,
+            ["minimum_charge_fraction"],
+            check_bounds=(0, 1),
         )
 
         # check storage/technology crosswalk
@@ -1696,7 +1738,8 @@ class ModelAttributes:
         """
         # some shared values
         pycat_enfu = self.get_subsector_attribute(
-            self.subsec_name_enfu, "pycategory_primary",
+            self.subsec_name_enfu,
+            "pycategory_primary",
         )
         subsec = self.subsec_name_entc
         attr = self.get_attribute_table(subsec)
@@ -1720,7 +1763,11 @@ class ModelAttributes:
         # check required fields - numeric
         fields_req_num = ["operational_life"]
         self._check_numeric_fields(
-            attr, subsec, fields_req_num, integer_q=False, nonnegative_q=True,
+            attr,
+            subsec,
+            fields_req_num,
+            integer_q=False,
+            nonnegative_q=True,
         )
 
         # check technology/fuel crosswalks
@@ -1804,10 +1851,12 @@ class ModelAttributes:
         """Check that the land use attribute tables are specified correctly."""
         # specify some generic variables
         catstr_forest = self.get_subsector_attribute(
-            self.subsec_name_frst, "pycategory_primary",
+            self.subsec_name_frst,
+            "pycategory_primary",
         )
         catstr_landuse = self.get_subsector_attribute(
-            self.subsec_name_lndu, "pycategory_primary",
+            self.subsec_name_lndu,
+            "pycategory_primary",
         )
         attribute_forest = self.dict_attributes[catstr_forest]
         attribute_landuse = self.dict_attributes[catstr_landuse]
@@ -1854,21 +1903,29 @@ class ModelAttributes:
             "wetlands_category",
         ]
         self._check_binary_fields(
-            attribute_landuse, self.subsec_name_lndu, fields_req_bin, force_sum_to_one=1,
+            attribute_landuse,
+            self.subsec_name_lndu,
+            fields_req_bin,
+            force_sum_to_one=1,
         )
         # check
         fields_req_bin = ["reallocation_transition_probability_exhaustion_category"]
         self._check_binary_fields(
-            attribute_landuse, self.subsec_name_lndu, fields_req_bin, force_sum_to_one=0,
+            attribute_landuse,
+            self.subsec_name_lndu,
+            fields_req_bin,
+            force_sum_to_one=0,
         )
 
         # check to ensure that source categories for mineralization in soil management are specified properly
         field_mnrl = "mineralization_in_land_use_conversion_to_managed"
         cats_crop = self.get_categories_from_attribute_characteristic(
-            self.subsec_name_lndu, {"crop_category": 1},
+            self.subsec_name_lndu,
+            {"crop_category": 1},
         )
         cats_mnrl = self.get_categories_from_attribute_characteristic(
-            self.subsec_name_lndu, {field_mnrl: 1},
+            self.subsec_name_lndu,
+            {field_mnrl: 1},
         )
         if len(set(cats_crop) & set(cats_mnrl)) > 0:
             raise ValueError(
@@ -1905,7 +1962,10 @@ class ModelAttributes:
             "secondary_forest_category",
         ]
         self._check_binary_fields(
-            attribute_forest, self.subsec_name_frst, fields_req_bin, force_sum_to_one=1,
+            attribute_forest,
+            self.subsec_name_frst,
+            fields_req_bin,
+            force_sum_to_one=1,
         )
 
     ##  check the livestock manure management attribute table
@@ -2106,7 +2166,8 @@ class ModelAttributes:
             set(self.all_dims),
         ):
             missing_vals = sf.print_setdiff(
-                set(self.sort_ordered_dimensions_of_analysis), set(self.all_dims),
+                set(self.sort_ordered_dimensions_of_analysis),
+                set(self.all_dims),
             )
             raise ValueError(
                 f"Missing specification of required dimensions of analysis: no attribute tables for dimensions {missing_vals} found in directory '{self.attribute_directory}'.",
@@ -2805,7 +2866,8 @@ class ModelAttributes:
         * n is the number of defined time periods
         """
         pydim_time_period = self.get_dimensional_attribute(
-            self.dim_time_period, "pydim",
+            self.dim_time_period,
+            "pydim",
         )
         time_periods = self.dict_attributes[pydim_time_period].key_values
 
@@ -2819,7 +2881,8 @@ class ModelAttributes:
         SISEPUEDE. Returns None if no years are defined.
         """
         pydim_time_period = self.get_dimensional_attribute(
-            self.dim_time_period, "pydim",
+            self.dim_time_period,
+            "pydim",
         )
         attr_tp = self.dict_attributes[pydim_time_period]
 
@@ -3503,7 +3566,8 @@ class ModelAttributes:
         mass = self.get_variable_characteristic(modvar, self.varchar_str_unit_mass)
         scalar_mass = 1 if not mass else self.get_mass_equivalent(mass.lower())
         monetary = self.get_variable_characteristic(
-            modvar, self.varchar_str_unit_monetary,
+            modvar,
+            self.varchar_str_unit_monetary,
         )
         scalar_monetary = (
             1 if not monetary else self.get_monetary_equivalent(monetary.lower())
@@ -3679,7 +3743,9 @@ class ModelAttributes:
             df_ext = None
             try:
                 df_ext = self.get_optional_or_integrated_standard_variable(
-                    df_source, var_int, None,
+                    df_source,
+                    var_int,
+                    None,
                 )
             except Exception as e:
                 if stop_on_error:
@@ -3794,7 +3860,8 @@ class ModelAttributes:
             for var in vars_subsec:
                 var_type = self.get_variable_attribute(var, "variable_type").lower()
                 gas = self.get_variable_characteristic(
-                    var, self.varchar_str_emission_gas,
+                    var,
+                    self.varchar_str_emission_gas,
                 )
 
                 if (var_type == "output") and gas:
@@ -3866,7 +3933,8 @@ class ModelAttributes:
         )
 
         key_attr = self.get_dimensional_attribute(
-            self.dim_time_period, return_type="pydim",
+            self.dim_time_period,
+            return_type="pydim",
         )
         attribute_time_period = self.dict_attributes[key_attr]
 
@@ -3936,7 +4004,8 @@ class ModelAttributes:
         if include_scalars:
             # get scalars
             gas = self.get_variable_characteristic(
-                modvar, self.varchar_str_emission_gas,
+                modvar,
+                self.varchar_str_emission_gas,
             )
             mass = self.get_variable_characteristic(modvar, self.varchar_str_unit_mass)
 
@@ -4013,7 +4082,8 @@ class ModelAttributes:
 
         # retrieve the attribute table and check the field specification
         attr_subsector = self.get_attribute_table(
-            subsector, dict_valid_types_to_attribute_keys[type_table],
+            subsector,
+            dict_valid_types_to_attribute_keys[type_table],
         )
         sf.check_fields(attr_subsector.table, [field_attribute])
 
@@ -4093,10 +4163,12 @@ class ModelAttributes:
             for subsector in subsectors_cur:
                 for variable in self.dict_model_variables_by_subsector[subsector]:
                     variable_type = self.get_variable_attribute(
-                        variable, "variable_type",
+                        variable,
+                        "variable_type",
                     )
                     variable_calculation = self.get_variable_attribute(
-                        variable, "internal_model_variable",
+                        variable,
+                        "internal_model_variable",
                     )
 
                     # check that variables are input/not calculated internally
@@ -4488,7 +4560,8 @@ class ModelAttributes:
                 else restrict_to_category_values
             )
         valid_cats = self.check_category_restrictions(
-            restrict_to_category_values, attribute_table,
+            restrict_to_category_values,
+            attribute_table,
         )
 
         ##  START BUILDING VARLIST
@@ -4562,10 +4635,14 @@ class ModelAttributes:
 
         if len(dict_vrp_vvs_outer) > 0:
             vl = self.build_vars_outer(
-                dict_vrp_vvs_outer, dict_vrp_vvs_cats_outer, category,
+                dict_vrp_vvs_outer,
+                dict_vrp_vvs_cats_outer,
+                category,
             )
             vars_out += self.build_vars_outer(
-                dict_vrp_vvs_outer, dict_vrp_vvs_cats_outer, category,
+                dict_vrp_vvs_outer,
+                dict_vrp_vvs_cats_outer,
+                category,
             )
 
         return vars_out
@@ -4928,7 +5005,8 @@ class ModelAttributes:
         elif isinstance(sectors_project, str):
             list_out = sectors_project.split(delim)
         elif isinstance(sectors_project, list) or isinstance(
-            sectors_project, np.ndarray,
+            sectors_project,
+            np.ndarray,
         ):
             list_out = list(sectors_project)
 
@@ -5205,7 +5283,9 @@ class ModelAttributes:
         if expand_to_all_cats:
             out = np.array([out]).transpose() if (len(out.shape) == 1) else out
             out = self.merge_array_var_partial_cat_to_array_all_cats(
-                np.array(out), modvar, missing_vals=all_cats_missing_val,
+                np.array(out),
+                modvar,
+                missing_vals=all_cats_missing_val,
             )
             if return_type == "data_frame":
                 sec = self.get_variable_subsector(modvar)
@@ -5302,7 +5382,8 @@ class ModelAttributes:
             variable
         ]
         key_varreqs = self.get_subsector_attribute(
-            subsector, f"key_varreqs_{cat_restriction_type}",
+            subsector,
+            f"key_varreqs_{cat_restriction_type}",
         )
         key_fm = f"variable_to_{attribute}"
 
@@ -5880,13 +5961,15 @@ class ModelAttributes:
         sf.check_keys(self.dict_model_variable_to_subsector, [target_variable])
         target_subsector = self.dict_model_variable_to_subsector.get(target_variable)
         pycat_primary_source = self.get_subsector_attribute(
-            source_subsector, "pycategory_primary",
+            source_subsector,
+            "pycategory_primary",
         )
 
         if dict_force_override is None:
             key_dict = f"{pycat_primary_source}_to_{attribute_field}"
             sf.check_keys(
-                self.dict_attributes[pycat_primary_source].field_maps, [key_dict],
+                self.dict_attributes[pycat_primary_source].field_maps,
+                [key_dict],
             )
             dict_repl = self.dict_attributes[pycat_primary_source].field_maps[key_dict]
         else:
@@ -5896,7 +5979,8 @@ class ModelAttributes:
             self.dict_attributes[pycat_primary_source].key_values
             if cats_to_switch is None
             else self.check_category_restrictions(
-                cats_to_switch, self.dict_attributes.get(pycat_primary_source),
+                cats_to_switch,
+                self.dict_attributes.get(pycat_primary_source),
             )
         )
         cats_target = [dict_repl[x].replace("`", "") for x in cats_all]
@@ -5938,7 +6022,9 @@ class ModelAttributes:
 
         # get the variable list, check, and add to output
         fields_sum = self.build_varlist(
-            subsector, variable_subsec=variable, restrict_to_category_values=sum_cvs,
+            subsector,
+            variable_subsec=variable,
+            restrict_to_category_values=sum_cvs,
         )
 
         # check return types
@@ -5988,7 +6074,10 @@ class ModelAttributes:
                 # get emissions factor fields and apply scalar using get_standard_variables - then, scale to ensure it is in the proper terms of the driver
                 arr_ef = np.array(
                     self.get_standard_variables(
-                        df_ef, var, True, "array_units_corrected",
+                        df_ef,
+                        var,
+                        True,
+                        "array_units_corrected",
                     ),
                 )
                 try:
@@ -5996,7 +6085,9 @@ class ModelAttributes:
                         scale_factor
                         if (scale_factor is not None)
                         else self.get_variable_unit_conversion_factor(
-                            variable_driver, var, driver_unit_type,
+                            variable_driver,
+                            var,
+                            driver_unit_type,
                         )
                     )
                 except:
@@ -6007,7 +6098,8 @@ class ModelAttributes:
                     np.array(
                         df_driver[
                             self.build_target_varlist_from_source_varcats(
-                                var, variable_driver,
+                                var,
+                                variable_driver,
                             )
                         ],
                     )

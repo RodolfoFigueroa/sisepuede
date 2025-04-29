@@ -491,7 +491,8 @@ class TransformationsIntegrated:
                 regex_template_prepend=regex_template_prepend,
             )
             self._log(
-                "Successfully initialized SISEPUEDEFileStructure.", type_log="info",
+                "Successfully initialized SISEPUEDEFileStructure.",
+                type_log="info",
             )
 
         except Exception as e:

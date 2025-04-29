@@ -211,7 +211,8 @@ class SISEPUEDEModels:
 
         try:
             self.fp_nemomod_reference_files = sf.check_path(
-                fp_nemomod_reference_files, False,
+                fp_nemomod_reference_files,
+                False,
             )
             self.allow_electricity_run = allow_electricity_run
 
@@ -436,7 +437,9 @@ class SISEPUEDEModels:
         df_input_data: pd.DataFrame,
         check_results: bool = True,
         fields_check: Union[
-            List[str], str, None,
+            List[str],
+            str,
+            None,
         ] = "emissions_output_subsector_aggregate",
         include_electricity_in_energy: bool = True,
         models_run: Union[List[str], None] = None,
@@ -551,14 +554,17 @@ class SISEPUEDEModels:
                 df_return = (
                     [
                         sf.merge_output_df_list(
-                            df_return, self.model_attributes, merge_type="concatenate",
+                            df_return,
+                            self.model_attributes,
+                            merge_type="concatenate",
                         ),
                     ]
                     if run_integrated
                     else df_return
                 )
                 self._log(
-                    "CircularEconomy model run successfully completed", type_log="info",
+                    "CircularEconomy model run successfully completed",
+                    type_log="info",
                 )
 
             except Exception as e:
@@ -580,7 +586,9 @@ class SISEPUEDEModels:
                 df_return = (
                     [
                         sf.merge_output_df_list(
-                            df_return, self.model_attributes, merge_type="concatenate",
+                            df_return,
+                            self.model_attributes,
+                            merge_type="concatenate",
                         ),
                     ]
                     if run_integrated
@@ -611,7 +619,9 @@ class SISEPUEDEModels:
                 df_return = (
                     [
                         sf.merge_output_df_list(
-                            df_return, self.model_attributes, merge_type="concatenate",
+                            df_return,
+                            self.model_attributes,
+                            merge_type="concatenate",
                         ),
                     ]
                     if run_integrated
@@ -663,7 +673,9 @@ class SISEPUEDEModels:
                 df_return = (
                     [
                         sf.merge_output_df_list(
-                            df_return, self.model_attributes, merge_type="concatenate",
+                            df_return,
+                            self.model_attributes,
+                            merge_type="concatenate",
                         ),
                     ]
                     if run_integrated
@@ -707,7 +719,9 @@ class SISEPUEDEModels:
                 df_return = (
                     [
                         sf.merge_output_df_list(
-                            df_return, self.model_attributes, merge_type="concatenate",
+                            df_return,
+                            self.model_attributes,
+                            merge_type="concatenate",
                         ),
                     ]
                     if run_integrated
@@ -741,7 +755,9 @@ class SISEPUEDEModels:
                 df_return = (
                     [
                         sf.merge_output_df_list(
-                            df_return, self.model_attributes, merge_type="concatenate",
+                            df_return,
+                            self.model_attributes,
+                            merge_type="concatenate",
                         ),
                     ]
                     if run_integrated

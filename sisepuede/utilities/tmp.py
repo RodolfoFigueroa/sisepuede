@@ -43,7 +43,6 @@ def breadth_first_traverse(
             queue.push(node.right)
 
 
-
 def bfs_graph(
     graph: Graph,
 ):
@@ -61,7 +60,6 @@ def bfs_graph(
             if not seen[j]:
                 seen[j] = 1
                 queue.push(j)
-
 
 
 def dfs_graph_recursive(

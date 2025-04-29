@@ -2600,7 +2600,8 @@ def overwrite_df_nas_from_source(
 
     """
     if not isinstance(df_source, pd.DataFrame) or not isinstance(
-        df_target, pd.DataFrame,
+        df_target,
+        pd.DataFrame,
     ):
         return df_target
 

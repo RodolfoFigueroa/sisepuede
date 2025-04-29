@@ -1013,7 +1013,8 @@ class SISEPUEDE:
         strategy = dict_primary_keys.get(self.key_strategy)
 
         df_lhs_l, df_lhs_x = lhs_design_cur.retrieve_lhs_tables_by_design(
-            design, return_type=pd.DataFrame,
+            design,
+            return_type=pd.DataFrame,
         )
 
         # reduce lhs tables - LEs
@@ -1376,7 +1377,8 @@ class SISEPUEDE:
         for region in self.regions:
             lhsd = self.experimental_manager.dict_lhs_design.get(region)
             df_lhs_l, df_lhs_x = lhsd.retrieve_lhs_tables_by_design(
-                None, return_type=pd.DataFrame,
+                None,
+                return_type=pd.DataFrame,
             )
             region_out = self.get_output_region(region)
 
@@ -1502,7 +1504,8 @@ class SISEPUEDE:
             ##  GET LHS TABLES AND FILTER
 
             df_lhs_l, df_lhs_x = lhs_design_cur.retrieve_lhs_tables_by_design(
-                design, return_type=pd.DataFrame,
+                design,
+                return_type=pd.DataFrame,
             )
 
             # reduce lhs tables - LEs

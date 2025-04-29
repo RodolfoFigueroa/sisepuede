@@ -460,7 +460,8 @@ class SamplingUnit:
             for df in dfs_ids_intersect:
                 index, df = df
                 tups_add += sf.df_to_tuples(
-                    df[fields_id], nan_to_none=True,
+                    df[fields_id],
+                    nan_to_none=True,
                 )  # [tuple(x) for x in np.array(df[fields_id])]
             tups_id = tups_id & set(tups_add)
 
@@ -583,7 +584,9 @@ class SamplingUnit:
         self.uncertainty_fan_function_type = None
         self.uncertainty_ramp_vector = None
         self.valid_fan_type_strs = self.get_f_fan_function_parameter_defaults(
-            0, "", return_type="keys",
+            0,
+            "",
+            return_type="keys",
         )
 
         default_fan_type = (
@@ -619,7 +622,9 @@ class SamplingUnit:
                 else fan_type
             )
             params = self.get_f_fan_function_parameter_defaults(
-                n_uncertain, fan_type, return_type="params",
+                n_uncertain,
+                fan_type,
+                return_type="params",
             )
 
         # build ramp vector
@@ -852,7 +857,8 @@ class SamplingUnit:
 
             dict_ordered_traj_arrays[tup_vvt][ind_id, :] = arr_time_periods[i, :]
             dict_ordered_traj_arrays_by_ans[id_strat][ind_ans, :] = arr_time_periods[
-                i, :,
+                i,
+                :,
             ]
             dict_ordered_vec_max_scalars[tup_vvt][ind_id] = vec_max_scalar[i]
             dict_ordered_vec_min_scalars[tup_vvt][ind_id] = vec_min_scalar[i]
@@ -954,7 +960,8 @@ class SamplingUnit:
         # some cleaning
         df_out = df_in.drop_duplicates() if drop_duplicates else df_in
         df_out[field_req_variable_trajectory_group_trajectory_type].replace(
-            {np.nan: None}, inplace=True,
+            {np.nan: None},
+            inplace=True,
         )
 
         return df_out
@@ -1602,10 +1609,12 @@ class SamplingUnit:
         vec_base = 1 - vec_unif_scalar
         if max(vec_unif_scalar) > 0:
             vec_max_scalar = self.ordered_by_ota_from_fid_dict(
-                dict_var_info.get("max_scalar"), vs_tuple,
+                dict_var_info.get("max_scalar"),
+                vs_tuple,
             )
             vec_min_scalar = self.ordered_by_ota_from_fid_dict(
-                dict_var_info.get("min_scalar"), vs_tuple,
+                dict_var_info.get("min_scalar"),
+                vs_tuple,
             )
             vec_unif_scalar = (
                 vec_unif_scalar
@@ -2348,7 +2357,8 @@ class FutureTrajectories:
         df_in = pd.concat(
             [
                 df_in.drop(
-                    [field_variable_trajgroup, field_variable_trajgroup_type], axis=1,
+                    [field_variable_trajgroup, field_variable_trajgroup_type],
+                    axis=1,
                 ),
                 df_add,
             ],
@@ -2508,16 +2518,20 @@ class FutureTrajectories:
         # get some key fields for defining sampling units
         field_time_period = kwargs.get("field_time_period", self.field_time_period)
         field_uniform_scaling_q = kwargs.get(
-            "field_uniform_scaling_q", self.field_uniform_scaling_q,
+            "field_uniform_scaling_q",
+            self.field_uniform_scaling_q,
         )
         field_trajgroup_no_vary_q = kwargs.get(
-            "field_trajgroup_no_vary_q", self.field_trajgroup_no_vary_q,
+            "field_trajgroup_no_vary_q",
+            self.field_trajgroup_no_vary_q,
         )
         field_variable_trajgroup = kwargs.get(
-            "field_variable_trajgroup", self.field_variable_trajgroup,
+            "field_variable_trajgroup",
+            self.field_variable_trajgroup,
         )
         field_variable_trajgroup_type = kwargs.get(
-            "field_variable_trajgroup_type", self.field_variable_trajgroup_type,
+            "field_variable_trajgroup_type",
+            self.field_variable_trajgroup_type,
         )
         field_variable = kwargs.get("field_variable", self.field_variable)
         key_strategy = kwargs.get("key_strategy", self.key_strategy)
@@ -2618,7 +2632,8 @@ class FutureTrajectories:
 
         t_elapse = sf.get_time_elapsed(t0)
         self._log(
-            f"\t{n_sg} sampling units complete in {t_elapse} seconds.", type_log="info",
+            f"\t{n_sg} sampling units complete in {t_elapse} seconds.",
+            type_log="info",
         )
 
         ##  SET PROPERTIES

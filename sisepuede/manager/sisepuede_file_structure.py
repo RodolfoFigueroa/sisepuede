@@ -543,19 +543,22 @@ class SISEPUEDEFileStructure:
             fp_log_default = os.path.join(dir_base_output_raw, fbn_log)
             # output path to store model_attributes pickle, including configuration parameters etc.
             fp_pkl_model_attributes_archive = os.path.join(
-                dir_base_output_raw, fn_output_pkl,
+                dir_base_output_raw,
+                fn_output_pkl,
             )
 
         ##  OTHER FILES
 
         # SQLite Database location for intermediate NemoMod calculations
         fp_sqlite_tmp_nemomod_intermediate = os.path.join(
-            self.dir_tmp, "nemomod_intermediate_database.sqlite",
+            self.dir_tmp,
+            "nemomod_intermediate_database.sqlite",
         )
 
         # file storing optional exogenous XL types for variable specifications
         fp_variable_specification_xl_types = os.path.join(
-            self.dir_ref, "variable_specification_xl_types.csv",
+            self.dir_ref,
+            "variable_specification_xl_types.csv",
         )
 
         ##  ASSIGN PROPERTIES
@@ -592,7 +595,8 @@ class SISEPUEDEFileStructure:
         create_from_id &= not from_existing
         if create_from_id:
             model_attributes = ma.ModelAttributes(
-                self.dir_attribute_tables, self.fp_config,
+                self.dir_attribute_tables,
+                self.fp_config,
             )
             (
                 self._write_model_attributes_to_pickle(model_attributes)

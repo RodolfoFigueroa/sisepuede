@@ -2032,7 +2032,8 @@ class AWSManager:
     ) -> str:
         """Get the component of the analysis id that is prepended to runs"""
         id_prependage = self.file_struct.regex_template_analysis_id.pattern.replace(
-            "(.+$)", "",
+            "(.+$)",
+            "",
         )
         id_str = self.file_struct.id
 
@@ -2285,7 +2286,8 @@ class AWSManager:
             return address_out
 
         address_out = os.path.join(
-            self.s3p_athena_queries, f"{address_out}.csv",
+            self.s3p_athena_queries,
+            f"{address_out}.csv",
         )  # HEREHERE
 
         return address_out
@@ -2969,7 +2971,8 @@ class AWSManager:
     def build_experiment(
         self,
         dict_experimental_components: Union[
-            Dict[str, Union[Dict[str, List[int]], List[int]]], None,
+            Dict[str, Union[Dict[str, List[int]], List[int]]],
+            None,
         ] = None,
         regex_config_parts: Union[re.Pattern, None] = None,
         return_type: str = "list",
@@ -3382,7 +3385,8 @@ class AWSManager:
         self,
         delim: str = ",",
         dict_experimental_components: Union[
-            Dict[str, Union[Dict[str, List[int]], List[int]]], None,
+            Dict[str, Union[Dict[str, List[int]], List[int]]],
+            None,
         ] = None,
         regex_config_parts: Union[re.Pattern, None] = None,
     ) -> Union[Dict[str, int], None]:
@@ -3564,7 +3568,8 @@ class AWSManager:
 
         for region in regions:
             region_name = self.regions.return_region_or_iso(
-                region, return_type="region",
+                region,
+                return_type="region",
             )
             region_iso = self.regions.return_region_or_iso(region, return_type="iso")
 
@@ -3637,7 +3642,8 @@ class AWSManager:
             max_n_instances,
         )
         base_n_regions_per_instance, n_instances_w_extra_region = sf.div_with_modulo(
-            n_regions, n_instances,
+            n_regions,
+            n_instances,
         )
         base_n_regions_per_instance = max(base_n_regions_per_instance, 1)
 
@@ -3670,7 +3676,8 @@ class AWSManager:
         ##  ASSIGN INSTANCES
 
         base_n_instances_per_rg, n_rg_w_extra_instances = sf.div_with_modulo(
-            n_instances, n_region_groups,
+            n_instances,
+            n_region_groups,
         )
 
         # get keys to assign extra instances to (sorted from largest to leas)
@@ -3694,7 +3701,8 @@ class AWSManager:
 
             # now, split up primary keys
             base_n_keys_per_instance, n_instances_with_extra_keys = sf.div_with_modulo(
-                n_primary_keys, n_instances_cur_group,
+                n_primary_keys,
+                n_instances_cur_group,
             )
 
             # some iterators - note, ind_launch_index should be outside the assignment queue

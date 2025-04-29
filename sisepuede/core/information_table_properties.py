@@ -95,7 +95,8 @@ def build_emissions_information_table(
             )
             sector = model_attributes.get_subsector_attribute(subsec, "sector")
             pycat_primary = model_attributes.get_subsector_attribute(
-                subsec, "pycategory_primary_element",
+                subsec,
+                "pycategory_primary_element",
             )
 
             # fields and categories
@@ -189,7 +190,8 @@ def build_variable_information_table(
     # loop over available modvars
     for modvar in modvars:
         gas = model_attributes.get_variable_characteristic(
-            modvar, model_attributes.varchar_str_emission_gas,
+            modvar,
+            model_attributes.varchar_str_emission_gas,
         )
         gas_name = dict_gas_to_name.get(gas)
         gas = "" if (gas is None) else gas
@@ -199,7 +201,8 @@ def build_variable_information_table(
         subsec = model_attributes.get_variable_subsector(modvar)
         sector = model_attributes.get_subsector_attribute(subsec, "sector")
         pycat_primary = model_attributes.get_subsector_attribute(
-            subsec, "pycategory_primary_element",
+            subsec,
+            "pycategory_primary_element",
         )
 
         # fields and categories

@@ -635,10 +635,12 @@ class Strategies:
         """
         # check from keyword arguments
         field_baseline = kwargs.get(
-            "field_baseline_strategy", _DICT_KEYS.get("baseline"),
+            "field_baseline_strategy",
+            _DICT_KEYS.get("baseline"),
         )
         field_description = kwargs.get(
-            "field_description", _DICT_KEYS.get("description"),
+            "field_description",
+            _DICT_KEYS.get("description"),
         )
         field_strategy_code = kwargs.get("field_strategy_code", _DICT_KEYS.get("code"))
         field_strategy_name = kwargs.get("field_strategy_name", _DICT_KEYS.get("name"))

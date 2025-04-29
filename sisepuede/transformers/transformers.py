@@ -2183,13 +2183,16 @@ class Transformers:
             else:
                 i0 = i if (i0 is None) else i0
                 vec_implementation_ramp_max_capacity[i] = max(
-                    max_frac - delta_frac * (i - i0), 0.0,
+                    max_frac - delta_frac * (i - i0),
+                    0.0,
                 )
 
         if isinstance(dict_values_to_inds, dict):
             for k in dict_values_to_inds.keys():
                 np.put(
-                    vec_implementation_ramp_max_capacity, dict_values_to_inds.get(k), k,
+                    vec_implementation_ramp_max_capacity,
+                    dict_values_to_inds.get(k),
+                    k,
                 )
 
         return vec_implementation_ramp_max_capacity
@@ -5037,7 +5040,8 @@ class Transformers:
 
         elif sf.isnumber(frac_high_given_high):
             frac_high_given_high = self.bounded_real_magnitude(
-                frac_high_given_high, 0.5,
+                frac_high_given_high,
+                0.5,
             )
             frac_high_given_high = dict(
                 (k, frac_high_given_high) for k in dict_frac_high_given_high_def.keys()

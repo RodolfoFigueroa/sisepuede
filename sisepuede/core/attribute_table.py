@@ -160,7 +160,10 @@ class AttributeTable:
         # clear RST formatting in the table if applicable
         if table[key].dtype in [object, str]:
             table[key] = np.array(
-                [sf.str_replace(str(x), {"`": "", r"\$": ""}) for x in list(table[key])],
+                [
+                    sf.str_replace(str(x), {"`": "", r"\$": ""})
+                    for x in list(table[key])
+                ],
             ).astype(str)
 
         # set all keys

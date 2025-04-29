@@ -468,13 +468,15 @@ class ModelAttributes:
 
             if self.substr_analytical_parameters in att:
                 attribute_analytical_parameters = AttributeTable(
-                    fp, "analytical_parameter",
+                    fp,
+                    "analytical_parameter",
                 )
                 continue
 
             if self.substr_experimental_parameters in att:
                 attribute_experimental_parameters = AttributeTable(
-                    fp, "experimental_parameter",
+                    fp,
+                    "experimental_parameter",
                 )
                 continue
 
@@ -1648,10 +1650,15 @@ class ModelAttributes:
         attr = self.get_attribute_table(self.subsec_name_agrc)
         fields_req = ["apply_vegetarian_exchange_scalar", "rice_category"]
         self._check_binary_fields(
-            attr, self.subsec_name_agrc, ["apply_vegetarian_exchange_scalar"],
+            attr,
+            self.subsec_name_agrc,
+            ["apply_vegetarian_exchange_scalar"],
         )
         self._check_binary_fields(
-            attr, self.subsec_name_agrc, ["rice_category"], force_sum_to_one=True,
+            attr,
+            self.subsec_name_agrc,
+            ["rice_category"],
+            force_sum_to_one=True,
         )
 
         # next, check the crosswalk for correct specification of soil management categories
@@ -1776,7 +1783,8 @@ class ModelAttributes:
         """
         # some shared values
         pycat_enfu = self.get_subsector_attribute(
-            self.subsec_name_enfu, "pycategory_primary_element",
+            self.subsec_name_enfu,
+            "pycategory_primary_element",
         )
         subsec = self.subsec_name_entc
         attr = self.get_attribute_table(subsec)
@@ -4430,7 +4438,8 @@ class ModelAttributes:
 
         if return_type == "energy":
             energy = self.get_variable_characteristic(
-                modvar, self.varchar_str_unit_energy,
+                modvar,
+                self.varchar_str_unit_energy,
             )
             scalar_out *= (
                 self.get_energy_equivalent(energy.lower())
@@ -4443,13 +4452,15 @@ class ModelAttributes:
             "total",
         ]:  # total is used for scaling gas & mass to co2e in proper units
             gas = self.get_variable_characteristic(
-                modvar, self.varchar_str_emission_gas,
+                modvar,
+                self.varchar_str_emission_gas,
             )
             scalar_out *= self.get_gwp(gas.lower()) if isinstance(gas, str) else 1
 
         if return_type == "length":
             length = self.get_variable_characteristic(
-                modvar, self.varchar_str_unit_length,
+                modvar,
+                self.varchar_str_unit_length,
             )
             scalar_out *= (
                 self.get_length_equivalent(length.lower())
@@ -4468,7 +4479,8 @@ class ModelAttributes:
 
         if return_type == "monetary":
             monetary = self.get_variable_characteristic(
-                modvar, self.varchar_str_unit_monetary,
+                modvar,
+                self.varchar_str_unit_monetary,
             )
             scalar_out *= (
                 self.get_monetary_equivalent(monetary.lower())
@@ -4478,7 +4490,8 @@ class ModelAttributes:
 
         if return_type == "power":
             power = self.get_variable_characteristic(
-                modvar, self.varchar_str_unit_power,
+                modvar,
+                self.varchar_str_unit_power,
             )
             scalar_out *= (
                 self.get_power_equivalent(power.lower())
@@ -4488,7 +4501,8 @@ class ModelAttributes:
 
         if return_type == "volume":
             volume = self.get_variable_characteristic(
-                modvar, self.varchar_str_unit_volume,
+                modvar,
+                self.varchar_str_unit_volume,
             )
             scalar_out *= (
                 self.get_volume_equivalent(volume.lower())
@@ -4823,7 +4837,8 @@ class ModelAttributes:
             for var in vars_subsec:
                 var_type = self.get_variable_attribute(var, "variable_type").lower()
                 gas = self.get_variable_characteristic(
-                    var, self.varchar_str_emission_gas,
+                    var,
+                    self.varchar_str_emission_gas,
                 )
 
                 if (var_type == "output") and gas:
@@ -4975,7 +4990,8 @@ class ModelAttributes:
         if include_scalars:
             # get scalars
             gas = self.get_variable_characteristic(
-                modvar, self.varchar_str_emission_gas,
+                modvar,
+                self.varchar_str_emission_gas,
             )
             mass = self.get_variable_characteristic(modvar, self.varchar_str_unit_mass)
 
@@ -5256,7 +5272,8 @@ class ModelAttributes:
                 for variable in self.dict_model_variables_by_subsector.get(subsector):
                     # skip non-input variables
                     variable_type = self.get_variable_attribute(
-                        variable, "variable_type",
+                        variable,
+                        "variable_type",
                     )
                     if variable_type.lower() != "input":
                         continue
@@ -5546,11 +5563,18 @@ class ModelAttributes:
     def build_variable_fields(
         self,
         variable_specification: Union[
-            mv.ModelVariable, str, List[mv.ModelVariable], List[str], None,
+            mv.ModelVariable,
+            str,
+            List[mv.ModelVariable],
+            List[str],
+            None,
         ],
         category_restrictions_as_full_spec: bool = False,
         restrict_to_category_values: Union[
-            Dict[str, List[str]], List[str], str, None,
+            Dict[str, List[str]],
+            List[str],
+            str,
+            None,
         ] = None,
         sort: bool = True,
         variable_type: Union[str, None] = None,
@@ -5726,7 +5750,11 @@ class ModelAttributes:
     def decompose_variable_specification(
         self,
         variable_specification: Union[
-            mv.ModelVariable, str, List[mv.ModelVariable], List[str], None,
+            mv.ModelVariable,
+            str,
+            List[mv.ModelVariable],
+            List[str],
+            None,
         ],
         return_type: str = "variable_name",
     ) -> Union[List[mv.ModelVariable], List[str], None]:
@@ -5829,10 +5857,12 @@ class ModelAttributes:
         # iterate over subsectors
         for subsector in subsectors_io:
             vars_subsector_in = self.build_variable_fields(
-                subsector, variable_type="input",
+                subsector,
+                variable_type="input",
             )
             vars_subsector_out = self.build_variable_fields(
-                subsector, variable_type="output",
+                subsector,
+                variable_type="output",
             )
 
             vars_in += vars_subsector_in
@@ -6050,7 +6080,8 @@ class ModelAttributes:
         elif isinstance(sectors_project, str):
             list_out = sectors_project.split(delim)
         elif isinstance(sectors_project, list) or isinstance(
-            sectors_project, np.ndarray,
+            sectors_project,
+            np.ndarray,
         ):
             list_out = list(sectors_project)
 

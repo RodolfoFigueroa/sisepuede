@@ -246,7 +246,6 @@ class TransformationsIntegrated:
         self.time_periods = time_periods
         self.regions = regions
 
-
     def _initialize_config(
         self,
         dict_config: Union[Dict[str, Any], None],
@@ -316,7 +315,6 @@ class TransformationsIntegrated:
         self.key_config_vir_renewable_cap_max_frac = "vir_renewable_cap_max_frac"
         self.key_config_year_0_ramp = "year_0_ramp"
 
-
     def _initialize_models(
         self,
         dir_jl: str,
@@ -347,7 +345,6 @@ class TransformationsIntegrated:
         self.model_afolu = model_afolu
         self.model_enerprod = model_enerprod
         self.model_enercons = model_enerprod.model_enercons
-
 
     def _initialize_parameters(
         self,
@@ -397,7 +394,6 @@ class TransformationsIntegrated:
         self.vir_renewable_cap_max_frac = vir_renewable_cap_max_frac
         self.year_0_ramp = year_0_ramp
 
-
     def _initialize_ramp(
         self,
     ) -> None:
@@ -426,7 +422,6 @@ class TransformationsIntegrated:
         self.vec_implementation_ramp_renewable_cap = (
             vec_implementation_ramp_renewable_cap
         )
-
 
     def _initialize_sectoral_transformations(
         self,
@@ -498,7 +493,6 @@ class TransformationsIntegrated:
         attr_strategy = self.attribute_strategy
         all_transformations = []
         dict_transformations = {}
-
 
         ##############
         #    CCSQ    #
@@ -727,13 +721,16 @@ class TransformationsIntegrated:
             else:
                 i0 = i if (i0 is None) else i0
                 vec_implementation_ramp_max_capacity[i] = max(
-                    max_frac - delta_frac * (i - i0), 0.0,
+                    max_frac - delta_frac * (i - i0),
+                    0.0,
                 )
 
         if isinstance(dict_values_to_inds, dict):
             for k in dict_values_to_inds.keys():
                 np.put(
-                    vec_implementation_ramp_max_capacity, dict_values_to_inds.get(k), k,
+                    vec_implementation_ramp_max_capacity,
+                    dict_values_to_inds.get(k),
+                    k,
                 )
 
         return vec_implementation_ramp_max_capacity
@@ -752,7 +749,6 @@ class TransformationsIntegrated:
 
         """
         sf._optional_log(self.logger, msg, type_log=type_log, **kwargs)
-
 
     ############################################
     ###                                      ###

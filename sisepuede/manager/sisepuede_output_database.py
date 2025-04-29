@@ -313,7 +313,8 @@ class SISEPUEDEOutputDatabase:
         logger: Union[logging.Logger, None] = None,
         dict_derivative_table_functions: Union[
             Dict[
-                str, Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]],
+                str,
+                Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]],
             ],
             None,
         ] = None,
@@ -511,7 +512,8 @@ class SISEPUEDEOutputDatabase:
         self,
         dict_derivative_table_functions: Union[
             Dict[
-                str, Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]],
+                str,
+                Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]],
             ],
             None,
         ],
@@ -717,7 +719,8 @@ class SISEPUEDEOutputDatabase:
         dict_all_tables: Union[Dict[str, Dict[str, Any]], None],
         dict_derivative_table_functions: Union[
             Dict[
-                str, Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]],
+                str,
+                Tuple[str, Callable[[ModelAttributes, pd.DataFrame], pd.DataFrame]],
             ],
             None,
         ],
