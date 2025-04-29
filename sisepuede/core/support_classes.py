@@ -75,7 +75,7 @@ class Regions:
         self,
         model_attributes: ModelAttributes,
         initialize_model_attributes: bool = False,
-        regex_region_groups: Union[re.Pattern, None] = re.compile("(.*)_region$"),
+        regex_region_groups: re.Pattern | None = re.compile("(.*)_region$"),
     ):
         self._initialize_region_properties(
             model_attributes,
@@ -149,7 +149,7 @@ class Regions:
         self,
         model_attributes: ModelAttributes,
         field_year: str = "year",
-        regex_region_groups: Union[re.Pattern, None] = re.compile("(.*)_region$"),
+        regex_region_groups: re.Pattern | None = re.compile("(.*)_region$"),
     ) -> None:
         """Set the following properties:
 
@@ -385,10 +385,10 @@ class Regions:
     def add_region_or_iso_field(
         self,
         df: pd.DataFrame,
-        field_iso: Union[str, None] = None,
-        field_region: Union[str, None] = None,
+        field_iso: str | None = None,
+        field_region: str | None = None,
         **kwargs,
-    ) -> Union[str, None]:
+    ) -> str | None:
         """Return region for region entered as region or ISO.
 
         Function Arguments
@@ -591,7 +591,7 @@ class Regions:
         merge_type: str = "inner",
         overwrite: bool = False,
         replace: bool = True,
-    ) -> Union[pd.DataFrame, None]:
+    ) -> pd.DataFrame | None:
         """Convert region code types. Valid input and output code types include:
 
         Function Arguments
@@ -712,9 +712,9 @@ class Regions:
     def extract_from_df(
         self,
         df: pd.DataFrame,
-        regions: Union[int, str, List[int], List[str], None],
+        regions: int | str | list[int] | list[str] | None,
         field_regions: str,
-    ) -> Union[str, None]:
+    ) -> pd.DataFrame | str | None:
         """Extract
 
         Function Arguments
