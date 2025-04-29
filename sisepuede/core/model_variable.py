@@ -7,7 +7,7 @@ LICENSE HERE
 
 import logging
 import re
-from typing import Any, override
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -177,7 +177,6 @@ class ModelVariable:
 
         return out
 
-    @override
     def __repr__(
         self,
     ) -> str:
